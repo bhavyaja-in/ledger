@@ -1,0 +1,33 @@
+database:
+  url: "sqlite:///financial_data.db"
+  test_prefix: "test_"
+
+processing:
+  # If true, skipped transactions will be shown again for reprocessing
+  # If false, skipped transactions will be automatically skipped (like processed transactions)
+  reprocess_skipped_transactions: false
+
+processors:
+  icici_bank:
+    extractor: "icici_bank_extractor"
+    transformer: "icici_bank_transformer"
+    file_type: "excel"
+    extraction_folder: "data/icici_bank"
+
+enums:
+  # Example enum structure - will be populated interactively
+  # salary_nagarro:
+  #   patterns: ["nagarro", "salary"]
+  #   category: "income"
+
+categories:
+  - name: "income"
+  - name: "food"
+  - name: "transport"
+  - name: "shopping"
+  - name: "entertainment"
+  - name: "utilities"
+  - name: "healthcare"
+  - name: "transfer"
+  - name: "investment"
+  - name: "other" 
