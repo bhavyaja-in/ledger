@@ -16,8 +16,8 @@ processors:
 
 enums:
   # Example enum structure - will be populated interactively
-  # salary_nagarro:
-  #   patterns: ["nagarro", "salary"]
+  # salary_company:
+  #   patterns: ["company", "salary"]
   #   category: "income"
 
 categories:

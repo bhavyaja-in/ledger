@@ -62,11 +62,11 @@ python src/handlers/main_handler.py --list-processors
 - **Example**: SWIGGY enum → "Food & Dining" category
 - **Storage**: Database table with display names and colors
 
-### Workflow Example:
-1. Transaction: "UPI-HIMANSHUJAIN-7665108881@paytm"
-2. User creates enum: "HIMANSHUJAIN" with pattern ["himanshujain", "7665108881"]
+### Example Workflow:
+1. Transaction: "UPI-JOHNSMITH-9876543210@paytm"
+2. User creates enum: "JOHNSMITH" with pattern ["johnsmith", "9876543210"]
 3. User assigns to category: "Friends"
-4. Future transactions with "himanshujain" auto-categorize as "Friends"
+4. Future transactions with "johnsmith" auto-categorize as "Friends"
 
 ## 🔧 Configuration
 

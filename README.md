@@ -23,7 +23,7 @@ A comprehensive Python-based financial data processing system that extracts, tra
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/giftwaala/ledger.git
+   git clone https://github.com/bhavyaja-in/ledger.git
    cd ledger
    ```
 
@@ -115,10 +115,10 @@ src/
 - **Customizable**: Add new categories on-the-fly during processing
 
 ### Example Workflow:
-1. Transaction: "UPI-HIMANSHUJAIN-7665108881@paytm"
-2. User creates enum: "HIMANSHUJAIN" with patterns ["himanshujain", "7665108881"]
+1. Transaction: "UPI-JOHNSMITH-9876543210@paytm"
+2. User creates enum: "JOHNSMITH" with patterns ["johnsmith", "9876543210"]
 3. User assigns to category: "Friends"
-4. Future transactions with "himanshujain" auto-categorize as "Friends"
+4. Future transactions with "johnsmith" auto-categorize as "Friends"
 
 ## 🔧 Configuration
 
