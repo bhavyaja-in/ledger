@@ -20,14 +20,5 @@ enums:
   #   patterns: ["company", "salary"]
   #   category: "income"
 
-categories:
-  - name: "income"
-  - name: "food"
-  - name: "transport"
-  - name: "shopping"
-  - name: "entertainment"
-  - name: "utilities"
-  - name: "healthcare"
-  - name: "transfer"
-  - name: "investment"
-  - name: "other" 
+# Categories are now loaded from config/categories.yaml
+# Copy config/categories.yaml.example to config/categories.yaml to customize your categories 

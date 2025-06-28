@@ -86,6 +86,7 @@ data/processed/
 # Configuration files with sensitive data
 config/secrets.yaml
 config/production.yaml
+config/categories.yaml  # Personal categories should not be committed
 .env.local
 .env.production
 

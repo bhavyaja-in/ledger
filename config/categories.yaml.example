@@ -1,0 +1,23 @@
+# Categories Configuration Template
+# Copy this file to 'categories.yaml' and customize with your personal categories
+# 
+# Usage: cp categories.yaml.example categories.yaml
+
+categories:
+  - name: "income"
+  - name: "food"
+  - name: "transport"
+  - name: "shopping"
+  - name: "entertainment"
+  - name: "utilities"
+  - name: "healthcare"
+  - name: "transfer"
+  - name: "investment"
+  - name: "other"
+  
+# You can add more categories like:
+# - name: "education"
+# - name: "travel"
+# - name: "subscriptions"
+# - name: "insurance"
+# - name: "gifts" 

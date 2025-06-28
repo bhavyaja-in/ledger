@@ -292,7 +292,7 @@ class MainHandler:
         transformer_class = getattr(module, class_name)
         
         # Create and use transformer
-        transformer = transformer_class(self.db_manager, self.config)
+        transformer = transformer_class(self.db_manager, self.config, self.config_loader)
         return transformer.process_transactions(extracted_data, institution, processed_file)
     
     def _get_or_create_institution(self, processor_type: str):

@@ -17,9 +17,10 @@ from src.loaders.database_loader import DatabaseLoader
 class IciciBankTransformer:
     """ICICI Bank transformer with interactive processing"""
     
-    def __init__(self, db_manager, config):
+    def __init__(self, db_manager, config, config_loader=None):
         self.db_manager = db_manager
         self.config = config
+        self.config_loader = config_loader
         self.db_loader = DatabaseLoader(db_manager)
         self.processor_type = "icici_bank"
         self._interrupted = False
@@ -508,11 +509,20 @@ class IciciBankTransformer:
                 # Check if category already exists
                 existing_categories = [cat['name'] for cat in self.config['categories']]
                 if category_name not in existing_categories:
-                    # Add new category to config
+                    # Add new category to config and save it
                     if 'categories' not in self.config:
                         self.config['categories'] = []
                     self.config['categories'].append({'name': category_name})
-                    print(f"✅ Created and selected new category: {category_name.title()}")
+                    
+                    # Save categories to separate file if config_loader is available
+                    if self.config_loader:
+                        try:
+                            self.config_loader.save_categories(self.config['categories'])
+                            print(f"✅ Created and saved new category: {category_name.title()}")
+                        except Exception as e:
+                            print(f"⚠️  Category created but couldn't save: {e}")
+                    else:
+                        print(f"✅ Created new category: {category_name.title()}")
                 else:
                     print(f"✅ Selected existing category: {category_name.title()}")
                 

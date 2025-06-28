@@ -38,7 +38,13 @@ A comprehensive Python-based financial data processing system that extracts, tra
    pip install -r requirements.txt
    ```
 
-4. **Initialize database**:
+4. **Setup categories configuration**:
+   ```bash
+   # Copy the categories template and customize
+   cp config/categories.yaml.example config/categories.yaml
+   ```
+
+5. **Initialize database**:
    ```bash
    # For testing (recommended for first run)
    python scripts/init_db.py --test-mode
@@ -122,7 +128,8 @@ src/
 
 ## 🔧 Configuration
 
-Edit `config/config.yaml` to customize:
+### Main Configuration
+Edit `config/config.yaml` to customize processors and general settings:
 
 ```yaml
 processors:
@@ -130,13 +137,27 @@ processors:
     name: "ICICI Bank"
     extraction_folder: "data/raw/icici_bank"
     file_types: ["xls", "xlsx"]
+```
 
+### Personal Categories
+Copy and customize `config/categories.yaml.example` to `config/categories.yaml`:
+
+```bash
+cp config/categories.yaml.example config/categories.yaml
+```
+
+Edit `config/categories.yaml` with your personal spending categories:
+
+```yaml
 categories:
   - name: "income"
   - name: "food"
   - name: "transport"
+  - name: "shopping"
   # Add more categories as needed
 ```
+
+**Note**: `config/categories.yaml` is git-ignored to keep your personal categories private.
 
 ## 🧪 Testing
 
