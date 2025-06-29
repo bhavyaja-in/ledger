@@ -103,20 +103,20 @@ class ConfigLoader:
             session.close()
 
     def _merge_categories(self, template_categories, database_categories):
-        """Merge template and database categories, removing duplicates"""
+        """Merge template and database categories, keeping template order first"""
         # Create a set of category names for deduplication
         all_category_names = set()
         merged_categories = []
         
-        # Add database categories first (they take precedence)
-        for category in database_categories:
+        # Add template categories first (maintain original order and numbering)
+        for category in template_categories:
             category_name = category['name'].lower()
             if category_name not in all_category_names:
                 all_category_names.add(category_name)
                 merged_categories.append(category)
         
-        # Add template categories that don't exist in database
-        for category in template_categories:
+        # Add new database categories that don't exist in template (at the end)
+        for category in database_categories:
             category_name = category['name'].lower()
             if category_name not in all_category_names:
                 all_category_names.add(category_name)
@@ -140,6 +140,38 @@ class ConfigLoader:
         except Exception as e:
             print(f"⚠️  Warning: Could not update categories file: {e}")
     
+    def add_category(self, category_name: str):
+        """Add a new category while maintaining proper order (template first, custom last)"""
+        category_name = category_name.lower().strip()
+        
+        # Check if category already exists
+        existing_categories = [cat['name'].lower() for cat in self._config.get('categories', [])]
+        if category_name in existing_categories:
+            return  # Category already exists
+        
+        # Reload template categories to ensure we have the base list
+        template_categories = self._load_template_categories()
+        template_names = [cat['name'].lower() for cat in template_categories]
+        
+        # Build new categories list: template first, then existing custom, then new custom
+        current_categories = self._config.get('categories', [])
+        new_categories = []
+        
+        # Add template categories in their original order
+        for template_cat in template_categories:
+            new_categories.append(template_cat)
+        
+        # Add existing custom categories that aren't in template
+        for current_cat in current_categories:
+            if current_cat['name'].lower() not in template_names:
+                new_categories.append(current_cat)
+        
+        # Add the new category at the end
+        new_categories.append({'name': category_name})
+        
+        # Save and update
+        self.save_categories(new_categories)
+
     def save_categories(self, categories: list):
         """Save categories to the separate categories file and refresh config"""
         categories_config = {'categories': categories}

@@ -506,25 +506,23 @@ class IciciBankTransformer:
             elif choice and len(choice) >= 2:
                 category_name = choice.lower()
                 
-                # Check if category already exists
-                existing_categories = [cat['name'] for cat in self.config['categories']]
-                if category_name not in existing_categories:
-                    # Add new category to config and save it
-                    if 'categories' not in self.config:
-                        self.config['categories'] = []
-                    self.config['categories'].append({'name': category_name})
-                    
-                    # Save categories to separate file if config_loader is available
-                    if self.config_loader:
-                        try:
-                            self.config_loader.save_categories(self.config['categories'])
-                            print(f"✅ Created and saved new enum category: {category_name.title()}")
-                        except Exception as e:
-                            print(f"⚠️  Enum category created but couldn't save: {e}")
-                    else:
-                        print(f"✅ Created new enum category: {category_name.title()}")
+                # Add new category using the proper method that maintains order
+                if self.config_loader:
+                    try:
+                        self.config_loader.add_category(category_name)
+                        print(f"✅ Created and saved new enum category: {category_name.title()}")
+                    except Exception as e:
+                        print(f"⚠️  Enum category created but couldn't save: {e}")
                 else:
-                    print(f"✅ Selected existing enum category: {category_name.title()}")
+                    # Fallback if no config_loader available
+                    existing_categories = [cat['name'].lower() for cat in self.config.get('categories', [])]
+                    if category_name not in existing_categories:
+                        if 'categories' not in self.config:
+                            self.config['categories'] = []
+                        self.config['categories'].append({'name': category_name})
+                        print(f"✅ Created new enum category: {category_name.title()}")
+                    else:
+                        print(f"✅ Selected existing enum category: {category_name.title()}")
                 
                 return category_name
             
@@ -568,25 +566,23 @@ class IciciBankTransformer:
             elif choice and len(choice) >= 2:
                 category_name = choice.lower()
                 
-                # Check if category already exists
-                existing_categories = [cat['name'] for cat in self.config['categories']]
-                if category_name not in existing_categories:
-                    # Add new category to config and save it
-                    if 'categories' not in self.config:
-                        self.config['categories'] = []
-                    self.config['categories'].append({'name': category_name})
-                    
-                    # Save categories to separate file if config_loader is available
-                    if self.config_loader:
-                        try:
-                            self.config_loader.save_categories(self.config['categories'])
-                            print(f"✅ Created and saved new transaction category: {category_name.title()}")
-                        except Exception as e:
-                            print(f"⚠️  Transaction category created but couldn't save: {e}")
-                    else:
-                        print(f"✅ Created new transaction category: {category_name.title()}")
+                # Add new category using the proper method that maintains order
+                if self.config_loader:
+                    try:
+                        self.config_loader.add_category(category_name)
+                        print(f"✅ Created and saved new transaction category: {category_name.title()}")
+                    except Exception as e:
+                        print(f"⚠️  Transaction category created but couldn't save: {e}")
                 else:
-                    print(f"✅ Selected existing transaction category: {category_name.title()}")
+                    # Fallback if no config_loader available
+                    existing_categories = [cat['name'].lower() for cat in self.config.get('categories', [])]
+                    if category_name not in existing_categories:
+                        if 'categories' not in self.config:
+                            self.config['categories'] = []
+                        self.config['categories'].append({'name': category_name})
+                        print(f"✅ Created new transaction category: {category_name.title()}")
+                    else:
+                        print(f"✅ Selected existing transaction category: {category_name.title()}")
                 
                 return category_name
             
@@ -639,25 +635,23 @@ class IciciBankTransformer:
             elif choice and len(choice) >= 2:
                 category_name = choice.lower()
                 
-                # Check if category already exists
-                existing_categories = [cat['name'] for cat in self.config['categories']]
-                if category_name not in existing_categories:
-                    # Add new category to config and save it
-                    if 'categories' not in self.config:
-                        self.config['categories'] = []
-                    self.config['categories'].append({'name': category_name})
-                    
-                    # Save categories to separate file if config_loader is available
-                    if self.config_loader:
-                        try:
-                            self.config_loader.save_categories(self.config['categories'])
-                            print(f"✅ Created and saved new transaction category: {category_name.title()}")
-                        except Exception as e:
-                            print(f"⚠️  Transaction category created but couldn't save: {e}")
-                    else:
-                        print(f"✅ Created new transaction category: {category_name.title()}")
+                # Add new category using the proper method that maintains order
+                if self.config_loader:
+                    try:
+                        self.config_loader.add_category(category_name)
+                        print(f"✅ Created and saved new transaction category: {category_name.title()}")
+                    except Exception as e:
+                        print(f"⚠️  Transaction category created but couldn't save: {e}")
                 else:
-                    print(f"✅ Selected existing transaction category: {category_name.title()}")
+                    # Fallback if no config_loader available
+                    existing_categories = [cat['name'].lower() for cat in self.config.get('categories', [])]
+                    if category_name not in existing_categories:
+                        if 'categories' not in self.config:
+                            self.config['categories'] = []
+                        self.config['categories'].append({'name': category_name})
+                        print(f"✅ Created new transaction category: {category_name.title()}")
+                    else:
+                        print(f"✅ Selected existing transaction category: {category_name.title()}")
                 
                 return {'action': 'process', 'category': category_name}
             
