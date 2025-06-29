@@ -126,6 +126,7 @@ class IciciBankTransformer:
                         'transaction_type': transformed['transaction_type'],
                         'enum_id': processing_result.get('enum_id'),
                         'category': processing_result.get('category'),
+                        'transaction_category': processing_result.get('transaction_category'),
                         'reason': processing_result.get('reason'),
                         'splits': processing_result.get('splits'),
                         'is_settled': False
@@ -248,61 +249,56 @@ class IciciBankTransformer:
     def _handle_existing_enum_match(self, existing_enum: Dict[str, Any], description: str) -> Dict[str, Any]:
         """Handle transaction when existing enum match is found"""
         print(f"\n🔍 Found matching pattern: '{existing_enum['enum_name']}'")
-        print(f"📂 Category: {existing_enum['category']}")
+        print(f"📂 Enum Category: {existing_enum['category']}")
         
-        # Directly ask for reason first
+        # Step 1: Ask for transaction category first (can be different from enum category)
+        transaction_category_result = self._ask_for_transaction_category_with_options(existing_enum['category'])
+        
+        if transaction_category_result['action'] == 'skip':
+            return {
+                'action': 'skip', 
+                'reason': 'User chose to skip - existing pattern found but not used'
+            }
+        elif transaction_category_result['action'] == 'create_new':
+            return self._full_interactive_flow(description)
+        
+        transaction_category = transaction_category_result['category']
+        
+        # Step 2: Ask for reason
         print("\n📋 What's the reason for this transaction?")
         print("💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'")
-        print("📝 Enter reason, press '2' to skip, or press '3' to create new pattern")
         
         while True:
             if self._interrupted:
                 return {'action': 'skip', 'reason': 'Processing interrupted'}
                 
-            user_input = input("\n✍️  Reason [2 to skip | 3 for new pattern]: ").strip()
-            
-            # Option 2: Skip transaction
-            if user_input == '2':
-                return {
-                    'action': 'skip', 
-                    'reason': 'User chose to skip - existing pattern found but not used'
-                }
-            
-            # Option 3: Create new pattern instead
-            elif user_input == '3':
-                return self._full_interactive_flow(description)
+            user_input = input("\n✍️  Reason [Enter for default]: ").strip()
             
             # User entered a reason
-            elif user_input and len(user_input) >= 3:
-                # Ask for splits after getting reason
-                splits = self._ask_for_splits()
-                
-                return {
-                    'action': 'process',
-                    'enum_id': existing_enum['id'],
-                    'category': existing_enum['category'],
-                    'reason': user_input,
-                    'splits': splits
-                }
+            if user_input and len(user_input) >= 3:
+                reason = user_input
+                break
             
             # Provide default if user just presses enter
             elif not user_input:
-                default_reason = f"Transaction: {existing_enum['enum_name']}"
-                print(f"ℹ️  Using default reason: {default_reason}")
-                
-                # Ask for splits after using default reason
-                splits = self._ask_for_splits()
-                
-                return {
-                    'action': 'process',
-                    'enum_id': existing_enum['id'],
-                    'category': existing_enum['category'],
-                    'reason': default_reason,
-                    'splits': splits
-                }
+                reason = f"Transaction: {existing_enum['enum_name']}"
+                print(f"ℹ️  Using default reason: {reason}")
+                break
             
             else:
-                print("❌ Please enter a reason (at least 3 characters), press '2' to skip, or '3' for new pattern")
+                print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
+        
+        # Step 3: Ask for splits
+        splits = self._ask_for_splits()
+        
+        return {
+            'action': 'process',
+            'enum_id': existing_enum['id'],
+            'category': existing_enum['category'],
+            'transaction_category': transaction_category,
+            'reason': reason,
+            'splits': splits
+        }
     
     def _check_existing_enum_match(self, description: str) -> Optional[Dict[str, Any]]:
         """Check if description matches existing enum patterns"""
@@ -345,16 +341,20 @@ class IciciBankTransformer:
             # Step 3.3: Handle enum and category
             enum_obj = self._handle_enum_and_category(enum_name, [pattern_word])
             
-            # Step 3.4: Ask for reason
+            # Step 3.4: Ask for transaction category
+            transaction_category = self._ask_for_transaction_category(enum_obj.category)
+            
+            # Step 3.5: Ask for reason
             reason = self._ask_for_reason()
             
-            # Step 3.5: Ask for splits
+            # Step 3.6: Ask for splits
             splits = self._ask_for_splits()
             
             return {
                 'action': 'process',
                 'enum_id': enum_obj.id,
                 'category': enum_obj.category,
+                'transaction_category': transaction_category,
                 'reason': reason,
                 'splits': splits
             }
@@ -479,7 +479,7 @@ class IciciBankTransformer:
         """Ask user to select category with option to add custom category by typing directly"""
         categories = [cat['name'] for cat in self.config.get('categories', [])]
         
-        print("\n📂 Select category:")
+        print("\n📂 Select enum category:")
         for i, category in enumerate(categories, 1):
             print(f"  {i}. {category.title()}")
         
@@ -489,14 +489,14 @@ class IciciBankTransformer:
             if self._interrupted:
                 return 'other'  # Return default if interrupted
                 
-            choice = input(f"\n🔢 Category: ").strip()
+            choice = input(f"\n🔢 Enum Category: ").strip()
             
             # Check if user entered a number
             if choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
-                    print(f"✅ Selected category: {selected_category.title()}")
+                    print(f"✅ Selected enum category: {selected_category.title()}")
                     return selected_category
                 else:
                     print(f"❌ Invalid number. Please enter 1-{len(categories)} or type a category name.")
@@ -518,18 +518,151 @@ class IciciBankTransformer:
                     if self.config_loader:
                         try:
                             self.config_loader.save_categories(self.config['categories'])
-                            print(f"✅ Created and saved new category: {category_name.title()}")
+                            print(f"✅ Created and saved new enum category: {category_name.title()}")
                         except Exception as e:
-                            print(f"⚠️  Category created but couldn't save: {e}")
+                            print(f"⚠️  Enum category created but couldn't save: {e}")
                     else:
-                        print(f"✅ Created new category: {category_name.title()}")
+                        print(f"✅ Created new enum category: {category_name.title()}")
                 else:
-                    print(f"✅ Selected existing category: {category_name.title()}")
+                    print(f"✅ Selected existing enum category: {category_name.title()}")
                 
                 return category_name
             
             else:
                 print("❌ Please enter a number or category name (at least 2 characters)")
+
+    def _ask_for_transaction_category(self, enum_category: str) -> str:
+        """Ask user to select transaction category with auto-suggestion from enum category"""
+        categories = [cat['name'] for cat in self.config.get('categories', [])]
+        
+        print(f"\n🏷️  Transaction Category (Enum category: {enum_category.title()})")
+        print("📂 Available categories:")
+        for i, category in enumerate(categories, 1):
+            print(f"  {i}. {category.title()}")
+        
+        print(f"\n💡 Press Enter to use '{enum_category.title()}', type a number (1-{len(categories)}) to select, or type a category name")
+        
+        while True:
+            if self._interrupted:
+                return enum_category  # Return enum category as default if interrupted
+                
+            choice = input(f"\n🏷️  Transaction Category [Enter for '{enum_category.title()}']: ").strip()
+            
+            # User pressed Enter - use enum category
+            if not choice:
+                print(f"✅ Using enum category: {enum_category.title()}")
+                return enum_category
+            
+            # Check if user entered a number
+            elif choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(categories):
+                    selected_category = categories[idx]
+                    print(f"✅ Selected transaction category: {selected_category.title()}")
+                    return selected_category
+                else:
+                    print(f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name.")
+                    continue
+            
+            # User typed a category name - auto-add it
+            elif choice and len(choice) >= 2:
+                category_name = choice.lower()
+                
+                # Check if category already exists
+                existing_categories = [cat['name'] for cat in self.config['categories']]
+                if category_name not in existing_categories:
+                    # Add new category to config and save it
+                    if 'categories' not in self.config:
+                        self.config['categories'] = []
+                    self.config['categories'].append({'name': category_name})
+                    
+                    # Save categories to separate file if config_loader is available
+                    if self.config_loader:
+                        try:
+                            self.config_loader.save_categories(self.config['categories'])
+                            print(f"✅ Created and saved new transaction category: {category_name.title()}")
+                        except Exception as e:
+                            print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    else:
+                        print(f"✅ Created new transaction category: {category_name.title()}")
+                else:
+                    print(f"✅ Selected existing transaction category: {category_name.title()}")
+                
+                return category_name
+            
+            else:
+                print(f"❌ Please enter a number, press Enter for '{enum_category.title()}', or type a category name (at least 2 characters)")
+
+    def _ask_for_transaction_category_with_options(self, enum_category: str) -> Dict[str, Any]:
+        """Ask user to select transaction category with skip and create new pattern options"""
+        categories = [cat['name'] for cat in self.config.get('categories', [])]
+        
+        print(f"\n🏷️  Choose Transaction Category (can be different from enum category '{enum_category.title()}')")
+        print("📂 Available categories:")
+        for i, category in enumerate(categories, 1):
+            print(f"  {i}. {category.title()}")
+        
+        print(f"\n💡 Press Enter to use '{enum_category.title()}', type a number (1-{len(categories)}) to select, or type a category name")
+        print("📝 Special options: '2' to skip transaction, '3' to create new pattern")
+        
+        while True:
+            if self._interrupted:
+                return {'action': 'skip', 'reason': 'Processing interrupted'}
+                
+            choice = input(f"\n🏷️  Transaction Category [Enter for '{enum_category.title()}' | 2=skip | 3=new pattern]: ").strip()
+            
+            # Special option 2: Skip transaction
+            if choice == '2':
+                return {'action': 'skip'}
+            
+            # Special option 3: Create new pattern
+            elif choice == '3':
+                return {'action': 'create_new'}
+            
+            # User pressed Enter - use enum category
+            elif not choice:
+                print(f"✅ Using enum category: {enum_category.title()}")
+                return {'action': 'process', 'category': enum_category}
+            
+            # Check if user entered a number
+            elif choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(categories):
+                    selected_category = categories[idx]
+                    print(f"✅ Selected transaction category: {selected_category.title()}")
+                    return {'action': 'process', 'category': selected_category}
+                else:
+                    print(f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)")
+                    continue
+            
+            # User typed a category name - auto-add it
+            elif choice and len(choice) >= 2:
+                category_name = choice.lower()
+                
+                # Check if category already exists
+                existing_categories = [cat['name'] for cat in self.config['categories']]
+                if category_name not in existing_categories:
+                    # Add new category to config and save it
+                    if 'categories' not in self.config:
+                        self.config['categories'] = []
+                    self.config['categories'].append({'name': category_name})
+                    
+                    # Save categories to separate file if config_loader is available
+                    if self.config_loader:
+                        try:
+                            self.config_loader.save_categories(self.config['categories'])
+                            print(f"✅ Created and saved new transaction category: {category_name.title()}")
+                        except Exception as e:
+                            print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    else:
+                        print(f"✅ Created new transaction category: {category_name.title()}")
+                else:
+                    print(f"✅ Selected existing transaction category: {category_name.title()}")
+                
+                return {'action': 'process', 'category': category_name}
+            
+            else:
+                print(f"❌ Please enter a number, press Enter for '{enum_category.title()}', type a category name (at least 2 characters), or use special options (2=skip, 3=new pattern)")
     
     def _ask_for_reason(self) -> str:
         """Ask user for transaction reason with suggestions"""

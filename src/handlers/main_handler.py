@@ -22,10 +22,15 @@ class MainHandler:
     
     def __init__(self, test_mode=False):
         self.test_mode = test_mode
+        # First load config without database manager
         self.config_loader = ConfigLoader()
         self.config = self.config_loader.get_config()
         self.db_manager = DatabaseManager(self.config, test_mode=test_mode)
         self.db_loader = DatabaseLoader(self.db_manager)
+        
+        # Now re-initialize config loader with database manager for dynamic category loading
+        self.config_loader = ConfigLoader(db_manager=self.db_manager)
+        self.config = self.config_loader.get_config()
         
         mode = "TEST" if test_mode else "PRODUCTION"
         print(f"🚀 Financial Data Processor initialized in {mode} mode")

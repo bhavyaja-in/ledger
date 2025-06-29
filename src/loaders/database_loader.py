@@ -148,6 +148,7 @@ class DatabaseLoader:
                 transaction_type=transaction_data['transaction_type'],
                 enum_id=transaction_data.get('enum_id'),
                 category=transaction_data.get('category'),
+                transaction_category=transaction_data.get('transaction_category'),
                 reason=transaction_data.get('reason'),
                 splits=splits_data,  # Keep legacy JSON for backwards compatibility
                 has_splits=has_splits,

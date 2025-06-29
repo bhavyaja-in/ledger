@@ -6,11 +6,12 @@ import os
 from typing import Dict, Any
 
 class ConfigLoader:
-    """Configuration loader"""
+    """Configuration loader with dynamic category management"""
     
-    def __init__(self, config_path='config/config.yaml', categories_path='config/categories.yaml'):
+    def __init__(self, config_path='config/config.yaml', categories_path='config/categories.yaml', db_manager=None):
         self.config_path = config_path
         self.categories_path = categories_path
+        self.db_manager = db_manager
         self._config: Dict[str, Any] = {}
     
     def get_config(self) -> Dict[str, Any]:
@@ -31,15 +32,32 @@ class ConfigLoader:
         self._load_categories()
     
     def _load_categories(self):
-        """Load categories from separate file or use defaults"""
+        """Load categories from template file and merge with database categories"""
+        # Start with template categories from YAML
+        template_categories = self._load_template_categories()
+        
+        # Extract categories from database if available
+        database_categories = self._extract_database_categories()
+        
+        # Merge template and database categories (database categories take precedence)
+        merged_categories = self._merge_categories(template_categories, database_categories)
+        
+        # Update categories in YAML file if database categories were found
+        if database_categories and merged_categories != template_categories:
+            self._update_categories_file(merged_categories)
+        
+        self._config['categories'] = merged_categories
+
+    def _load_template_categories(self):
+        """Load template categories from YAML file or defaults"""
         if os.path.exists(self.categories_path):
             # Load from separate categories file
             with open(self.categories_path, 'r') as file:
                 categories_config = yaml.safe_load(file) or {}
-                self._config['categories'] = categories_config.get('categories', [])
-        elif 'categories' not in self._config:
-            # Fallback to default categories if no separate file and no categories in main config
-            self._config['categories'] = [
+                return categories_config.get('categories', [])
+        else:
+            # Return default template categories
+            return [
                 {'name': 'income'},
                 {'name': 'food'},
                 {'name': 'transport'},
@@ -51,9 +69,79 @@ class ConfigLoader:
                 {'name': 'investment'},
                 {'name': 'other'}
             ]
+
+    def _extract_database_categories(self):
+        """Extract unique categories from database (both enum and transaction categories)"""
+        if not self.db_manager:
+            return []
+        
+        session = self.db_manager.get_session()
+        categories = set()
+        
+        try:
+            # Extract categories from TransactionEnum table
+            TransactionEnum = self.db_manager.models['TransactionEnum']
+            enum_categories = session.query(TransactionEnum.category).distinct().all()
+            for (category,) in enum_categories:
+                if category and category.strip():
+                    categories.add(category.strip().lower())
+            
+            # Extract categories from Transaction table (transaction_category field)
+            Transaction = self.db_manager.models['Transaction']
+            transaction_categories = session.query(Transaction.transaction_category).distinct().all()
+            for (category,) in transaction_categories:
+                if category and category.strip():
+                    categories.add(category.strip().lower())
+            
+            # Convert to list of dictionaries
+            return [{'name': category} for category in sorted(categories)]
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not extract categories from database: {e}")
+            return []
+        finally:
+            session.close()
+
+    def _merge_categories(self, template_categories, database_categories):
+        """Merge template and database categories, removing duplicates"""
+        # Create a set of category names for deduplication
+        all_category_names = set()
+        merged_categories = []
+        
+        # Add database categories first (they take precedence)
+        for category in database_categories:
+            category_name = category['name'].lower()
+            if category_name not in all_category_names:
+                all_category_names.add(category_name)
+                merged_categories.append(category)
+        
+        # Add template categories that don't exist in database
+        for category in template_categories:
+            category_name = category['name'].lower()
+            if category_name not in all_category_names:
+                all_category_names.add(category_name)
+                merged_categories.append(category)
+        
+        return merged_categories
+
+    def _update_categories_file(self, categories):
+        """Update the categories YAML file with merged categories"""
+        try:
+            categories_config = {'categories': categories}
+            
+            # Ensure config directory exists
+            os.makedirs(os.path.dirname(self.categories_path), exist_ok=True)
+            
+            with open(self.categories_path, 'w') as file:
+                yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
+            
+            print(f"📂 Updated categories file with {len(categories)} categories (including database categories)")
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not update categories file: {e}")
     
     def save_categories(self, categories: list):
-        """Save categories to the separate categories file"""
+        """Save categories to the separate categories file and refresh config"""
         categories_config = {'categories': categories}
         
         # Ensure config directory exists
@@ -63,4 +151,8 @@ class ConfigLoader:
             yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
         
         # Update in-memory config
-        self._config['categories'] = categories 
+        self._config['categories'] = categories
+        
+        # Re-merge with database categories to ensure we have the latest
+        if self.db_manager:
+            self._load_categories() 

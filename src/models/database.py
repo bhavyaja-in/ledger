@@ -79,6 +79,7 @@ def create_models_with_prefix(prefix=""):
         'transaction_type': Column(String(10), nullable=False),
         'enum_id': Column(Integer, ForeignKey(f'{prefix}transaction_enums.id')),
         'category': Column(String(50)),
+        'transaction_category': Column(String(50)),
         'reason': Column(Text),
         'splits': Column(JSON),
         'has_splits': Column(Boolean, default=False),
