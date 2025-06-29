@@ -135,31 +135,63 @@ src/
 
 ## 💾 Backup System
 
-### Automated Git-Based Backups
+### Automated Git-Based Backups with History
 - **Encrypted Storage**: Database backups are encrypted and stored in private git repository
-- **Version Control**: Every backup is tracked with timestamps
+- **Timestamped History**: Previous backups automatically preserved with timestamps
+- **Version Control**: Every backup and archive operation tracked in git
 - **Remote Safety**: Backups stored on GitHub/GitLab, can't be accidentally deleted
+- **Point-in-Time Recovery**: Restore from any historical backup
 - **Cross-Device Access**: Restore from any computer with git access
+
+### How Backup Preservation Works
+When you create a new backup, the system automatically:
+1. **Archives Previous**: Renames existing backup with timestamp (e.g., `financial_data_backup_2025-06-30_01-05-41.db`)
+2. **Commits Archive**: Previous backup saved to git with descriptive message
+3. **Creates New**: Fresh backup becomes the new latest backup
+4. **No Data Loss**: Complete history of all backup states preserved
 
 ### Backup Commands
 ```bash
-# Create backup
+# Create backup (automatically preserves previous backup with timestamp)
 python3 scripts/git_backup.py --backup
 
-# Restore from backup
-python3 scripts/git_backup.py --restore
-
-# View backup history
+# View all backup files and git history
 python3 scripts/git_backup.py --history
 
-# Sync latest backups
+# Restore from latest backup
+python3 scripts/git_backup.py --restore
+
+# Restore from specific timestamped backup
+python3 scripts/git_backup.py --restore-from financial_data_backup_2025-06-30_01-05-41.db
+
+# Sync latest backups from remote
 python3 scripts/git_backup.py --sync
 ```
+
+### Backup File Structure
+Your backup repository maintains:
+- `financial_data_backup.db` - Always the latest backup
+- `financial_data_backup_YYYY-MM-DD_HH-MM-SS.db` - Timestamped historical backups
+- `backup_log.txt` - Detailed log of all backup and archive operations
 
 ### Setup Backup Repository
 1. Create a private repository on GitHub/GitLab
 2. Update `config/backup.yaml` with your repository URL
 3. Run initial setup: `python3 scripts/git_backup.py --setup YOUR_REPO_URL`
+
+### Example Backup History
+```
+📁 Available backup files:
+  1. financial_data_backup_2025-06-30_01-06-00.db
+  2. financial_data_backup_2025-06-30_01-05-41.db  
+  3. financial_data_backup.db (LATEST)
+
+📚 Recent git commit history:
+Database backup - 2025-06-30 01:06:00
+Archive previous backup as financial_data_backup_2025-06-30_01-06-00.db
+Database backup - 2025-06-30 01:05:41
+Archive previous backup as financial_data_backup_2025-06-30_01-05-41.db
+```
 
 ## 🔧 Configuration
 
@@ -240,129 +272,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Architecture Details**: Check the architecture section for technical overview
 - **Contributing Guide**: See contributing section for development setup
 
-**Happy Financial Processing! 💰📊**
-
-# Ledger Database Backups
-
-🔒 **Private Repository** for encrypted financial database backups from the [Ledger Financial Data Processor](https://github.com/bhavyaja-in/ledger).
-
-## 🛡️ Security & Privacy
-
-This repository contains **encrypted backups** of financial transaction databases. 
-
-- **⚠️ PRIVATE REPOSITORY**: This repo should NEVER be made public
-- **🔐 ENCRYPTED DATA**: All database files are encrypted before storage
-- **📅 VERSION CONTROLLED**: Every backup is tracked with timestamps
-- **🚫 NO SENSITIVE DATA**: Raw financial data is encrypted and obfuscated
-
-## 📁 Repository Contents
-
-- `financial_data_backup.db` - Encrypted database backup (latest)
-- `backup_log.txt` - Log of all backup timestamps
-- `README.md` - This documentation
-
-## 🔄 How Backups Work
-
-Backups are automatically created and managed by the main ledger application using the `git_backup.py` script:
-
-1. **Database Export**: Clean SQLite backup using database API
-2. **Encryption**: Base64 encoding for data obfuscation
-3. **Git Commit**: Timestamped commit with backup
-4. **Remote Push**: Secure upload to this private repository
-
-## 🚀 Usage
-
-### From Main Ledger Application
-
-```bash
-# Create new backup
-python3 scripts/git_backup.py --backup
-
-# Restore from backup
-python3 scripts/git_backup.py --restore
-
-# View backup history
-python3 scripts/git_backup.py --history
-
-# Sync latest backups
-python3 scripts/git_backup.py --sync
-```
-
-### Manual Repository Operations
-
-```bash
-# Clone this backup repository
-git clone https://github.com/bhavyaja-in/ledger-backup.git
-
-# Pull latest backups
-git pull
-
-# View backup history
-git log --oneline
-```
-
-## 📊 Backup Log
-
-The `backup_log.txt` file contains a chronological record of all backups:
-
-```
-2025-06-30 00:51:31 - Database backup created
-2025-06-29 15:30:22 - Database backup created
-2025-06-28 09:15:45 - Database backup created
-```
-
-## 🔒 Security Notes
-
-### What's Protected
-- ✅ **Financial transaction data** - Encrypted before storage
-- ✅ **Personal spending patterns** - Not readable in raw form
-- ✅ **Bank account information** - Obfuscated in backups
-- ✅ **Version history** - All backups are preserved
-
-### Best Practices
-- 🔐 Keep this repository **PRIVATE** at all times
-- 🚫 Never share backup files directly
-- 💾 Regular backups ensure data protection
-- 🔄 Test restore process periodically
-
-## 🏗️ Technical Details
-
-### Backup Process
-1. **Source**: SQLite database from main ledger application
-2. **Encryption**: Base64 encoding (obfuscation level)
-3. **Storage**: Git version control with timestamped commits
-4. **Location**: Private GitHub repository
-
-### File Structure
-```
-ledger-backups/
-├── financial_data_backup.db    # Encrypted database backup
-├── backup_log.txt              # Backup history log
-├── README.md                   # This documentation
-└── .git/                       # Git version control
-```
-
-### Restore Process
-1. Backup current database (safety measure)
-2. Decrypt backup file using base64 decoding
-3. Replace current database with restored version
-4. Verify data integrity
-
-## 🔗 Related
-
-- **Main Repository**: [Ledger Financial Data Processor](https://github.com/bhavyaja-in/ledger)
-- **Setup Guide**: See main repository README for backup configuration
-- **Support**: Open issues in the main repository
-
----
-
-## ⚠️ Important Reminders
-
-- **NEVER** make this repository public
-- **NEVER** commit unencrypted database files
-- **ALWAYS** verify backup integrity before relying on them
-- **REGULARLY** test the restore process to ensure backups work
-
----
-
-*Last Updated: 2025-06-30* 
+**Happy Financial Processing! 💰📊** 
