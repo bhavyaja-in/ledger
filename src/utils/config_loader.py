@@ -32,19 +32,20 @@ class ConfigLoader:
         self._load_categories()
     
     def _load_categories(self):
-        """Load categories from template file and merge with database categories"""
-        # Start with template categories from YAML
-        template_categories = self._load_template_categories()
+        """Load categories from template file and discover any new ones from database"""
+        # Load existing categories from YAML (maintains order)
+        existing_categories = self._load_template_categories()
         
-        # Extract categories from database if available
+        # Check if there are any new categories in database that aren't in YAML
         database_categories = self._extract_database_categories()
         
-        # Merge template and database categories (database categories take precedence)
-        merged_categories = self._merge_categories(template_categories, database_categories)
+        # Only add truly new categories from database (preserving YAML order)
+        merged_categories = self._merge_categories(existing_categories, database_categories)
         
-        # Update categories in YAML file if database categories were found
-        if database_categories and merged_categories != template_categories:
+        # Update YAML file only if new categories were discovered
+        if len(merged_categories) > len(existing_categories):
             self._update_categories_file(merged_categories)
+            print(f"📂 Discovered {len(merged_categories) - len(existing_categories)} new categories from database")
         
         self._config['categories'] = merged_categories
 
@@ -93,8 +94,8 @@ class ConfigLoader:
                 if category and category.strip():
                     categories.add(category.strip().lower())
             
-            # Convert to list of dictionaries
-            return [{'name': category} for category in sorted(categories)]
+            # Convert to list of dictionaries (preserve discovery order, no sorting)
+            return [{'name': category} for category in categories]
             
         except Exception as e:
             print(f"⚠️  Warning: Could not extract categories from database: {e}")
@@ -102,20 +103,19 @@ class ConfigLoader:
         finally:
             session.close()
 
-    def _merge_categories(self, template_categories, database_categories):
-        """Merge template and database categories, keeping template order first"""
-        # Create a set of category names for deduplication
+    def _merge_categories(self, yaml_categories, database_categories):
+        """Merge YAML and database categories, with YAML order taking absolute precedence"""
+        # YAML file is the source of truth for order - preserve it completely
         all_category_names = set()
         merged_categories = []
         
-        # Add template categories first (maintain original order and numbering)
-        for category in template_categories:
+        # Add all YAML categories first (these maintain their positions forever)
+        for category in yaml_categories:
             category_name = category['name'].lower()
-            if category_name not in all_category_names:
-                all_category_names.add(category_name)
-                merged_categories.append(category)
+            all_category_names.add(category_name)
+            merged_categories.append(category)
         
-        # Add new database categories that don't exist in template (at the end)
+        # Only add database categories that are completely new (append at end)
         for category in database_categories:
             category_name = category['name'].lower()
             if category_name not in all_category_names:
@@ -173,7 +173,7 @@ class ConfigLoader:
         self.save_categories(new_categories)
 
     def save_categories(self, categories: list):
-        """Save categories to the separate categories file and refresh config"""
+        """Save categories to the separate categories file and update in-memory config"""
         categories_config = {'categories': categories}
         
         # Ensure config directory exists
@@ -182,9 +182,5 @@ class ConfigLoader:
         with open(self.categories_path, 'w') as file:
             yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
         
-        # Update in-memory config
-        self._config['categories'] = categories
-        
-        # Re-merge with database categories to ensure we have the latest
-        if self.db_manager:
-            self._load_categories() 
+        # Update in-memory config directly (YAML file is now the source of truth)
+        self._config['categories'] = categories 
