@@ -71,6 +71,9 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
+# Financial database files and backups
+financial_data*
+
 # Logs
 *.log
 logs/
