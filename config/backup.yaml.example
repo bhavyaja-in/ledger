@@ -1,0 +1,24 @@
+# Backup Configuration Template
+# Copy this file to backup.yaml and customize for your backup settings
+# backup.yaml is gitignored and won't be committed to version control
+
+# Git-based backup settings
+git:
+  enabled: true
+  backup_repo_path: "../ledger-backups"
+  repo_url: "https://github.com/YOUR_USERNAME/YOUR_BACKUP_REPO.git"
+  backup_filename: "financial_data_backup.db"
+  encrypt: true
+  auto_push: true
+
+# Database file to backup (relative to project root)
+database:
+  path: "financial_data.db"
+
+# Optional: Cloud backup settings (for future implementation)
+# cloud:
+#   enabled: false
+#   provider: "aws_s3"  # aws_s3, google_cloud, azure
+#   bucket: "your-backup-bucket"
+#   region: "us-east-1"
+#   encrypt: true 

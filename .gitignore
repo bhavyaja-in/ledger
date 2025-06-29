@@ -90,6 +90,7 @@ data/processed/
 config/secrets.yaml
 config/production.yaml
 config/categories.yaml
+config/backup.yaml
 .env.local
 .env.production
 
