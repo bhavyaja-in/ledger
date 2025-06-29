@@ -273,3 +273,178 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Contributing Guide**: See contributing section for development setup
 
 **Happy Financial Processing! 💰📊** 
+
+# Ledger Database Backups
+
+🔒 **Private Repository** for encrypted financial database backups from the [Ledger Financial Data Processor](https://github.com/bhavyaja-in/ledger).
+
+## 🛡️ Security & Privacy
+
+This repository contains **encrypted backups** of financial transaction databases. 
+
+- **⚠️ PRIVATE REPOSITORY**: This repo should NEVER be made public
+- **🔐 ENCRYPTED DATA**: All database files are encrypted before storage
+- **📅 VERSION CONTROLLED**: Every backup and archive operation tracked with timestamps
+- **🚫 NO SENSITIVE DATA**: Raw financial data is encrypted and obfuscated
+
+## 📁 Repository Contents
+
+- `financial_data_backup.db` - **Latest encrypted database backup**
+- `financial_data_backup_YYYY-MM-DD_HH-MM-SS.db` - **Timestamped historical backups**
+- `backup_log.txt` - **Log of all backup and archive operations**
+- `README.md` - This documentation
+
+## 🔄 How Timestamped Backups Work
+
+The backup system now automatically preserves backup history using timestamps:
+
+### Backup Creation Process
+1. **Archive Previous**: Existing backup renamed with timestamp (e.g., `financial_data_backup_2025-06-30_01-05-41.db`)
+2. **Commit Archive**: Previous backup committed to git with descriptive message
+3. **Create New**: Fresh backup created as `financial_data_backup.db` (always latest)
+4. **Commit New**: New backup committed to git
+5. **Push Remote**: All changes pushed to this private repository
+
+### Benefits
+- ✅ **Complete History**: Every backup state preserved forever
+- ✅ **Point-in-Time Recovery**: Restore from any specific backup
+- ✅ **No Data Loss**: Previous backups never overwritten
+- ✅ **Git Versioning**: Full audit trail of all backup operations
+
+## 🚀 Usage
+
+### From Main Ledger Application
+
+```bash
+# Create new backup (automatically preserves previous with timestamp)
+python3 scripts/git_backup.py --backup
+
+# View all backup files and git history
+python3 scripts/git_backup.py --history
+
+# Restore from latest backup
+python3 scripts/git_backup.py --restore
+
+# Restore from specific timestamped backup
+python3 scripts/git_backup.py --restore-from financial_data_backup_2025-06-30_01-05-41.db
+
+# Sync latest backups from remote
+python3 scripts/git_backup.py --sync
+```
+
+### Manual Repository Operations
+
+```bash
+# Clone this backup repository
+git clone https://github.com/bhavyaja-in/ledger-backup.git
+
+# Pull latest backups
+git pull
+
+# View git history
+git log --oneline
+
+# List all backup files
+ls -la *.db
+```
+
+## 📊 Example Current State
+
+This repository currently contains:
+
+### Backup Files
+```
+financial_data_backup.db                          (LATEST)
+financial_data_backup_2025-06-30_01-06-00.db    (Historical)
+financial_data_backup_2025-06-30_01-05-41.db    (Historical)
+```
+
+### Backup Log Sample
+```
+2025-06-30 01:06:00 - Previous backup archived as financial_data_backup_2025-06-30_01-06-00.db
+2025-06-30 01:06:00 - Database backup created
+2025-06-30 01:05:41 - Previous backup archived as financial_data_backup_2025-06-30_01-05-41.db
+2025-06-30 01:05:41 - Database backup created
+```
+
+### Git Commit History
+```
+Database backup - 2025-06-30 01:06:00
+Archive previous backup as financial_data_backup_2025-06-30_01-06-00.db
+Database backup - 2025-06-30 01:05:41
+Archive previous backup as financial_data_backup_2025-06-30_01-05-41.db
+```
+
+## 🔒 Security Notes
+
+### What's Protected
+- ✅ **Financial transaction data** - Encrypted before storage
+- ✅ **Personal spending patterns** - Not readable in raw form
+- ✅ **Bank account information** - Obfuscated in backups
+- ✅ **Complete backup history** - All versions preserved securely
+
+### Best Practices
+- 🔐 Keep this repository **PRIVATE** at all times
+- 🚫 Never share backup files directly
+- 💾 Regular backups ensure data protection
+- 🔄 Test restore process periodically
+- 📅 Use timestamped backups for point-in-time recovery
+
+## 🏗️ Technical Details
+
+### Backup Process
+1. **Source**: SQLite database from main ledger application
+2. **Preservation**: Previous backup archived with timestamp
+3. **Encryption**: Base64 encoding for data obfuscation
+4. **Storage**: Git version control with timestamped commits
+5. **Location**: Private GitHub repository
+
+### File Structure
+```
+ledger-backups/
+├── financial_data_backup.db                      # Latest backup
+├── financial_data_backup_2025-06-30_01-05-41.db # Historical backup
+├── financial_data_backup_2025-06-30_01-06-00.db # Historical backup
+├── backup_log.txt                                # Operation log
+├── README.md                                     # This documentation
+└── .git/                                         # Git version control
+```
+
+### Restore Process
+1. **Safety Backup**: Current database backed up before restore
+2. **File Selection**: Choose latest or specific timestamped backup
+3. **Decryption**: Base64 decoding to restore original database
+4. **Database Replace**: Restored database replaces current version
+5. **Verification**: Process completion confirmed
+
+## 🔗 Related
+
+- **Main Repository**: [Ledger Financial Data Processor](https://github.com/bhavyaja-in/ledger)
+- **Setup Guide**: See main repository README for backup configuration
+- **Support**: Open issues in the main repository
+
+---
+
+## ⚠️ Important Reminders
+
+- **NEVER** make this repository public
+- **NEVER** commit unencrypted database files
+- **ALWAYS** verify backup integrity before relying on them
+- **REGULARLY** test the restore process to ensure backups work
+- **USE** timestamped backups for point-in-time recovery when needed
+
+---
+
+## 📈 Backup History Growth
+
+As you use the system, this repository will accumulate:
+- **Daily/Weekly Backups**: Regular snapshots of your financial data
+- **Timestamped Archives**: Historical versions for point-in-time recovery
+- **Git History**: Complete audit trail of all backup operations
+- **Log Records**: Detailed timestamps of every backup and archive operation
+
+This ensures **complete data protection** with **professional-grade versioning**! 🛡️
+
+---
+
+*Last Updated: 2025-06-30* 

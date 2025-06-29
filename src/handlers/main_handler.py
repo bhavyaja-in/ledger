@@ -17,6 +17,65 @@ from src.utils.config_loader import ConfigLoader
 from src.models.database import DatabaseManager
 from src.loaders.database_loader import DatabaseLoader
 
+class BackupManager:
+    """Manages automatic database backups during processing"""
+    
+    def __init__(self, test_mode=False):
+        self.test_mode = test_mode
+        self.backup_config_path = "config/backup.yaml"
+        self.backup_script_available = self._check_backup_availability()
+        
+    def _check_backup_availability(self) -> bool:
+        """Check if backup system is properly configured"""
+        try:
+            # Check if backup configuration exists
+            if not os.path.exists(self.backup_config_path):
+                return False
+            
+            # Try to import the backup functionality
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+            from scripts.git_backup import GitDatabaseBackup
+            return True
+        except Exception:
+            return False
+    
+    def create_backup(self, backup_type="automatic") -> bool:
+        """Create database backup with error handling"""
+        if not self.backup_script_available:
+            if backup_type == "startup":
+                print("⚠️  Backup system not configured (continuing without backup)")
+            return False
+        
+        try:
+            from scripts.git_backup import GitDatabaseBackup
+            
+            # Create backup manager
+            git_backup = GitDatabaseBackup(config_path=self.backup_config_path)
+            
+            # Create backup
+            backup_type_emoji = {
+                "startup": "🚀",
+                "completion": "✅", 
+                "interruption": "⚠️",
+                "automatic": "💾"
+            }
+            
+            emoji = backup_type_emoji.get(backup_type, "💾")
+            print(f"{emoji} Creating {backup_type} backup...")
+            
+            success = git_backup.create_backup()
+            
+            if success:
+                print(f"✅ {backup_type.title()} backup completed successfully")
+            else:
+                print(f"⚠️  {backup_type.title()} backup failed")
+            
+            return success
+            
+        except Exception as e:
+            print(f"⚠️  Backup error: {e}")
+            return False
+
 class MainHandler:
     """Main handler for financial data processing"""
     
@@ -32,12 +91,22 @@ class MainHandler:
         self.config_loader = ConfigLoader(db_manager=self.db_manager)
         self.config = self.config_loader.get_config()
         
+        # Initialize backup manager
+        self.backup_manager = BackupManager(test_mode=test_mode)
+        
         mode = "TEST" if test_mode else "PRODUCTION"
         print(f"🚀 Financial Data Processor initialized in {mode} mode")
     
     def run(self, processor_type=None, file_path=None):
-        """Main execution flow"""
+        """Main execution flow with automatic backups"""
         try:
+            # Step 0: Create startup backup
+            print("\n" + "="*50)
+            print("💾 BACKUP SYSTEM")
+            print("="*50)
+            self.backup_manager.create_backup("startup")
+            print()
+            
             # Step 1: Get processor type
             if not processor_type:
                 processor_type = self._select_processor()
@@ -65,10 +134,27 @@ class MainHandler:
             # Step 4: Display summary
             self._display_summary(result)
             
+            # Step 5: Create completion backup
+            print("\n" + "="*50)
+            print("💾 COMPLETION BACKUP")
+            print("="*50)
+            self.backup_manager.create_backup("completion")
+            
             return result
             
+        except KeyboardInterrupt:
+            print("\n🛑 Processing interrupted by user...")
+            print("\n" + "="*50)
+            print("💾 INTERRUPTION BACKUP")
+            print("="*50)
+            self.backup_manager.create_backup("interruption")
+            print("👋 Goodbye!")
+            sys.exit(0)
         except Exception as e:
             print(f"💥 Error in main processing: {e}")
+            # Create backup even on error
+            print("\n🔄 Creating backup before exit...")
+            self.backup_manager.create_backup("interruption")
             return {'status': 'error', 'message': str(e)}
     
     def _select_processor(self) -> str:
@@ -106,8 +192,8 @@ class MainHandler:
             except ValueError:
                 print("❌ Please enter a valid number.")
             except KeyboardInterrupt:
-                print("\n👋 Goodbye!")
-                sys.exit(0)
+                # Signal handler will take care of this
+                raise
     
     def _auto_detect_or_select_file(self, processor_type: str) -> str:
         """Auto-detect file or provide selection menu"""
@@ -191,8 +277,8 @@ class MainHandler:
             except ValueError:
                 print("❌ Please enter a valid number.")
             except KeyboardInterrupt:
-                print("\n👋 Goodbye!")
-                sys.exit(0)
+                # Signal handler will take care of this
+                raise
     
     def _browse_for_file(self) -> str:
         """Allow user to manually enter file path"""
@@ -206,10 +292,11 @@ class MainHandler:
                     print("❌ File not found. Please try again.")
                     retry = input("🔄 Try again? (y/n): ").strip().lower()
                     if retry != 'y':
-                        raise KeyboardInterrupt
+                        print("🔙 Returning to file selection...")
+                        return self._select_processor()
             except KeyboardInterrupt:
-                print("\n🔙 Returning to file selection...")
-                return self._select_processor()
+                # Signal handler will take care of this
+                raise
     
     def _process_file(self, processor_type: str, file_path: str) -> Dict[str, Any]:
         """Process file using specified processor"""
@@ -402,6 +489,10 @@ Examples:
     args = parser.parse_args()
     
     try:
+        print("="*60)
+        print("🏦 FINANCIAL DATA PROCESSOR - ENTERPRISE EDITION")
+        print("="*60)
+        
         # Create and run handler
         handler = MainHandler(test_mode=args.test_mode)
         result = handler.run(processor_type=args.processor, file_path=args.file)
@@ -409,11 +500,15 @@ Examples:
         # Exit with appropriate code
         sys.exit(0 if result.get('status') == 'success' else 1)
         
-    except KeyboardInterrupt:
-        print("\n👋 Process interrupted by user. Goodbye!")
-        sys.exit(0)
     except Exception as e:
         print(f"\n💥 Fatal error: {e}")
+        # Try to create emergency backup
+        try:
+            if 'handler' in locals():
+                print("🔄 Creating emergency backup...")
+                handler.backup_manager.create_backup("interruption")
+        except:
+            pass  # Don't fail if backup fails
         sys.exit(1)
 
 if __name__ == "__main__":
