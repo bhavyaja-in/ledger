@@ -116,4 +116,13 @@ temp/
 # Python files related to database models
 *.db.py
 *.sqlite.py
-*.sqlite3.py 
+*.sqlite3.py
+
+# Mutation testing artifacts
+mutants/
+mutation_reports/
+reports/mutation_testing/
+.mutmut-cache/
+.mutmut-cache
+.mutmut
+*.mutmut 

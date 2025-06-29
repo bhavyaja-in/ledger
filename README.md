@@ -487,6 +487,22 @@ The test suite is organized with comprehensive pytest markers:
 
 ### Running Tests
 
+#### Recommended Testing Workflow
+
+```bash
+# 1. FIRST: Quick smoke test (30 seconds) ⚡
+PYTHONPATH=. python3 tests/smoke_test.py
+
+# 2. THEN: Run comprehensive tests (2-5 minutes) 🧪
+python3 -m pytest
+
+
+```
+
+**Why This Order?**
+- **Smoke tests catch obvious issues immediately** - don't waste time on broken systems
+- **Unit/integration tests provide comprehensive validation** - 296 tests with full coverage
+
 #### Basic Test Execution
 ```bash
 # Run all tests
@@ -526,6 +542,37 @@ python3 -m pytest --cov=src --cov=scripts --cov-report=html --cov-report=xml --c
 open htmlcov/index.html  # macOS
 xdg-open htmlcov/index.html  # Linux
 ```
+
+#### Smoke Testing
+
+**Enterprise-grade smoke tests** validate critical system functionality in under 60 seconds:
+
+```bash
+# Quick system validation (recommended first step)
+PYTHONPATH=. python3 tests/smoke_test.py
+
+# Detailed output for troubleshooting
+PYTHONPATH=. python3 tests/smoke_test.py --verbose
+
+# JSON output for CI/CD integration
+PYTHONPATH=. python3 tests/smoke_test.py --json-output > smoke_results.json
+```
+
+**What Smoke Tests Validate**:
+- ✅ Environment setup and project structure
+- ✅ Configuration loading and validation
+- ✅ Database connectivity and test mode isolation
+- ✅ Critical module imports and initialization
+- ✅ File processing pipeline basics
+- ✅ Security boundaries and data isolation
+- ✅ Performance baselines (<1s config, <3s imports)
+
+**Enterprise Features**:
+- Structured logging with timestamps
+- Performance metrics and thresholds
+- Security boundary validation
+- Exit codes for automation (0=pass, 1=fail)
+- Complete system readiness assessment
 
 ### Test Quality Standards
 
