@@ -104,8 +104,51 @@ Use the git_backup.py script to restore from backups.
                 print(f"❌ Failed to create repository: {e}")
                 return False
     
+    def _preserve_previous_backup(self):
+        """Preserve existing backup with timestamp before creating new one"""
+        backup_path = os.path.join(self.backup_repo_path, self.backup_filename)
+        
+        if not os.path.exists(backup_path):
+            # No previous backup to preserve
+            return
+        
+        # Create timestamped filename for previous backup
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        base_name = os.path.splitext(self.backup_filename)[0]
+        extension = os.path.splitext(self.backup_filename)[1]
+        timestamped_filename = f"{base_name}_{timestamp}{extension}"
+        timestamped_path = os.path.join(self.backup_repo_path, timestamped_filename)
+        
+        try:
+            # Move current backup to timestamped version
+            shutil.move(backup_path, timestamped_path)
+            
+            # Commit the timestamped backup to git
+            original_dir = os.getcwd()
+            os.chdir(self.backup_repo_path)
+            
+            subprocess.run(['git', 'add', timestamped_filename], check=True, capture_output=True)
+            commit_msg = f"Archive previous backup as {timestamped_filename}"
+            subprocess.run(['git', 'commit', '-m', commit_msg], check=True, capture_output=True)
+            
+            print(f"📋 Previous backup archived as: {timestamped_filename}")
+            
+            # Update backup log to note the archiving
+            log_path = os.path.join(self.backup_repo_path, 'backup_log.txt')
+            timestamp_log = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            with open(log_path, 'a') as f:
+                f.write(f"{timestamp_log} - Previous backup archived as {timestamped_filename}\n")
+            
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️  Warning: Could not archive previous backup: {e}")
+        except Exception as e:
+            print(f"⚠️  Warning: Error archiving previous backup: {e}")
+        finally:
+            if 'original_dir' in locals():
+                os.chdir(original_dir)
+    
     def create_backup(self, encrypt=None):
-        """Create and commit database backup"""
+        """Create and commit database backup with timestamped history"""
         if not os.path.exists(self.db_path):
             print(f"❌ Database not found: {self.db_path}")
             return False
@@ -114,6 +157,9 @@ Use the git_backup.py script to restore from backups.
             print("📂 Setting up backup repository...")
             if not self.setup_backup_repo():
                 return False
+        
+        # Preserve previous backup with timestamp before creating new one
+        self._preserve_previous_backup()
         
         # Create clean backup using SQLite backup API
         temp_backup = f"temp_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
@@ -260,6 +306,38 @@ Use the git_backup.py script to restore from backups.
             print(f"❌ Restore failed: {e}")
             return False
     
+    def restore_from_timestamped_backup(self, backup_filename, decrypt=None):
+        """Restore database from a specific timestamped backup"""
+        backup_path = os.path.join(self.backup_repo_path, backup_filename)
+        
+        if not os.path.exists(backup_path):
+            print(f"❌ Backup file not found: {backup_filename}")
+            print("💡 Use --history to see available backups")
+            return False
+        
+        # Backup current database
+        if os.path.exists(self.db_path):
+            backup_current = f"{self.db_path}.backup_before_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            shutil.copy2(self.db_path, backup_current)
+            print(f"💾 Current database backed up: {backup_current}")
+        
+        try:
+            # Use provided decrypt parameter or config setting
+            should_decrypt = decrypt if decrypt is not None else self.encrypt_enabled
+            
+            if should_decrypt:
+                self._simple_decrypt(backup_path, self.db_path)
+                print(f"🔓 Database restored from {backup_filename} and decrypted")
+            else:
+                shutil.copy2(backup_path, self.db_path)
+                print(f"📁 Database restored from {backup_filename}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Restore failed: {e}")
+            return False
+    
     def sync_from_remote(self):
         """Pull latest backups from remote repository"""
         if not os.path.exists(self.backup_repo_path):
@@ -281,19 +359,39 @@ Use the git_backup.py script to restore from backups.
             os.chdir(original_dir)
     
     def show_backup_history(self):
-        """Show git history of backups"""
+        """Show git history of backups and list backup files"""
         if not os.path.exists(self.backup_repo_path):
             print("❌ Backup repository not found")
             return
         
         try:
+            # Show backup files
+            print("📁 Available backup files:")
+            backup_files = []
+            for file in os.listdir(self.backup_repo_path):
+                if file.endswith('.db') and file.startswith(os.path.splitext(self.backup_filename)[0]):
+                    backup_files.append(file)
+            
+            if backup_files:
+                backup_files.sort(reverse=True)  # Most recent first
+                for i, backup_file in enumerate(backup_files):
+                    if backup_file == self.backup_filename:
+                        print(f"  {i+1}. {backup_file} (LATEST)")
+                    else:
+                        print(f"  {i+1}. {backup_file}")
+            else:
+                print("  No backup files found")
+            
+            print()
+            
+            # Show git commit history
             original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
             
             result = subprocess.run(['git', 'log', '--oneline', '-10'], 
                                   capture_output=True, text=True, check=True)
             
-            print("📚 Recent backup history:")
+            print("📚 Recent git commit history:")
             print(result.stdout)
             
         except subprocess.CalledProcessError as e:
@@ -304,9 +402,10 @@ Use the git_backup.py script to restore from backups.
 def main():
     parser = argparse.ArgumentParser(description="Git Database Backup Manager")
     parser.add_argument("--backup", action="store_true", help="Create backup")
-    parser.add_argument("--restore", action="store_true", help="Restore from backup")
+    parser.add_argument("--restore", action="store_true", help="Restore from latest backup")
+    parser.add_argument("--restore-from", help="Restore from specific backup file")
     parser.add_argument("--sync", action="store_true", help="Sync from remote")
-    parser.add_argument("--history", action="store_true", help="Show backup history")
+    parser.add_argument("--history", action="store_true", help="Show backup history and files")
     parser.add_argument("--setup", help="Setup backup repo with remote URL")
     parser.add_argument("--no-encrypt", action="store_true", help="Skip encryption")
     parser.add_argument("--config", default="config/backup.yaml", help="Backup configuration file")
@@ -328,6 +427,9 @@ def main():
     elif args.restore:
         decrypt = None if not args.no_encrypt else False
         backup_manager.restore_backup(decrypt=decrypt)
+    elif args.restore_from:
+        decrypt = None if not args.no_encrypt else False
+        backup_manager.restore_from_timestamped_backup(args.restore_from, decrypt=decrypt)
     elif args.sync:
         backup_manager.sync_from_remote()
     elif args.history:
@@ -335,15 +437,20 @@ def main():
     else:
         print("Git Database Backup Manager")
         print("\nCommands:")
-        print("  --setup URL    Setup backup repository with remote URL")
-        print("  --backup       Create and commit database backup")
-        print("  --restore      Restore database from backup")
-        print("  --sync         Pull latest backups from remote")
-        print("  --history      Show backup history")
-        print("  --config FILE  Use custom config file (default: config/backup.yaml)")
-        print("  --no-encrypt   Skip encryption (use with --backup/--restore)")
+        print("  --setup URL       Setup backup repository with remote URL")
+        print("  --backup          Create and commit database backup (preserves previous backup)")
+        print("  --restore         Restore database from latest backup")
+        print("  --restore-from X  Restore from specific backup file")
+        print("  --sync            Pull latest backups from remote")
+        print("  --history         Show backup history and available files")
+        print("  --config FILE     Use custom config file (default: config/backup.yaml)")
+        print("  --no-encrypt      Skip encryption (use with --backup/--restore)")
         print("\nConfiguration:")
         print("  Copy config/backup.yaml.example to config/backup.yaml to customize settings")
+        print("\nExamples:")
+        print("  python3 scripts/git_backup.py --backup")
+        print("  python3 scripts/git_backup.py --history")
+        print("  python3 scripts/git_backup.py --restore-from financial_data_backup_2025-06-30_12-30-45.db")
 
 if __name__ == "__main__":
     main() 
