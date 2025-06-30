@@ -118,7 +118,7 @@ repos:
       - id: unit-tests
         name: "🧪 Run Unit Tests"
         description: "Execute all unit tests before commit"
-        entry: python -m pytest
+        entry: python3 -m pytest
         language: system
         args: [
           -m, unit,
@@ -134,7 +134,7 @@ repos:
       - id: integration-tests
         name: "🔄 Run Integration Tests"
         description: "Execute all integration tests before commit"
-        entry: python -m pytest
+        entry: python3 -m pytest
         language: system
         args: [
           -m, integration,
@@ -145,12 +145,12 @@ repos:
         ]
         pass_filenames: false
         always_run: true
-        
+
       # Security Tests
       - id: security-tests
         name: "🛡️ Run Security Tests"
         description: "Execute security tests before commit"
-        entry: python -m pytest
+        entry: python3 -m pytest
         language: system
         args: [
           -m, security,
@@ -166,7 +166,7 @@ repos:
       - id: performance-tests
         name: "⚡ Run Performance Tests"
         description: "Execute performance tests before commit"
-        entry: python -m pytest
+        entry: python3 -m pytest
         language: system
         args: [
           -m, performance,
@@ -177,13 +177,13 @@ repos:
         ]
         pass_filenames: false
         always_run: true
-        stages: [push]  # Only run on push, not every commit
+        stages: [pre-push]  # Only run on push, not every commit
 
       # Coverage Check
       - id: coverage-check
         name: "📊 Test Coverage Check"
         description: "Ensure test coverage meets minimum requirements"
-        entry: python -m pytest
+        entry: python3 -m pytest
         language: system
         args: [
           --cov=src,
@@ -194,7 +194,7 @@ repos:
         ]
         pass_filenames: false
         always_run: true
-        stages: [push]  # Only run on push for full coverage
+        stages: [pre-push]  # Only run on push for full coverage
 
       # Type Checking with mypy
       - id: mypy
@@ -215,16 +215,16 @@ repos:
       - id: docs-check
         name: "📚 Documentation Check"
         description: "Validate documentation and docstrings"
-        entry: python -c
+        entry: python3 -c
         language: system
         args: [
           "import sys; sys.exit(0)"  # Placeholder - can be enhanced with pydocstyle
         ]
         pass_filenames: false
         always_run: true
-        stages: [push]
+        stages: [pre-push]
 
 # Pre-commit hook configuration
-default_stages: [commit]
+default_stages: [pre-commit]
 fail_fast: false
-minimum_pre_commit_version: "3.0.0" 
+minimum_pre_commit_version: "3.0.0"
