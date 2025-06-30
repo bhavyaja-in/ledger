@@ -13,6 +13,7 @@ import signal
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.loaders.database_loader import DatabaseLoader
+from src.utils.currency_detector import CurrencyDetector
 
 class IciciBankTransformer:
     """ICICI Bank transformer with interactive processing"""
@@ -24,6 +25,14 @@ class IciciBankTransformer:
         self.db_loader = DatabaseLoader(db_manager)
         self.processor_type = "icici_bank"
         self._interrupted = False
+        
+        # Set up currency detection
+        self.currency_detector = CurrencyDetector()
+        
+        # Get processor currency configuration
+        processor_config = config.get('processors', {}).get(self.processor_type, {})
+        processor_currencies = processor_config.get('currency', 'INR')
+        self.processor_currencies = self.currency_detector.normalize_currency_list(processor_currencies)
         
         # Set up signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -124,6 +133,7 @@ class IciciBankTransformer:
                         'balance': transformed.get('balance'),
                         'reference_number': transformed.get('reference_number'),
                         'transaction_type': transformed['transaction_type'],
+                        'currency': transformed['currency'],
                         'enum_id': processing_result.get('enum_id'),
                         'category': processing_result.get('category'),
                         'transaction_category': processing_result.get('transaction_category'),
@@ -186,6 +196,9 @@ class IciciBankTransformer:
             if reference == 'nan':
                 reference = None
             
+            # Determine currency for this transaction
+            currency = self._determine_transaction_currency(row_data)
+            
             return {
                 'date': transaction_date,
                 'description': description,
@@ -193,7 +206,8 @@ class IciciBankTransformer:
                 'credit_amount': deposit,
                 'balance': balance,
                 'reference_number': reference,
-                'transaction_type': transaction_type
+                'transaction_type': transaction_type,
+                'currency': currency
             }
             
         except Exception as e:
@@ -212,8 +226,55 @@ class IciciBankTransformer:
         except (ValueError, TypeError):
             return None
     
+    def _determine_transaction_currency(self, row_data: Dict[str, Any]) -> str:
+        """
+        Determine currency for transaction based on processor configuration and detection
+        
+        Args:
+            row_data: Full transaction row data including description and amounts
+            
+        Returns:
+            Currency code for the transaction
+        """
+        # Single currency processor - use default
+        if len(self.processor_currencies) == 1:
+            return self.processor_currencies[0]
+        
+        # Extract text fields to check for currency
+        description = str(row_data.get('Transaction Remarks', '')).strip()
+        withdrawal_amount = str(row_data.get('Withdrawal Amount (INR )', '')).strip()
+        deposit_amount = str(row_data.get('Deposit Amount (INR )', '')).strip()
+        
+        # Priority 1: Check amount fields first (more reliable)
+        amount_texts = [withdrawal_amount, deposit_amount]
+        for amount_text in amount_texts:
+            if amount_text and amount_text != 'nan' and amount_text != '':
+                detected = self.currency_detector.detect_currency(amount_text, self.processor_currencies)
+                if detected:
+                    print(f"🔍 Detected currency from amount: {detected}")
+                    return detected
+        
+        # Priority 2: Check description
+        if description and description != 'nan':
+            detected = self.currency_detector.detect_currency(description, self.processor_currencies)
+            if detected:
+                print(f"🔍 Detected currency from description: {detected}")
+                return detected
+        
+        # Detection failed - ask user with context from all fields
+        context_text = f"Description: {description}"
+        if withdrawal_amount and withdrawal_amount != 'nan':
+            context_text += f" | Withdrawal: {withdrawal_amount}"
+        if deposit_amount and deposit_amount != 'nan':
+            context_text += f" | Deposit: {deposit_amount}"
+            
+        return self.currency_detector.ask_user_for_currency(self.processor_currencies, context_text)
+    
     def _display_transaction(self, transaction: Dict[str, Any]):
-        """Display transaction details with better formatting"""
+        """Display transaction details with better formatting and dynamic currency"""
+        currency = transaction.get('currency', 'INR')
+        symbol = self.currency_detector.get_currency_symbol(currency)
+        
         print(f"📅 Date: {transaction['date'].strftime('%d/%m/%Y')}")
         
         # Truncate long descriptions for better display
@@ -223,15 +284,17 @@ class IciciBankTransformer:
         print(f"💬 Description: {description}")
         
         if transaction['transaction_type'] == 'debit':
-            print(f"💸 Amount: ₹{transaction['debit_amount']:,.2f} (DEBIT)")
+            print(f"💸 Amount: {symbol}{transaction['debit_amount']:,.2f} (DEBIT)")
         else:
-            print(f"💰 Amount: ₹{transaction['credit_amount']:,.2f} (CREDIT)")
+            print(f"💰 Amount: {symbol}{transaction['credit_amount']:,.2f} (CREDIT)")
         
         if transaction.get('balance'):
-            print(f"🏦 Balance: ₹{transaction['balance']:,.2f}")
+            print(f"🏦 Balance: {symbol}{transaction['balance']:,.2f}")
         
         if transaction.get('reference_number'):
             print(f"🔖 Reference: {transaction['reference_number']}")
+        
+        print(f"💱 Currency: {currency}")
     
     def _process_transaction_interactive(self, transaction: Dict[str, Any]) -> Dict[str, Any]:
         """Interactive transaction processing with skip option during enum check"""

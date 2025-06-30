@@ -1,7 +1,7 @@
 """
 Database models and manager with test mode support
 """
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, Text, ForeignKey, JSON
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, Text, ForeignKey, JSON, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -59,6 +59,7 @@ def create_models_with_prefix(prefix=""):
         'person_name': Column(String(100), nullable=False),
         'percentage': Column(Float, nullable=False),
         'amount': Column(Float, nullable=False),
+        'currency': Column(String(3), nullable=False, default='INR'),
         'is_settled': Column(Boolean, default=False),
         'created_at': Column(DateTime, default=datetime.utcnow),
         'updated_at': Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -77,6 +78,7 @@ def create_models_with_prefix(prefix=""):
         'balance': Column(Float),
         'reference_number': Column(String(100)),
         'transaction_type': Column(String(10), nullable=False),
+        'currency': Column(String(3), nullable=False, default='INR'),
         'enum_id': Column(Integer, ForeignKey(f'{prefix}transaction_enums.id')),
         'category': Column(String(50)),
         'transaction_category': Column(String(50)),
@@ -153,8 +155,12 @@ class DatabaseManager:
         prefix = self.test_prefix if test_mode else ""
         self.models, self.base = create_models_with_prefix(prefix)
         
-        # Create tables
-        self.base.metadata.create_all(self.engine)
+        # Handle schema migration for test mode
+        if test_mode:
+            self._ensure_test_schema_updated()
+        else:
+            # Create tables
+            self.base.metadata.create_all(self.engine)
     
     def get_session(self):
         """Get database session"""
@@ -162,4 +168,25 @@ class DatabaseManager:
     
     def get_model(self, model_name):
         """Get model class by name"""
-        return self.models.get(model_name) 
+        return self.models.get(model_name)
+    
+    def _ensure_test_schema_updated(self):
+        """Ensure test database schema is up to date by dropping and recreating tables"""
+        try:
+            # Check if currency column exists in transactions table
+            with self.engine.connect() as conn:
+                # Try to query the currency column
+                test_table_name = f"{self.test_prefix}transactions"
+                try:
+                    conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))
+                    # If we get here, currency column exists, just create any missing tables
+                    self.base.metadata.create_all(self.engine)
+                except Exception:
+                    # Currency column doesn't exist, drop and recreate test tables
+                    print("🔄 Updating test database schema...")
+                    self.base.metadata.drop_all(self.engine)
+                    self.base.metadata.create_all(self.engine)
+                    print("✅ Test database schema updated")
+        except Exception:
+            # If we can't check, just create tables (first time setup)
+            self.base.metadata.create_all(self.engine) 

@@ -146,6 +146,7 @@ class DatabaseLoader:
                 balance=transaction_data.get('balance'),
                 reference_number=transaction_data.get('reference_number'),
                 transaction_type=transaction_data['transaction_type'],
+                currency=transaction_data.get('currency', 'INR'),
                 enum_id=transaction_data.get('enum_id'),
                 category=transaction_data.get('category'),
                 transaction_category=transaction_data.get('transaction_category'),
@@ -162,7 +163,8 @@ class DatabaseLoader:
             # Create TransactionSplit records if splits exist
             if splits_data:
                 transaction_amount = transaction_data.get('debit_amount') or transaction_data.get('credit_amount') or 0
-                self._create_transaction_splits(session, transaction.id, splits_data, transaction_amount)
+                transaction_currency = transaction_data.get('currency', 'INR')
+                self._create_transaction_splits(session, transaction.id, splits_data, transaction_amount, transaction_currency)
             
             # Return detached instance
             session.expunge(transaction)
@@ -171,8 +173,8 @@ class DatabaseLoader:
         finally:
             session.close()
     
-    def _create_transaction_splits(self, session, transaction_id: int, splits_data: List[Dict], transaction_amount: float):
-        """Create TransactionSplit records for a transaction"""
+    def _create_transaction_splits(self, session, transaction_id: int, splits_data: List[Dict], transaction_amount: float, currency: str = 'INR'):
+        """Create TransactionSplit records for a transaction with currency support"""
         TransactionSplit = self.models['TransactionSplit']
         
         for split in splits_data:
@@ -185,6 +187,7 @@ class DatabaseLoader:
                 person_name=person_name,
                 percentage=percentage,
                 amount=amount,
+                currency=currency,
                 is_settled=False  # Default to not settled
             )
             

@@ -206,6 +206,60 @@ Copy from `config/categories.yaml.example` and customize.
 Your backup repository settings - **gitignored for privacy**.
 Copy from `config/backup.yaml.example` and customize with your repository URL.
 
+### Currency Configuration
+
+The system supports both **single-currency** and **multi-currency** processors:
+
+#### Single Currency Processor
+```yaml
+processors:
+  icici_bank:
+    extractor: "icici_bank_extractor"
+    transformer: "icici_bank_transformer"
+    file_type: "excel"
+    extraction_folder: "data/icici_bank"
+    currency: "INR"  # All transactions will be in INR
+```
+
+#### Multi-Currency Processor
+```yaml
+processors:
+  icici_forex:
+    extractor: "icici_forex_extractor"
+    transformer: "icici_forex_transformer"
+    file_type: "excel"
+    extraction_folder: "data/icici_forex"
+    currency: ["USD", "EUR", "GBP", "INR"]  # Multiple currencies supported
+```
+
+#### Currency Detection Features
+- **Automatic Detection**: System detects currency from transaction descriptions
+- **Smart Patterns**: Recognizes currency symbols (₹, $, €, £) and text (USD, EUR, etc.)
+- **Interactive Fallback**: When detection fails, asks user to select currency
+- **Database Storage**: Currency stored for both transactions and splits
+- **Dynamic Display**: Amount formatting adapts to currency (₹1,500 vs $100.00)
+
+#### Supported Currencies
+- **USD** ($) - US Dollar
+- **EUR** (€) - Euro
+- **GBP** (£) - British Pound
+- **INR** (₹) - Indian Rupee
+- **JPY** (¥) - Japanese Yen
+- **CNY** (¥) - Chinese Yuan
+- **AUD** (A$) - Australian Dollar
+- **CAD** (C$) - Canadian Dollar
+- **CHF** (CHF) - Swiss Franc
+- **SGD** (S$) - Singapore Dollar
+
+#### Currency Workflow
+1. **Single Currency**: Always uses configured currency (no detection needed)
+2. **Multi-Currency Detection**: 
+   - System scans transaction description for currency patterns
+   - If single currency detected → Uses automatically
+   - If multiple/no currencies detected → Asks user to select
+3. **Database Storage**: Currency stored with transaction and splits
+4. **Display**: Transaction amounts shown with appropriate currency symbol
+
 ## 🧪 Testing
 
 The system includes comprehensive test mode support:
@@ -240,6 +294,8 @@ Test mode uses separate database tables (`test_transactions`, etc.) for safe tes
 - **Manual Override**: Full control over categorization
 - **Reason/Comments**: Add context to each transaction
 - **Split Tracking**: Multi-person expense sharing (e.g., "yugam 50, chintu 25")
+- **Multi-Currency Support**: Handle transactions in multiple currencies with automatic detection
+- **Currency Intelligence**: Smart detection from transaction descriptions with interactive fallback
 - **Skip Functionality**: Skip unclear transactions for later review
 - **Real-time Saving**: Immediate database persistence
 - **Duplicate Prevention**: Hash-based detection of already-processed transactions

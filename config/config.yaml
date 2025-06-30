@@ -13,6 +13,15 @@ processors:
     transformer: "icici_bank_transformer"
     file_type: "excel"
     extraction_folder: "data/icici_bank"
+    currency: "INR"  # Single currency
+    
+  # Example multi-currency processor:
+  # icici_forex:
+  #   extractor: "icici_forex_extractor"
+  #   transformer: "icici_forex_transformer"
+  #   file_type: "excel"
+  #   extraction_folder: "data/icici_forex"
+  #   currency: ["USD", "EUR", "GBP", "INR"]  # Multiple currencies
 
 enums:
   # Example enum structure - will be populated interactively
