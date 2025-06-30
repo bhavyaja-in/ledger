@@ -447,8 +447,65 @@ Performance test failures indicate system degradation and should be investigated
 
 ## 🧪 Testing
 
-The system includes comprehensive test mode support:
+The system includes comprehensive enterprise-grade testing with complete safety guarantees:
 
+### Test Categories
+
+#### 🔧 Unit Tests (`@pytest.mark.unit`)
+- **Component Testing**: Individual module validation
+- **Database Operations**: CRUD operations and schema validation  
+- **Configuration Loading**: Environment and config validation
+- **Currency Detection**: Multi-currency transformation logic
+
+#### 🔄 Integration Tests (`@pytest.mark.integration`)
+- **End-to-End Workflow**: Complete transaction processing simulation
+- **Database Integration**: Full database operations with test isolation
+- **Configuration Integration**: Environment setup and validation
+- **Error Handling**: File corruption, missing files, database errors
+- **Security Integration**: Production data isolation verification
+- **Performance Integration**: Large dataset processing and memory usage
+
+#### ⚡ Performance Tests (`@pytest.mark.performance`)
+- **Large File Processing**: 1000+ transaction handling
+- **Memory Optimization**: Efficient resource utilization
+- **Database Performance**: Query optimization validation
+- **Concurrent Processing**: Multi-file processing capabilities
+
+#### 🛡️ Security Tests (`@pytest.mark.security`)
+- **Input Validation**: SQL injection and XSS prevention
+- **Data Protection**: Sensitive information in logs and memory
+- **File Security**: Path traversal and access control
+- **Database Security**: Transaction isolation and parameterization
+- **Cryptographic Security**: Encryption strength validation
+- **System Boundaries**: Production environment protection
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test categories
+pytest -m unit          # Unit tests only
+pytest -m integration   # Integration tests only
+pytest -m performance   # Performance tests only
+pytest -m security      # Security tests only
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Run specific test files
+pytest tests/test_integration.py -v     # Integration tests
+pytest tests/test_security.py -v       # Security tests
+pytest tests/test_performance.py -v    # Performance tests
+
+# CI/CD Integration
+pytest -m "unit or integration" --maxfail=1 --tb=line
+```
+
+### Test Environment
+
+#### Safe Test Mode
 ```bash
 # Initialize test database
 python scripts/init_db.py --test-mode
@@ -460,7 +517,25 @@ python src/handlers/main_handler.py --processor icici_bank --test-mode
 python scripts/init_db.py --clean --test-mode
 ```
 
-Test mode uses separate database tables (`test_transactions`, etc.) for safe testing.
+#### Integration Test Environment
+- **Complete Isolation**: Uses in-memory SQLite with test prefixes
+- **Realistic Data**: Generates authentic transaction scenarios without production files
+- **Security Boundaries**: Ensures no production data access
+- **Comprehensive Coverage**: Tests all workflows, error scenarios, and edge cases
+
+#### Test Data Generation
+```python
+# Integration tests create realistic scenarios:
+test_scenarios = [
+    'Mixed transaction types with multi-currency support',
+    'Split transaction processing and settlement tracking', 
+    'Error handling (corrupted files, missing data)',
+    'Performance validation with large datasets',
+    'Security boundary verification'
+]
+```
+
+Test mode uses separate database tables (`test_transactions`, etc.) for complete safety.
 
 ## 🏦 Supported Banks
 
