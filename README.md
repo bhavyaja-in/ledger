@@ -5,12 +5,14 @@ A comprehensive Python-based financial data processing system that extracts, tra
 ## 🚀 Features
 
 - **Multi-Bank Support**: Currently supports ICICI Bank with extensible architecture for other banks
+- **Multi-Currency Support**: Intelligent currency detection and processing for international transactions
 - **Dual-Category System**: Transaction enums and expense categories for flexible organization
 - **Interactive Processing**: User-guided transaction categorization with learning capabilities
 - **Smart Pattern Recognition**: Auto-categorization based on learned patterns
 - **Split Tracking**: Multi-person expense sharing with percentage-based splits
 - **Deduplication**: Hash-based duplicate transaction detection
 - **Automated Backups**: Git-based encrypted backup system for data protection
+- **Performance Monitoring**: Comprehensive performance testing and benchmarking capabilities
 - **Test Mode**: Separate database tables for safe testing
 - **Enterprise Architecture**: Modular design with clear separation of concerns
 
@@ -259,6 +261,188 @@ processors:
    - If multiple/no currencies detected → Asks user to select
 3. **Database Storage**: Currency stored with transaction and splits
 4. **Display**: Transaction amounts shown with appropriate currency symbol
+
+## ⚡ Performance Testing
+
+The system includes comprehensive performance monitoring and benchmarking capabilities to ensure optimal performance across all components.
+
+### Performance Test Categories
+
+#### 📊 System Performance Tests
+- **Configuration Loading**: Speed and memory usage of system initialization
+- **Database Operations**: Bulk insert/query performance with large datasets (1000+ records)  
+- **File Processing**: Excel extraction performance with various file sizes
+- **End-to-End Pipeline**: Complete transaction processing workflow timing
+
+#### 🔧 Component Performance Tests
+- **Currency Detection**: Pattern matching speed across different text inputs
+- **Transaction Processing**: Single and bulk transaction transformation performance
+- **Memory Efficiency**: Memory usage scaling with progressively larger datasets
+- **Resource Monitoring**: Real-time CPU and memory tracking during processing
+
+#### 📈 Advanced Monitoring Features
+- **Automated Thresholds**: Tests fail if performance degrades beyond acceptable limits
+- **Historical Tracking**: Performance data saved to `config/performance_benchmark.json` for trend analysis
+- **Regression Detection**: Automatic detection of performance regressions in single transaction processing
+- **Benchmark Reporting**: Formatted performance summaries with duration and memory metrics
+
+### Running Performance Tests
+
+#### All Performance Tests
+```bash
+# Run complete performance test suite
+pytest tests/test_performance.py -v
+
+# Run with detailed benchmark output
+pytest tests/test_performance.py -v -s
+```
+
+#### By Category
+```bash
+# System-wide performance tests
+pytest -m "performance" -v
+
+# Memory efficiency tests
+pytest -m "memory" -v
+
+# Performance benchmarking suite
+pytest -m "benchmark" -v
+
+# Performance regression detection
+pytest -m "regression" -v
+
+# System resource monitoring
+pytest -m "system" -v
+```
+
+#### Individual Test Types
+```bash
+# Configuration loading performance
+pytest tests/test_performance.py::TestSystemPerformance::test_config_loading_performance -v
+
+# Database operations performance  
+pytest tests/test_performance.py::TestSystemPerformance::test_bulk_database_operations_performance -v
+
+# File extraction performance
+pytest tests/test_performance.py::TestSystemPerformance::test_excel_extraction_performance -v
+
+# Memory efficiency with large datasets
+pytest tests/test_performance.py::TestSystemPerformance::test_memory_efficiency_large_datasets -v
+```
+
+### Performance Thresholds
+
+The system monitors performance against these configurable thresholds:
+
+| Operation | Duration Limit | Memory Limit | Description |
+|-----------|---------------|--------------|-------------|
+| Config Loading | < 1.0s | < 10MB | System configuration loading |
+| Database Init | < 2.0s | < 20MB | Database initialization |
+| Single Transaction | < 0.1s | - | Individual transaction processing |
+| Bulk Processing (1000) | < 30s | < 100MB | 1000 transaction batch processing |
+| File Extraction (1MB) | < 5s | < 5MB | Excel file extraction per MB |
+| Database Query (1000) | < 2s | < 30MB | Query 1000 database records |
+
+### Performance Benchmark Data
+
+#### Benchmark File Structure
+Performance data is automatically saved to `config/performance_benchmark.json`:
+
+```json
+[
+  {
+    "timestamp": "2024-01-15T10:30:45.123456",
+    "results": {
+      "config_loading": {
+        "duration": 0.0045,
+        "memory": 0.1
+      },
+      "database_init": {
+        "duration": 0.1250,
+        "memory": 12.5
+      },
+      "currency_detection": {
+        "duration": 0.0012,
+        "memory": 0.0
+      }
+    }
+  }
+]
+```
+
+#### Benchmark Analysis
+- **Duration**: Measured in seconds with microsecond precision
+- **Memory**: Memory delta in MB during operation
+- **Historical Tracking**: Multiple test runs create trend data for regression analysis
+- **Threshold Validation**: Automated alerts when performance degrades beyond limits
+
+### Performance Monitoring Features
+
+#### Real-Time Resource Monitoring
+```bash
+# View system resource usage during processing
+pytest tests/test_performance.py::TestSystemPerformance::test_system_resource_usage -v -s
+```
+
+#### Memory Efficiency Scaling
+```bash
+# Test memory usage with increasing dataset sizes (100→2000 records)
+pytest tests/test_performance.py::TestSystemPerformance::test_memory_efficiency_large_datasets -v
+```
+
+#### Performance Regression Detection
+```bash
+# Run 100 iterations to detect performance regressions
+pytest tests/test_performance.py::TestSystemPerformance::test_single_transaction_performance -v
+```
+
+#### Comprehensive Benchmark Suite
+```bash
+# Generate complete performance report with historical data
+pytest tests/test_performance.py::TestSystemPerformance::test_performance_benchmark_suite -v -s
+```
+
+### Expected Performance Results
+
+On a typical development machine, expect these baseline results:
+
+```
+🏆 Performance Benchmark Results:
+Operation            Duration (s) Memory (MB) 
+---------------------------------------------
+config_loading       0.0050       0.1          ✅
+database_init        0.1440       14.5         ✅
+currency_detection   0.0015       0.0          ✅
+```
+
+### Performance Test Dependencies
+
+Performance testing requires additional dependencies:
+
+```bash
+# Install performance monitoring tools
+pip install psutil>=5.9.0
+
+# Verify installation
+python -c "import psutil; print('psutil version:', psutil.__version__)"
+```
+
+### CI/CD Integration
+
+Performance tests integrate with continuous integration:
+
+```bash
+# Pre-commit performance validation
+pytest -m "performance" --maxfail=1
+
+# Performance regression check
+pytest -m "regression" --maxfail=1
+
+# Full performance validation
+pytest tests/test_performance.py --tb=short
+```
+
+Performance test failures indicate system degradation and should be investigated before deployment.
 
 ## 🧪 Testing
 

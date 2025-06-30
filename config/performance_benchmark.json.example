@@ -1,0 +1,36 @@
+[
+  {
+    "timestamp": "2024-01-15T10:30:45.123456",
+    "results": {
+      "config_loading": {
+        "duration": 0.0045,
+        "memory": 0.1
+      },
+      "database_init": {
+        "duration": 0.1250,
+        "memory": 12.5
+      },
+      "currency_detection": {
+        "duration": 0.0012,
+        "memory": 0.0
+      }
+    }
+  },
+  {
+    "timestamp": "2024-01-15T11:15:22.789012",
+    "results": {
+      "config_loading": {
+        "duration": 0.0050,
+        "memory": 0.1
+      },
+      "database_init": {
+        "duration": 0.1180,
+        "memory": 11.8
+      },
+      "currency_detection": {
+        "duration": 0.0015,
+        "memory": 0.0
+      }
+    }
+  }
+] 
