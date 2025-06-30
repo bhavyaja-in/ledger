@@ -13,6 +13,7 @@ A comprehensive Python-based financial data processing system that extracts, tra
 - **Deduplication**: Hash-based duplicate transaction detection
 - **Automated Backups**: Git-based encrypted backup system for data protection
 - **Performance Monitoring**: Comprehensive performance testing and benchmarking capabilities
+- **Security Testing**: 24 comprehensive security tests covering OWASP Top 10 vulnerabilities
 - **Test Mode**: Separate database tables for safe testing
 - **Enterprise Architecture**: Modular design with clear separation of concerns
 
@@ -813,6 +814,122 @@ PYTHONPATH=. python3 tests/smoke_test.py --json-output > smoke_results.json
 - Security boundary validation
 - Exit codes for automation (0=pass, 1=fail)
 - Complete system readiness assessment
+
+### Security Testing
+
+The system includes a **comprehensive security test suite** with 24 security tests to ensure robust protection against common vulnerabilities and attacks. Security is paramount for financial data processing systems.
+
+#### Security Test Categories
+
+**🛡️ Input Validation Security**
+- **SQL Injection Prevention**: Tests protection against malicious SQL injection attempts in all user inputs
+- **XSS Injection Prevention**: Validates that cross-site scripting attempts are properly sanitized
+- **Path Traversal Prevention**: Ensures file operations cannot access unauthorized system files
+- **Buffer Overflow Prevention**: Tests handling of extremely large inputs without system compromise
+
+**🔐 Sensitive Data Protection**
+- **Logging Security**: Verifies that sensitive financial data (account numbers, amounts) never appears in logs
+- **Memory Data Clearing**: Tests that sensitive data is properly cleared from memory after processing
+- **Configuration Secrets**: Ensures secrets and sensitive configuration don't leak in error messages
+- **Connection String Protection**: Validates database connection strings don't expose sensitive credentials
+
+**📁 File Access Security**
+- **Permission Validation**: Tests proper file permission handling and access control
+- **Safe File Handling**: Ensures dangerous file types are handled safely without execution
+- **Directory Traversal Protection**: Prevents access to files outside intended directories
+
+**🗄️ Database Security**
+- **Transaction Isolation**: Validates proper isolation between test and production data
+- **SQL Parameterization**: Ensures all database queries use parameterized statements
+- **Schema Protection**: Tests that database schema information isn't exposed
+
+**🔒 Cryptographic Security**
+- **Encryption Strength**: Validates encryption methods use appropriate cryptographic strength
+- **Hash Collision Resistance**: Tests transaction hashing for collision resistance
+- **Random Data Quality**: Verifies cryptographically secure random number generation
+
+**🏰 System Boundary Security**
+- **Test Mode Isolation**: Ensures complete isolation between test and production environments
+- **Environment Variable Security**: Checks for sensitive data leakage in environment variables
+- **Exception Information Disclosure**: Validates exceptions don't reveal sensitive system information
+- **Default Security Settings**: Tests that system defaults are secure
+
+#### Running Security Tests
+
+```bash
+# Run all security tests (24 tests)
+python3 -m pytest -m security
+
+# Run security tests with detailed output
+python3 -m pytest -m security -v --tb=long
+
+# Security tests for CI/CD pipelines
+python3 -m pytest -m security --maxfail=1 --tb=line
+
+# Run specific security test categories
+python3 -m pytest tests/test_security.py::TestInputValidationSecurity -v
+python3 -m pytest tests/test_security.py::TestSensitiveDataProtection -v
+python3 -m pytest tests/test_security.py::TestDatabaseSecurity -v
+```
+
+#### Security Test Results Interpretation
+
+**Expected Security Test Behavior:**
+- **Some tests may fail intentionally** - This indicates the security test found a potential vulnerability
+- **Passing tests** - Indicate the security control is working properly
+- **Failed tests should be investigated** - May indicate actual vulnerabilities or expected security findings
+
+**Sample Security Test Output:**
+```bash
+PASSED test_sql_injection_prevention     # ✅ SQL injection protection working
+FAILED test_xss_injection_prevention     # ⚠️  XSS vulnerability - needs sanitization
+PASSED test_encryption_strength         # ✅ Encryption properly implemented
+PASSED test_hash_collision_resistance   # ✅ Transaction hashing is secure
+FAILED test_memory_data_clearing         # ⚠️  Sensitive data may persist in memory
+```
+
+#### Security Compliance
+
+The security test suite validates compliance with:
+- **OWASP Top 10** security vulnerabilities
+- **Financial data protection** standards
+- **Input validation** best practices
+- **Secure coding** principles
+- **Data privacy** requirements
+
+#### Security Test Maintenance
+
+```bash
+# Monthly security validation
+python3 -m pytest -m security --tb=short > security_audit.log
+
+# Update security test patterns for new vulnerabilities
+# Add new test cases when security issues are discovered
+# Review failed tests for actual vulnerabilities vs. false positives
+```
+
+**Security Testing Integration:**
+```python
+# All modules include security validation
+@pytest.mark.unit
+@pytest.mark.security
+def test_input_validation_prevents_injection(self, system_under_test):
+    """Test that malicious inputs are properly handled"""
+    malicious_input = "'; DROP TABLE transactions; --"
+    
+    with pytest.raises(ValidationError):
+        system_under_test.process_input(malicious_input)
+
+@pytest.mark.security
+def test_sensitive_data_not_logged(self, system_under_test, caplog):
+    """Test that sensitive financial data is not logged"""
+    sensitive_data = {'account_number': '123456789'}
+    
+    system_under_test.process(sensitive_data)
+    
+    # Verify sensitive data not in logs
+    assert '123456789' not in caplog.text
+```
 
 ### Test Quality Standards
 
