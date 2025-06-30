@@ -322,6 +322,7 @@ class TestDatabaseLoader:
             balance=None,
             reference_number=None,
             transaction_type="debit",
+            currency="INR",
             enum_id=None,
             category="food",
             transaction_category=None,
@@ -375,7 +376,7 @@ class TestDatabaseLoader:
         assert expected_call_args["has_splits"] is True
 
         # Verify splits were created
-        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 100.0)
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 100.0, "INR")
 
         assert result == mock_transaction
 
@@ -405,7 +406,7 @@ class TestDatabaseLoader:
             loader_instance.create_transaction(transaction_data)
 
         # Verify credit amount was used for splits calculation
-        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 200.0)
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 200.0, "INR")
 
     @pytest.mark.unit
     @pytest.mark.database
@@ -433,7 +434,7 @@ class TestDatabaseLoader:
             loader_instance.create_transaction(transaction_data)
 
         # Verify 0 was used for splits calculation
-        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 0)
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 0, "INR")
 
     @pytest.mark.unit
     @pytest.mark.database
@@ -451,7 +452,8 @@ class TestDatabaseLoader:
             {"person": "JANE", "percentage": 40.0},  # Test case handling
         ]
 
-        loader_instance._create_transaction_splits(mock_session, 1, splits_data, 100.0)
+        # Call with currency parameter (default INR)
+        loader_instance._create_transaction_splits(mock_session, 1, splits_data, 100.0, "INR")
 
         # Verify splits were created with correct calculations
         expected_calls = [
@@ -460,6 +462,7 @@ class TestDatabaseLoader:
                 "person_name": "john",  # lowercase and stripped
                 "percentage": 60.0,
                 "amount": 60.0,  # 100.0 * 60/100
+                "currency": "INR",  # Added currency field
                 "is_settled": False,
             },
             {
@@ -467,6 +470,7 @@ class TestDatabaseLoader:
                 "person_name": "jane",  # lowercase
                 "percentage": 40.0,
                 "amount": 40.0,  # 100.0 * 40/100
+                "currency": "INR",  # Added currency field
                 "is_settled": False,
             },
         ]
