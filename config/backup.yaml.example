@@ -21,4 +21,4 @@ database:
 #   provider: "aws_s3"  # aws_s3, google_cloud, azure
 #   bucket: "your-backup-bucket"
 #   region: "us-east-1"
-#   encrypt: true 
+#   encrypt: true

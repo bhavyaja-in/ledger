@@ -342,4 +342,4 @@ min-public-methods=1
 
 [EXCEPTIONS]
 # Exceptions that will emit a warning when being caught.
-overgeneral-exceptions=BaseException,Exception 
+overgeneral-exceptions=BaseException,Exception

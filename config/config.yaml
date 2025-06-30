@@ -14,7 +14,7 @@ processors:
     file_type: "excel"
     extraction_folder: "data/icici_bank"
     currency: "INR"  # Single currency
-    
+
   # Example multi-currency processor:
   # icici_forex:
   #   extractor: "icici_forex_extractor"
@@ -30,4 +30,4 @@ enums:
   #   category: "income"
 
 # Categories are now loaded from config/categories.yaml
-# Copy config/categories.yaml.example to config/categories.yaml to customize your categories 
+# Copy config/categories.yaml.example to config/categories.yaml to customize your categories

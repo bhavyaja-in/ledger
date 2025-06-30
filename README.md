@@ -47,7 +47,7 @@ A comprehensive Python-based financial data processing system that extracts, tra
    ```bash
    # Copy and customize categories
    cp config/categories.yaml.example config/categories.yaml
-   
+
    # Copy and customize backup settings
    cp config/backup.yaml.example config/backup.yaml
    ```
@@ -56,7 +56,7 @@ A comprehensive Python-based financial data processing system that extracts, tra
    ```bash
    # For testing (recommended for first run)
    python scripts/init_db.py --test-mode
-   
+
    # For production
    python scripts/init_db.py
    ```
@@ -186,7 +186,7 @@ Your backup repository maintains:
 ```
 📁 Available backup files:
   1. financial_data_backup_2025-06-30_01-06-00.db
-  2. financial_data_backup_2025-06-30_01-05-41.db  
+  2. financial_data_backup_2025-06-30_01-05-41.db
   3. financial_data_backup.db (LATEST)
 
 📚 Recent git commit history:
@@ -256,7 +256,7 @@ processors:
 
 #### Currency Workflow
 1. **Single Currency**: Always uses configured currency (no detection needed)
-2. **Multi-Currency Detection**: 
+2. **Multi-Currency Detection**:
    - System scans transaction description for currency patterns
    - If single currency detected → Uses automatically
    - If multiple/no currencies detected → Asks user to select
@@ -271,7 +271,7 @@ The system includes comprehensive performance monitoring and benchmarking capabi
 
 #### 📊 System Performance Tests
 - **Configuration Loading**: Speed and memory usage of system initialization
-- **Database Operations**: Bulk insert/query performance with large datasets (1000+ records)  
+- **Database Operations**: Bulk insert/query performance with large datasets (1000+ records)
 - **File Processing**: Excel extraction performance with various file sizes
 - **End-to-End Pipeline**: Complete transaction processing workflow timing
 
@@ -321,7 +321,7 @@ pytest -m "system" -v
 # Configuration loading performance
 pytest tests/test_performance.py::TestSystemPerformance::test_config_loading_performance -v
 
-# Database operations performance  
+# Database operations performance
 pytest tests/test_performance.py::TestSystemPerformance::test_bulk_database_operations_performance -v
 
 # File extraction performance
@@ -409,7 +409,7 @@ On a typical development machine, expect these baseline results:
 
 ```
 🏆 Performance Benchmark Results:
-Operation            Duration (s) Memory (MB) 
+Operation            Duration (s) Memory (MB)
 ---------------------------------------------
 config_loading       0.0050       0.1          ✅
 database_init        0.1440       14.5         ✅
@@ -453,7 +453,7 @@ The system includes comprehensive enterprise-grade testing with complete safety 
 
 #### 🔧 Unit Tests (`@pytest.mark.unit`)
 - **Component Testing**: Individual module validation
-- **Database Operations**: CRUD operations and schema validation  
+- **Database Operations**: CRUD operations and schema validation
 - **Configuration Loading**: Environment and config validation
 - **Currency Detection**: Multi-currency transformation logic
 
@@ -528,7 +528,7 @@ python scripts/init_db.py --clean --test-mode
 # Integration tests create realistic scenarios:
 test_scenarios = [
     'Mixed transaction types with multi-currency support',
-    'Split transaction processing and settlement tracking', 
+    'Split transaction processing and settlement tracking',
     'Error handling (corrupted files, missing data)',
     'Performance validation with large datasets',
     'Security boundary verification'
@@ -554,7 +554,7 @@ python scripts/setup_hooks.py --check
 ### What Gets Checked
 
 - **🎨 Code Formatting**: Black formatter with 100-char line length
-- **📦 Import Sorting**: isort for consistent import organization  
+- **📦 Import Sorting**: isort for consistent import organization
 - **🔍 Code Quality**: Pylint analysis for standards compliance
 - **🛡️ Security Scanning**: Bandit for vulnerability detection
 - **🧪 Test Requirements**: All unit, integration, and security tests must pass
@@ -647,7 +647,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Architecture Details**: Check the architecture section for technical overview
 - **Contributing Guide**: See contributing section for development setup
 
-**Happy Financial Processing! 💰📊** 
+**Happy Financial Processing! 💰📊**
 
 # Ledger Database Backups
 
@@ -655,7 +655,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🛡️ Security & Privacy
 
-This repository contains **encrypted backups** of financial transaction databases. 
+This repository contains **encrypted backups** of financial transaction databases.
 
 - **⚠️ PRIVATE REPOSITORY**: This repo should NEVER be made public
 - **🔐 ENCRYPTED DATA**: All database files are encrypted before storage
@@ -822,7 +822,7 @@ This ensures **complete data protection** with **professional-grade versioning**
 
 ---
 
-*Last Updated: 2025-06-30* 
+*Last Updated: 2025-06-30*
 
 ## 🧪 Test Suite Documentation
 
@@ -1050,7 +1050,7 @@ python3 -m pytest -m security --tb=short > security_audit.log
 def test_input_validation_prevents_injection(self, system_under_test):
     """Test that malicious inputs are properly handled"""
     malicious_input = "'; DROP TABLE transactions; --"
-    
+
     with pytest.raises(ValidationError):
         system_under_test.process_input(malicious_input)
 
@@ -1058,9 +1058,9 @@ def test_input_validation_prevents_injection(self, system_under_test):
 def test_sensitive_data_not_logged(self, system_under_test, caplog):
     """Test that sensitive financial data is not logged"""
     sensitive_data = {'account_number': '123456789'}
-    
+
     system_under_test.process(sensitive_data)
-    
+
     # Verify sensitive data not in logs
     assert '123456789' not in caplog.text
 ```
@@ -1111,10 +1111,10 @@ def test_new_feature_positive_case(self, fixture_name):
     """Test new feature with valid input - describe exact scenario"""
     # Arrange
     test_data = create_test_data()
-    
+
     # Act
     result = system_under_test.method(test_data)
-    
+
     # Assert
     assert result.status == 'success'
     assert result.data is not None
@@ -1128,7 +1128,7 @@ def test_new_feature_edge_cases(self, fixture_name):
     # Test empty input
     with pytest.raises(ValueError, match="Input cannot be empty"):
         system_under_test.method(None)
-    
+
     # Test boundary conditions
     # Test error scenarios
 ```
@@ -1138,7 +1138,7 @@ def test_new_feature_edge_cases(self, fixture_name):
 For each new module/class, implement:
 
 - **Initialization tests**: Constructor with various parameters
-- **Happy path tests**: Normal operation scenarios  
+- **Happy path tests**: Normal operation scenarios
 - **Error handling tests**: Exception scenarios and error recovery
 - **Edge case tests**: Boundary conditions, empty inputs, large datasets
 - **Security tests**: Input validation, injection prevention
@@ -1151,10 +1151,10 @@ For each new module/class, implement:
 # ✅ CORRECT: Mock external dependencies
 with patch('src.loaders.database_loader.DatabaseLoader') as mock_db:
     mock_db.return_value.create_transaction.return_value = Mock(id=1)
-    
+
 # ✅ CORRECT: Mock file operations
 with patch('builtins.open', mock_open(read_data="test,data\n1,2")):
-    
+
 # ❌ WRONG: Don't mock the system under test itself
 # This defeats the purpose of testing actual functionality
 ```
@@ -1169,18 +1169,18 @@ Every module must include security tests:
 def test_input_validation_prevents_injection(self, system_under_test):
     """Test that SQL injection attempts are properly handled"""
     malicious_input = "'; DROP TABLE transactions; --"
-    
+
     with pytest.raises(ValidationError):
         system_under_test.process_input(malicious_input)
 
-@pytest.mark.unit  
+@pytest.mark.unit
 @pytest.mark.security
 def test_sensitive_data_not_logged(self, system_under_test, caplog):
     """Test that sensitive financial data is not logged"""
     sensitive_data = {'account_number': '123456789'}
-    
+
     system_under_test.process(sensitive_data)
-    
+
     # Verify sensitive data not in logs
     assert '123456789' not in caplog.text
 ```
@@ -1195,7 +1195,7 @@ Before committing code, ensure:
 # 1. All tests pass
 python3 -m pytest
 
-# 2. Coverage meets minimum requirements  
+# 2. Coverage meets minimum requirements
 python3 -m pytest --cov=src --cov-fail-under=80
 
 # 3. Security tests pass
@@ -1230,7 +1230,7 @@ testpaths = tests
 python_files = test_*.py
 
 # Coverage requirements
-addopts = 
+addopts =
     --cov=src
     --cov-fail-under=80
     --cov-branch
@@ -1289,4 +1289,4 @@ When tests fail:
 - **Performance Metrics**: Available via `--durations` flag
 - **Security Guidelines**: See security tests for examples
 
-For questions about testing standards or adding new test categories, refer to the existing test files as examples of enterprise-grade testing patterns. 
+For questions about testing standards or adding new test categories, refer to the existing test files as examples of enterprise-grade testing patterns.

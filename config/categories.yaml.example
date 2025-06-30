@@ -1,6 +1,6 @@
 # Categories Configuration Template
 # Copy this file to 'categories.yaml' and customize with your personal categories
-# 
+#
 # Usage: cp categories.yaml.example categories.yaml
 
 categories:
@@ -14,10 +14,10 @@ categories:
   - name: "transfer"
   - name: "investment"
   - name: "other"
-  
+
 # You can add more categories like:
 # - name: "education"
 # - name: "travel"
 # - name: "subscriptions"
 # - name: "insurance"
-# - name: "gifts" 
+# - name: "gifts"

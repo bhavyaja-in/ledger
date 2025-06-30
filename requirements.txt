@@ -45,4 +45,4 @@ bandit>=1.7.5
 # transformers>=4.21.0
 # sentence-transformers>=2.2.0
 # mlflow>=1.28.0
-# optuna>=3.0.0 
+# optuna>=3.0.0

@@ -311,7 +311,7 @@ The pre-commit hooks integrate seamlessly with CI/CD pipelines:
 - name: Run Pre-commit Hooks
   run: |
     pre-commit run --all-files
-    
+
 - name: Run Test Suite
   run: |
     pytest -m "unit or integration" --cov=src --cov-fail-under=80
@@ -334,4 +334,4 @@ Include the following information:
 
 ---
 
-**🎯 Remember**: These hooks are designed to help maintain high code quality and catch issues early. They may seem strict initially, but they'll save significant time in code review and debugging later! 
+**🎯 Remember**: These hooks are designed to help maintain high code quality and catch issues early. They may seem strict initially, but they'll save significant time in code review and debugging later!

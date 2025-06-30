@@ -6,7 +6,7 @@
       "always",
       [
         "feat",
-        "fix", 
+        "fix",
         "docs",
         "style",
         "refactor",
@@ -30,4 +30,4 @@
     "footer-leading-blank": [1, "always"],
     "footer-max-line-length": [2, "always", 100]
   }
-} 
+}

@@ -5,26 +5,27 @@ This module provides comprehensive test fixtures for isolated, secure testing
 of the financial data processing system.
 """
 import os
-import tempfile
 import sqlite3
-import yaml
-import pytest
+import tempfile
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, patch
-from datetime import datetime, date
-from decimal import Decimal
+
 import pandas as pd
+import pytest
+import yaml
 
 
 # Test Environment Setup
 @pytest.fixture(scope="session", autouse=True)
 def test_environment():
     """Ensure test environment is properly configured"""
-    os.environ['LEDGER_TEST_MODE'] = 'true'
+    os.environ["LEDGER_TEST_MODE"] = "true"
     yield
     # Cleanup after all tests
-    if 'LEDGER_TEST_MODE' in os.environ:
-        del os.environ['LEDGER_TEST_MODE']
+    if "LEDGER_TEST_MODE" in os.environ:
+        del os.environ["LEDGER_TEST_MODE"]
 
 
 # Temporary Directory Fixtures
@@ -56,25 +57,15 @@ def temp_data_dir(temp_dir):
 def test_config(temp_config_dir):
     """Create test configuration"""
     config = {
-        'database': {
-            'url': 'sqlite:///:memory:',
-            'test_prefix': 'test_'
-        },
-        'processors': {
-            'icici_bank': {
-                'enabled': True,
-                'data_path': 'data/icici_bank'
-            }
-        },
-        'logging': {
-            'level': 'DEBUG'
-        }
+        "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
+        "processors": {"icici_bank": {"enabled": True, "data_path": "data/icici_bank"}},
+        "logging": {"level": "DEBUG"},
     }
-    
+
     config_file = temp_config_dir / "config.yaml"
-    with open(config_file, 'w') as f:
+    with open(config_file, "w") as f:
         yaml.dump(config, f)
-    
+
     return config
 
 
@@ -82,22 +73,22 @@ def test_config(temp_config_dir):
 def test_categories_config(temp_config_dir):
     """Create test categories configuration"""
     categories = {
-        'categories': [
-            {'name': 'income'},
-            {'name': 'food'},
-            {'name': 'transport'},
-            {'name': 'shopping'},
-            {'name': 'entertainment'},
-            {'name': 'utilities'},
-            {'name': 'healthcare'},
-            {'name': 'other'}
+        "categories": [
+            {"name": "income"},
+            {"name": "food"},
+            {"name": "transport"},
+            {"name": "shopping"},
+            {"name": "entertainment"},
+            {"name": "utilities"},
+            {"name": "healthcare"},
+            {"name": "other"},
         ]
     }
-    
+
     categories_file = temp_config_dir / "categories.yaml"
-    with open(categories_file, 'w') as f:
+    with open(categories_file, "w") as f:
         yaml.dump(categories, f)
-    
+
     return categories
 
 
@@ -108,13 +99,13 @@ def mock_db_manager():
     mock_manager = Mock()
     mock_manager.get_session.return_value = Mock()
     mock_manager.models = {
-        'TransactionEnum': Mock(),
-        'Transaction': Mock(),
-        'Institution': Mock(),
-        'ProcessedFile': Mock(),
-        'SkippedTransaction': Mock(),
-        'ProcessingLog': Mock(),
-        'TransactionSplit': Mock()
+        "TransactionEnum": Mock(),
+        "Transaction": Mock(),
+        "Institution": Mock(),
+        "ProcessedFile": Mock(),
+        "SkippedTransaction": Mock(),
+        "ProcessingLog": Mock(),
+        "TransactionSplit": Mock(),
     }
     return mock_manager
 
@@ -122,7 +113,7 @@ def mock_db_manager():
 @pytest.fixture
 def in_memory_db():
     """Create in-memory SQLite database for testing"""
-    connection = sqlite3.connect(':memory:')
+    connection = sqlite3.connect(":memory:")
     yield connection
     connection.close()
 
@@ -133,29 +124,29 @@ def sample_transaction_data():
     """Sample transaction data for testing"""
     return [
         {
-            'date': '2023-01-01',
-            'description': 'SALARY CREDIT',
-            'debit_amount': '',
-            'credit_amount': '50000.00',
-            'balance': '50000.00',
-            'reference': 'SAL001'
+            "date": "2023-01-01",
+            "description": "SALARY CREDIT",
+            "debit_amount": "",
+            "credit_amount": "50000.00",
+            "balance": "50000.00",
+            "reference": "SAL001",
         },
         {
-            'date': '2023-01-02',
-            'description': 'SWIGGY FOOD ORDER',
-            'debit_amount': '450.00',
-            'credit_amount': '',
-            'balance': '49550.00',
-            'reference': 'UPI001'
+            "date": "2023-01-02",
+            "description": "SWIGGY FOOD ORDER",
+            "debit_amount": "450.00",
+            "credit_amount": "",
+            "balance": "49550.00",
+            "reference": "UPI001",
         },
         {
-            'date': '2023-01-03',
-            'description': 'PETROL PUMP PAYMENT',
-            'debit_amount': '2000.00',
-            'credit_amount': '',
-            'balance': '47550.00',
-            'reference': 'CARD001'
-        }
+            "date": "2023-01-03",
+            "description": "PETROL PUMP PAYMENT",
+            "debit_amount": "2000.00",
+            "credit_amount": "",
+            "balance": "47550.00",
+            "reference": "CARD001",
+        },
     ]
 
 
@@ -178,48 +169,41 @@ def sample_excel_file(temp_data_dir, sample_transaction_data):
 @pytest.fixture
 def mock_file_system():
     """Mock file system operations"""
-    with patch('os.path.exists') as mock_exists, \
-         patch('builtins.open') as mock_open:
+    with patch("os.path.exists") as mock_exists, patch("builtins.open") as mock_open:
         mock_exists.return_value = True
-        yield {
-            'exists': mock_exists,
-            'open': mock_open
-        }
+        yield {"exists": mock_exists, "open": mock_open}
 
 
 @pytest.fixture
 def mock_yaml_operations():
     """Mock YAML operations"""
-    with patch('yaml.safe_load') as mock_load, \
-         patch('yaml.dump') as mock_dump:
-        yield {
-            'load': mock_load,
-            'dump': mock_dump
-        }
+    with patch("yaml.safe_load") as mock_load, patch("yaml.dump") as mock_dump:
+        yield {"load": mock_load, "dump": mock_dump}
 
 
 # Validation Fixtures
 @pytest.fixture
 def security_validator():
     """Security validation utilities"""
+
     class SecurityValidator:
         @staticmethod
         def ensure_no_production_changes():
             """Ensure no production database/config changes"""
-            assert os.environ.get('LEDGER_TEST_MODE') == 'true'
-        
+            assert os.environ.get("LEDGER_TEST_MODE") == "true"
+
         @staticmethod
         def validate_test_isolation():
             """Validate test isolation"""
             # Check no production configs are being modified
-            prod_configs = ['config/config.yaml', 'config/categories.yaml']
+            prod_configs = ["config/config.yaml", "config/categories.yaml"]
             for config_path in prod_configs:
                 if os.path.exists(config_path):
                     # Ensure files aren't being modified during tests
                     stat_before = os.path.getmtime(config_path)
                     return lambda: os.path.getmtime(config_path) == stat_before
             return lambda: True
-    
+
     return SecurityValidator()
 
 
@@ -227,22 +211,23 @@ def security_validator():
 @pytest.fixture
 def coverage_tracker():
     """Track test coverage requirements"""
+
     class CoverageTracker:
         def __init__(self):
             self.covered_lines = set()
             self.total_lines = set()
-        
+
         def mark_line_covered(self, file_path, line_number):
             self.covered_lines.add(f"{file_path}:{line_number}")
-        
+
         def add_total_line(self, file_path, line_number):
             self.total_lines.add(f"{file_path}:{line_number}")
-        
+
         def get_coverage_percentage(self):
             if not self.total_lines:
                 return 100.0
             return (len(self.covered_lines) / len(self.total_lines)) * 100
-    
+
     return CoverageTracker()
 
 
@@ -253,4 +238,5 @@ def cleanup_after_test():
     yield
     # Clean up any test artifacts
     import gc
-    gc.collect() 
+
+    gc.collect()
