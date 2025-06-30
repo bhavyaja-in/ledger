@@ -33,6 +33,12 @@ flake8>=5.0.0
 mypy>=0.991
 mutmut>=3.3.0
 
+# Pre-commit hooks and code quality
+pre-commit>=3.0.0
+isort>=5.13.0
+pylint>=3.0.0
+bandit>=1.7.5
+
 # Future ML dependencies (for the smart recommendation system discussed)
 # scikit-learn>=1.1.0
 # spacy>=3.4.0

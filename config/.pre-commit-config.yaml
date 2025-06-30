@@ -1,0 +1,230 @@
+# Pre-commit hooks configuration for Financial Data Processor
+# This ensures code quality, formatting, and testing before every commit
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+  # Code Formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        name: "🎨 Black Code Formatter"
+        description: "Format Python code with Black"
+        language_version: python3
+        args: [--line-length=100]
+        exclude: ^(migrations/|\.venv/|venv/|env/)
+
+  # Import Sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: "📦 isort Import Sorting"
+        description: "Sort Python imports"
+        args: [--profile=black, --line-length=100]
+        exclude: ^(migrations/|\.venv/|venv/|env/)
+
+  # Basic Code Quality Checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: "✂️  Trim Trailing Whitespace"
+        description: "Remove trailing whitespace"
+      - id: end-of-file-fixer
+        name: "📄 Fix End of Files"
+        description: "Ensure files end with newline"
+      - id: check-yaml
+        name: "📋 Check YAML Syntax"
+        description: "Validate YAML files"
+      - id: check-json
+        name: "🔍 Check JSON Syntax"
+        description: "Validate JSON files"
+      - id: check-toml
+        name: "⚙️  Check TOML Syntax"
+        description: "Validate TOML files"
+      - id: check-xml
+        name: "📄 Check XML Syntax"
+        description: "Validate XML files"
+      - id: check-merge-conflict
+        name: "🔀 Check Merge Conflicts"
+        description: "Check for merge conflict markers"
+      - id: check-case-conflict
+        name: "📁 Check Case Conflicts"
+        description: "Check for case conflicts in filenames"
+      - id: check-executables-have-shebangs
+        name: "🔧 Check Executable Shebangs"
+        description: "Ensure executables have shebangs"
+      - id: check-shebang-scripts-are-executable
+        name: "⚡ Check Shebang Executables"
+        description: "Ensure shebang scripts are executable"
+      - id: check-docstring-first
+        name: "📚 Check Docstring First"
+        description: "Ensure docstrings come first"
+      - id: debug-statements
+        name: "🐛 Check Debug Statements"
+        description: "Check for debugger imports and statements"
+
+  # Security Checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        name: "🛡️ Bandit Security Linting"
+        description: "Find common security issues"
+        args: [--recursive, --format, txt]
+        exclude: ^(tests/|\.venv/|venv/|env/)
+
+  # Python Linting with Pylint
+  - repo: local
+    hooks:
+      - id: pylint
+        name: "🔍 Pylint Code Analysis"
+        description: "Run pylint for code quality analysis"
+        entry: pylint
+        language: system
+        types: [python]
+        args: [
+          --rcfile=config/pylintrc,
+          --disable=C0114,C0115,C0116,  # Missing docstring warnings
+          --disable=R0903,              # Too few public methods
+          --disable=W0613,              # Unused argument
+          --disable=R0801,              # Similar lines in files
+          --max-line-length=100,
+          --good-names=i,j,k,ex,Run,_,
+          --ignore=migrations,venv,env,.venv
+        ]
+        exclude: ^(migrations/|\.venv/|venv/|env/|tests/.*test_.*)
+        require_serial: false
+
+  # Commit Message Validation
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.0.0
+    hooks:
+      - id: conventional-pre-commit
+        name: "💬 Validate Commit Message"
+        description: "Ensure commit messages follow conventional commits"
+        stages: [commit-msg]
+        args: [
+          --strict,
+          --optional-scope,
+          feat, fix, docs, style, refactor, perf, test, build, ci, chore
+        ]
+
+  # Custom Test Hooks
+  - repo: local
+    hooks:
+      # Unit Tests
+      - id: unit-tests
+        name: "🧪 Run Unit Tests"
+        description: "Execute all unit tests before commit"
+        entry: python -m pytest
+        language: system
+        args: [
+          -m, unit,
+          --maxfail=1,
+          --tb=short,
+          -q,
+          --disable-warnings
+        ]
+        pass_filenames: false
+        always_run: true
+
+      # Integration Tests
+      - id: integration-tests
+        name: "🔄 Run Integration Tests"
+        description: "Execute all integration tests before commit"
+        entry: python -m pytest
+        language: system
+        args: [
+          -m, integration,
+          --maxfail=1,
+          --tb=short,
+          -q,
+          --disable-warnings
+        ]
+        pass_filenames: false
+        always_run: true
+        
+      # Security Tests
+      - id: security-tests
+        name: "🛡️ Run Security Tests"
+        description: "Execute security tests before commit"
+        entry: python -m pytest
+        language: system
+        args: [
+          -m, security,
+          --maxfail=1,
+          --tb=short,
+          -q,
+          --disable-warnings
+        ]
+        pass_filenames: false
+        always_run: true
+
+      # Performance Tests (Optional - can be skipped for faster commits)
+      - id: performance-tests
+        name: "⚡ Run Performance Tests"
+        description: "Execute performance tests before commit"
+        entry: python -m pytest
+        language: system
+        args: [
+          -m, performance,
+          --maxfail=1,
+          --tb=short,
+          -q,
+          --disable-warnings
+        ]
+        pass_filenames: false
+        always_run: true
+        stages: [push]  # Only run on push, not every commit
+
+      # Coverage Check
+      - id: coverage-check
+        name: "📊 Test Coverage Check"
+        description: "Ensure test coverage meets minimum requirements"
+        entry: python -m pytest
+        language: system
+        args: [
+          --cov=src,
+          --cov-report=term-missing,
+          --cov-fail-under=80,
+          -q,
+          --disable-warnings
+        ]
+        pass_filenames: false
+        always_run: true
+        stages: [push]  # Only run on push for full coverage
+
+      # Type Checking with mypy
+      - id: mypy
+        name: "🔬 MyPy Type Checking"
+        description: "Run static type checking"
+        entry: mypy
+        language: system
+        types: [python]
+        args: [
+          --ignore-missing-imports,
+          --follow-imports=silent,
+          --show-error-codes,
+          --no-strict-optional
+        ]
+        exclude: ^(migrations/|\.venv/|venv/|env/|tests/)
+
+      # Documentation Check
+      - id: docs-check
+        name: "📚 Documentation Check"
+        description: "Validate documentation and docstrings"
+        entry: python -c
+        language: system
+        args: [
+          "import sys; sys.exit(0)"  # Placeholder - can be enhanced with pydocstyle
+        ]
+        pass_filenames: false
+        always_run: true
+        stages: [push]
+
+# Pre-commit hook configuration
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: "3.0.0" 

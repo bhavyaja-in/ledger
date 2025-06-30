@@ -537,6 +537,65 @@ test_scenarios = [
 
 Test mode uses separate database tables (`test_transactions`, etc.) for complete safety.
 
+## 🔧 Pre-commit Hooks & Code Quality
+
+Enterprise-grade pre-commit hooks ensure consistent code quality and prevent issues before they reach the repository.
+
+### Quick Setup
+
+```bash
+# Automated setup (recommended)
+python scripts/setup_hooks.py
+
+# Manual verification
+python scripts/setup_hooks.py --check
+```
+
+### What Gets Checked
+
+- **🎨 Code Formatting**: Black formatter with 100-char line length
+- **📦 Import Sorting**: isort for consistent import organization  
+- **🔍 Code Quality**: Pylint analysis for standards compliance
+- **🛡️ Security Scanning**: Bandit for vulnerability detection
+- **🧪 Test Requirements**: All unit, integration, and security tests must pass
+- **🔬 Type Safety**: MyPy static type checking
+- **💬 Commit Messages**: Conventional commit format validation
+
+### Commit Message Format
+
+```bash
+# Examples of valid commit messages
+feat(processor): add multi-currency transaction support
+fix(database): resolve foreign key constraint error
+docs(readme): update installation instructions
+test(integration): add end-to-end workflow tests
+```
+
+### Manual Commands
+
+```bash
+# Run all hooks on all files
+pre-commit run --all-files --config config/.pre-commit-config.yaml
+
+# Run specific checks
+pre-commit run black --config config/.pre-commit-config.yaml          # Code formatting only
+pre-commit run pylint --config config/.pre-commit-config.yaml         # Code quality only
+pre-commit run unit-tests --config config/.pre-commit-config.yaml     # Unit tests only
+
+# Bypass hooks (emergency use only)
+git commit --no-verify -m "emergency fix"
+```
+
+### Performance Impact
+
+- **Commit Time**: ~60-120 seconds (formatting, linting, tests)
+- **Push Time**: ~180-300 seconds (includes performance tests, coverage)
+- **Automatic Fixes**: Code formatting and import sorting applied automatically
+
+For detailed setup instructions and troubleshooting, see [Pre-commit Setup Guide](docs/PRE_COMMIT_SETUP.md).
+
+> 📁 **Configuration Files**: All configuration files (pylint, commitlint, pre-commit) are organized in the `config/` directory.
+
 ## 🏦 Supported Banks
 
 - **ICICI Bank**: Excel statements (.xls, .xlsx) with intelligent header detection
