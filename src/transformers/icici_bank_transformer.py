@@ -6,7 +6,7 @@ import os
 import signal
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
 import pandas as pd
 
@@ -21,24 +21,28 @@ class IciciBankTransformer:
     """ICICI Bank transformer with interactive processing"""
 
     def __init__(self, db_manager, config, config_loader=None):
+        """Initialize transformer with configuration and database access"""
         self.db_manager = db_manager
         self.config = config
         self.config_loader = config_loader
-        self.db_loader = DatabaseLoader(db_manager)
         self.processor_type = "icici_bank"
         self._interrupted = False
-
-        # Set up currency detection
+        
+        # Set up currency detector early so we can use it for validation
         self.currency_detector = CurrencyDetector()
+        
+        # Get processor currencies with proper validation
+        processor_currencies = self.config.get("processors", {}).get(
+            self.processor_type, {}
+        ).get("currency", ["INR"])
+        
+        # Use the currency detector's normalize_currency_list method for validation
+        self.processor_currencies = self.currency_detector.normalize_currency_list(processor_currencies)
 
-        # Get processor currency configuration
-        processor_config = config.get("processors", {}).get(self.processor_type, {})
-        processor_currencies = processor_config.get("currency", "INR")
-        self.processor_currencies = self.currency_detector.normalize_currency_list(
-            processor_currencies
-        )
+        # Set up database loader
+        self.db_loader = DatabaseLoader(db_manager)
 
-        # Set up signal handler for Ctrl+C
+        # Set up signal handler for graceful interrupt
         signal.signal(signal.SIGINT, self._signal_handler)
 
     def _signal_handler(self, signum, frame):
@@ -50,11 +54,12 @@ class IciciBankTransformer:
 
     def process_transactions(
         self, extracted_data: Dict[str, Any], institution, processed_file
-    ) -> Dict[str, Any]:
+    ) -> Dict[str, Union[int, str]]:
         """Process transactions with interactive categorization"""
         transactions = extracted_data["transactions"]
 
-        results = {
+        # Initialize results with explicit types
+        results: Dict[str, Union[int, str]] = {
             "total_transactions": len(transactions),
             "processed_transactions": 0,
             "skipped_transactions": 0,
@@ -89,7 +94,8 @@ class IciciBankTransformer:
                             "Invalid transaction data",
                             i,
                         )
-                        results["skipped_transactions"] += 1
+                        # Explicitly cast to int before incrementing
+                        results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
                         continue
 
                     # Step 2: Create transaction hash for deduplication
@@ -98,7 +104,7 @@ class IciciBankTransformer:
                     # Step 3: Check for duplicates
                     if self.db_loader.check_transaction_exists(transaction_hash):
                         print("⚠️  Transaction already processed - skipping duplicate")
-                        results["duplicate_transactions"] += 1
+                        results["duplicate_transactions"] = cast(int, results["duplicate_transactions"]) + 1
                         continue
 
                     # Step 3.1: Check for skipped transactions based on config
@@ -113,7 +119,7 @@ class IciciBankTransformer:
                             print(
                                 "⚠️  Transaction previously skipped - auto-skipping (set reprocess_skipped_transactions=true to change)"
                             )
-                            results["auto_skipped_transactions"] += 1
+                            results["auto_skipped_transactions"] = cast(int, results["auto_skipped_transactions"]) + 1
                             continue
                         else:
                             print(
@@ -135,7 +141,7 @@ class IciciBankTransformer:
                             i,
                             transaction_hash,
                         )
-                        results["skipped_transactions"] += 1
+                        results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
                         print("⏭️  Transaction skipped")
                         continue
 
@@ -161,18 +167,19 @@ class IciciBankTransformer:
                     }
 
                     self.db_loader.create_transaction(transaction_record)
-                    results["processed_transactions"] += 1
+                    results["processed_transactions"] = cast(int, results["processed_transactions"]) + 1
                     print("✅ Transaction saved successfully")
 
                 except Exception as e:
                     print(f"❌ Error processing transaction: {e}")
-                    results["skipped_transactions"] += 1
+                    results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
 
             # Determine final status
-            if (
-                results["processed_transactions"] + results["skipped_transactions"]
-                == results["total_transactions"]
-            ):
+            proc_trans = cast(int, results["processed_transactions"])
+            skip_trans = cast(int, results["skipped_transactions"]) 
+            total_trans = cast(int, results["total_transactions"])
+            
+            if proc_trans + skip_trans == total_trans:
                 results["status"] = "completed"
             else:
                 results["status"] = "partially_completed"
@@ -213,9 +220,9 @@ class IciciBankTransformer:
             transaction_type = "debit" if withdrawal and withdrawal > 0 else "credit"
 
             # Get reference number
-            reference = str(row_data.get("S No.", "")).strip()
-            if reference == "nan":
-                reference = None
+            reference_str = str(row_data.get("S No.", "")).strip()
+            # Keep reference as a string or empty string (not None)
+            reference = "" if reference_str == "nan" else reference_str
 
             # Determine currency for this transaction
             currency = self._determine_transaction_currency(row_data)
@@ -286,14 +293,24 @@ class IciciBankTransformer:
                 print(f"🔍 Detected currency from description: {detected}")
                 return detected
 
-        # Detection failed - ask user with context from all fields
+        # Priority 3: Ask user if we still can't determine
         context_text = f"Description: {description}"
-        if withdrawal_amount and withdrawal_amount != "nan":
-            context_text += f" | Withdrawal: {withdrawal_amount}"
-        if deposit_amount and deposit_amount != "nan":
-            context_text += f" | Deposit: {deposit_amount}"
+        if withdrawal_amount:
+            context_text += f"\nWithdrawal: {withdrawal_amount}"
+        if deposit_amount:
+            context_text += f"\nDeposit: {deposit_amount}"
 
-        return self.currency_detector.ask_user_for_currency(self.processor_currencies, context_text)
+        # Use correct parameter order and ensure we always return a string
+        currency = self.currency_detector.ask_user_for_currency(
+            self.processor_currencies, context_text
+        )
+        
+        # Fallback to default currency if detection and user input both fail
+        if not currency:
+            print(f"⚠️ Currency detection failed. Using default: {self.processor_currencies[0]}")
+            return self.processor_currencies[0]
+            
+        return currency
 
     def _display_transaction(self, transaction: Dict[str, Any]):
         """Display transaction details with better formatting and dynamic currency"""
@@ -831,15 +848,15 @@ class IciciBankTransformer:
             if not splits_input:
                 return None
 
-            splits = []
-            total_percentage = 0
+            splits: List[Dict[str, Any]] = []
+            total_percentage: float = 0.0
 
             for split in splits_input.split(","):
                 try:
-                    person, percentage = split.strip().split(":")
-                    percentage = float(percentage)
+                    person, percentage_str = split.strip().split(":")
+                    percentage = float(percentage_str)
 
-                    if percentage <= 0 or percentage > 100:
+                    if percentage <= 0.0 or percentage > 100.0:
                         print("❌ Percentage must be between 1 and 100")
                         continue
 
@@ -850,12 +867,12 @@ class IciciBankTransformer:
                     print(f"❌ Invalid format in '{split}'. Use 'name:percentage'")
                     continue
 
-            if total_percentage > 100:
+            if total_percentage > 100.0:
                 print(f"❌ Total percentage ({total_percentage}%) exceeds 100%")
                 continue
             elif splits:
-                remaining = 100 - total_percentage
-                if remaining > 0:
+                remaining = 100.0 - total_percentage
+                if remaining > 0.0:
                     print(f"ℹ️  Your share: {remaining}%")
                 return splits
 
