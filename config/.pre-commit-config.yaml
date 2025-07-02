@@ -81,18 +81,11 @@ repos:
       - id: pylint
         name: "🔍 Pylint Code Analysis"
         description: "Run pylint for code quality analysis"
-        entry: pylint
+        entry: python3 -m pylint
         language: system
         types: [python]
         args: [
-          --rcfile=config/pylintrc,
-          --disable=C0114,C0115,C0116,  # Missing docstring warnings
-          --disable=R0903,              # Too few public methods
-          --disable=W0613,              # Unused argument
-          --disable=R0801,              # Similar lines in files
-          --max-line-length=100,
-          --good-names=i,j,k,ex,Run,_,
-          --ignore=migrations,venv,env,.venv
+          --rcfile=config/.pylintrc
         ]
         exclude: ^(migrations/|\.venv/|venv/|env/|tests/.*test_.*)
         require_serial: false
@@ -200,14 +193,14 @@ repos:
       - id: mypy
         name: "🔬 MyPy Type Checking"
         description: "Run static type checking"
-        entry: mypy
+        entry: python3 -m mypy
         language: system
         types: [python]
         args: [
+          --config-file=config/mypy.ini,
           --ignore-missing-imports,
           --follow-imports=silent,
-          --show-error-codes,
-          --no-strict-optional
+          --show-error-codes
         ]
         exclude: ^(migrations/|\.venv/|venv/|env/|tests/)
 

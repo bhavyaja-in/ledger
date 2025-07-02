@@ -16,7 +16,7 @@ ignore-patterns=.*_pb2.py,test_.*\.py
 persistent=yes
 
 # List of plugins (as comma separated values of python modules names) to load
-load-plugins=
+load-plugins=pylint.extensions.docparams,pylint.extensions.mccabe,pylint.extensions.redefined_variable_type
 
 # Use multiple processes to speed up Pylint.
 jobs=1
@@ -37,22 +37,34 @@ confidence=
 # Disable the message, report, category or checker with the given id(s).
 disable=C0114,  # missing-module-docstring
         C0115,  # missing-class-docstring
-        C0116,  # missing-function-docstring
-        R0903,  # too-few-public-methods
-        W0613,  # unused-argument
-        R0801,  # duplicate-code
-        C0103,  # invalid-name (for short variable names)
-        R0913,  # too-many-arguments
-        R0914,  # too-many-locals
-        R0915,  # too-many-statements
-        W0703,  # broad-except
         C0301,  # line-too-long (handled by black)
         C0330,  # wrong-hanging-indentation (handled by black)
+        R0801,  # duplicate-code
         W0511,  # fixme (TODO comments)
 
 # Enable the message, report, category or checker with the given id(s).
 enable=C0326,  # bad-whitespace
        W0622,  # redefined-builtin
+       W0611,  # unused-import
+       E0001,  # syntax-error
+       E0601,  # used-before-assignment
+       E1101,  # no-member
+       C0116,  # missing-function-docstring (now enabled)
+       R0903,  # too-few-public-methods (now enabled)
+       W0613,  # unused-argument (now enabled)
+       C0103,  # invalid-name (now enabled)
+       W0703,  # broad-except (now enabled)
+       W0612,  # unused-variable
+       W0621,  # redefined-outer-name
+       W0702,  # bare-except
+       W0104,  # pointless-statement
+       W0105,  # pointless-string-statement
+       W0106,  # expression-not-assigned
+       R0201,  # no-self-use
+       E1102,  # not-callable
+       R0913,  # too-many-arguments (now enabled but with adjusted threshold)
+       R0914,  # too-many-locals (now enabled but with adjusted threshold)
+       R0915,  # too-many-statements (now enabled but with adjusted threshold)
 
 [REPORTS]
 # Set the output format.
@@ -69,7 +81,7 @@ msg-template={path}:{line}:{column}: {msg_id}: {msg} ({symbol})
 
 [REFACTORING]
 # Maximum number of nested blocks for function / method body
-max-nested-blocks=5
+max-nested-blocks=4
 
 # Complete name of functions that never returns.
 never-returning-functions=sys.exit
@@ -118,7 +130,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local,SQLObject
 ignored-modules=
 
 # Show a hint with the correct naming format instead of just the name.
-include-naming-hint=no
+include-naming-hint=yes
 
 # List of decorators that produce properties
 property-classes=abc.abstractproperty
@@ -131,7 +143,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 additional-builtins=
 
 # Tells whether unused global variables should be treated as a violation.
-allow-global-unused-variables=yes
+allow-global-unused-variables=no
 
 # List of strings which can identify a callback function by name.
 callbacks=cb_,_cb
@@ -150,7 +162,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 
 [FORMAT]
 # Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
-expected-line-ending-format=
+expected-line-ending-format=LF
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
@@ -224,7 +236,7 @@ const-naming-style=UPPER_CASE
 const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Minimum line length for functions/classes that require docstrings, shorter ones are exempt.
-docstring-min-length=-1
+docstring-min-length=10
 
 # Naming style matching correct function names
 function-naming-style=snake_case
@@ -233,10 +245,10 @@ function-naming-style=snake_case
 function-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 
 # Good variable names which should always be accepted
-good-names=i,j,k,ex,Run,_,id,db,pk,tx
+good-names=i,j,k,ex,Run,_,id,db,pk,tx,df,fp
 
 # Include a hint for the correct naming format with invalid-name
-include-naming-hint=no
+include-naming-hint=yes
 
 # Naming style matching correct inline iteration names
 inlinevar-naming-style=any
@@ -276,10 +288,10 @@ variable-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 allow-wildcard-with-all=no
 
 # Analyse import fallback blocks.
-analyse-fallback-blocks=no
+analyse-fallback-blocks=yes
 
 # Deprecated modules which should not be used
-deprecated-modules=optparse,tkinter.tix
+deprecated-modules=optparse,tkinter.tix,regsub,TERMIOS,Bastion,rexec,string
 
 # Create a graph of external dependencies in the given file
 ext-import-graph=
@@ -311,10 +323,10 @@ valid-metaclass-classmethod-first-arg=cls
 
 [DESIGN]
 # Maximum number of arguments for function / method
-max-args=7
+max-args=6
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=15
+max-attributes=10
 
 # Maximum number of boolean expressions in a if statement
 max-bool-expr=5
@@ -323,7 +335,7 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body
-max-locals=15
+max-locals=12
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7
@@ -335,11 +347,11 @@ max-public-methods=20
 max-returns=6
 
 # Maximum number of statements in function / method body
-max-statements=50
+max-statements=40
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=1
 
 [EXCEPTIONS]
 # Exceptions that will emit a warning when being caught.
-overgeneral-exceptions=BaseException,Exception
+overgeneral-exceptions=BaseException,Exception,StandardError
