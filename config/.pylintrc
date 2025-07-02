@@ -27,9 +27,6 @@ unsafe-load-any-extension=no
 # A comma-separated list of package or module names from where C extensions may be loaded.
 extension-pkg-whitelist=
 
-# Allow optimization of some AST trees.
-optimize-ast=no
-
 [MESSAGES CONTROL]
 # Only show warnings with the listed confidence levels.
 confidence=
@@ -38,13 +35,11 @@ confidence=
 disable=C0114,  # missing-module-docstring
         C0115,  # missing-class-docstring
         C0301,  # line-too-long (handled by black)
-        C0330,  # wrong-hanging-indentation (handled by black)
         R0801,  # duplicate-code
         W0511,  # fixme (TODO comments)
 
 # Enable the message, report, category or checker with the given id(s).
-enable=C0326,  # bad-whitespace
-       W0622,  # redefined-builtin
+enable=W0622,  # redefined-builtin
        W0611,  # unused-import
        E0001,  # syntax-error
        E0601,  # used-before-assignment
@@ -60,7 +55,6 @@ enable=C0326,  # bad-whitespace
        W0104,  # pointless-statement
        W0105,  # pointless-string-statement
        W0106,  # expression-not-assigned
-       R0201,  # no-self-use
        E1102,  # not-callable
        R0913,  # too-many-arguments (now enabled but with adjusted threshold)
        R0914,  # too-many-locals (now enabled but with adjusted threshold)
@@ -178,9 +172,6 @@ max-line-length=100
 
 # Maximum number of lines in a module
 max-module-lines=1000
-
-# List of optional constructs for which whitespace checking is disabled.
-no-space-check=trailing-comma,dict-separator
 
 # Allow the body of a class to be on the same line as the declaration if body contains single statement.
 single-line-class-stmt=no
@@ -354,4 +345,4 @@ min-public-methods=1
 
 [EXCEPTIONS]
 # Exceptions that will emit a warning when being caught.
-overgeneral-exceptions=BaseException,Exception,StandardError
+overgeneral-exceptions=builtins.BaseException,builtins.Exception,builtins.StandardError

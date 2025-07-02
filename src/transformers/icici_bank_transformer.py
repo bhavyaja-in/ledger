@@ -27,17 +27,19 @@ class IciciBankTransformer:
         self.config_loader = config_loader
         self.processor_type = "icici_bank"
         self._interrupted = False
-        
+
         # Set up currency detector early so we can use it for validation
         self.currency_detector = CurrencyDetector()
-        
+
         # Get processor currencies with proper validation
-        processor_currencies = self.config.get("processors", {}).get(
-            self.processor_type, {}
-        ).get("currency", ["INR"])
-        
+        processor_currencies = (
+            self.config.get("processors", {}).get(self.processor_type, {}).get("currency", ["INR"])
+        )
+
         # Use the currency detector's normalize_currency_list method for validation
-        self.processor_currencies = self.currency_detector.normalize_currency_list(processor_currencies)
+        self.processor_currencies = self.currency_detector.normalize_currency_list(
+            processor_currencies
+        )
 
         # Set up database loader
         self.db_loader = DatabaseLoader(db_manager)
@@ -95,7 +97,9 @@ class IciciBankTransformer:
                             i,
                         )
                         # Explicitly cast to int before incrementing
-                        results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
+                        results["skipped_transactions"] = (
+                            cast(int, results["skipped_transactions"]) + 1
+                        )
                         continue
 
                     # Step 2: Create transaction hash for deduplication
@@ -104,7 +108,9 @@ class IciciBankTransformer:
                     # Step 3: Check for duplicates
                     if self.db_loader.check_transaction_exists(transaction_hash):
                         print("⚠️  Transaction already processed - skipping duplicate")
-                        results["duplicate_transactions"] = cast(int, results["duplicate_transactions"]) + 1
+                        results["duplicate_transactions"] = (
+                            cast(int, results["duplicate_transactions"]) + 1
+                        )
                         continue
 
                     # Step 3.1: Check for skipped transactions based on config
@@ -119,7 +125,9 @@ class IciciBankTransformer:
                             print(
                                 "⚠️  Transaction previously skipped - auto-skipping (set reprocess_skipped_transactions=true to change)"
                             )
-                            results["auto_skipped_transactions"] = cast(int, results["auto_skipped_transactions"]) + 1
+                            results["auto_skipped_transactions"] = (
+                                cast(int, results["auto_skipped_transactions"]) + 1
+                            )
                             continue
                         else:
                             print(
@@ -141,7 +149,9 @@ class IciciBankTransformer:
                             i,
                             transaction_hash,
                         )
-                        results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
+                        results["skipped_transactions"] = (
+                            cast(int, results["skipped_transactions"]) + 1
+                        )
                         print("⏭️  Transaction skipped")
                         continue
 
@@ -167,7 +177,9 @@ class IciciBankTransformer:
                     }
 
                     self.db_loader.create_transaction(transaction_record)
-                    results["processed_transactions"] = cast(int, results["processed_transactions"]) + 1
+                    results["processed_transactions"] = (
+                        cast(int, results["processed_transactions"]) + 1
+                    )
                     print("✅ Transaction saved successfully")
 
                 except Exception as e:
@@ -176,9 +188,9 @@ class IciciBankTransformer:
 
             # Determine final status
             proc_trans = cast(int, results["processed_transactions"])
-            skip_trans = cast(int, results["skipped_transactions"]) 
+            skip_trans = cast(int, results["skipped_transactions"])
             total_trans = cast(int, results["total_transactions"])
-            
+
             if proc_trans + skip_trans == total_trans:
                 results["status"] = "completed"
             else:
@@ -304,12 +316,12 @@ class IciciBankTransformer:
         currency = self.currency_detector.ask_user_for_currency(
             self.processor_currencies, context_text
         )
-        
+
         # Fallback to default currency if detection and user input both fail
         if not currency:
             print(f"⚠️ Currency detection failed. Using default: {self.processor_currencies[0]}")
             return self.processor_currencies[0]
-            
+
         return currency
 
     def _display_transaction(self, transaction: Dict[str, Any]):
