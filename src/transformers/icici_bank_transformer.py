@@ -15,6 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.loaders.database_loader import DatabaseLoader
 from src.utils.currency_detector import CurrencyDetector
+from src.utils.security import sanitize_text_input, validate_amount
 
 
 class IciciBankTransformer:
@@ -218,28 +219,27 @@ class IciciBankTransformer:
                 except ValueError:
                     return None
 
-            # Extract description
-            description = str(row_data.get("Transaction Remarks", "")).strip()
-            if not description or description == "nan":
+            # Extract and sanitize description to prevent XSS attacks
+            raw_description = str(row_data.get("Transaction Remarks", "")).strip()
+            if not raw_description or raw_description == "nan":
                 return None
 
-            # Extract amounts using correct column names
-            withdrawal = self._parse_amount(row_data.get("Withdrawal Amount (INR )"))
-            deposit = self._parse_amount(row_data.get("Deposit Amount (INR )"))
-            balance = self._parse_amount(row_data.get("Balance (INR )"))
+            # Sanitize the description to prevent XSS and other injection attacks
+            description = sanitize_text_input(raw_description, max_length=1000)
+
+            # Extract amounts using correct column names and validate them
+            withdrawal = validate_amount(str(row_data.get("Withdrawal Amount (INR )", "")))
+            deposit = validate_amount(str(row_data.get("Deposit Amount (INR )", "")))
+            balance = validate_amount(str(row_data.get("Balance (INR )", "")))
 
             # Determine transaction type
             transaction_type = "debit" if withdrawal and withdrawal > 0 else "credit"
 
-            # Get reference number
-            reference_str = str(row_data.get("S No.", "")).strip()
-            # Keep reference as a string or empty string (not None)
-            reference = "" if reference_str == "nan" else reference_str
+            # Get reference number and sanitize it
+            reference = str(row_data.get("S No.", "")).strip()
 
-            # Determine currency for this transaction
-            currency = self._determine_transaction_currency(row_data)
-
-            return {
+            # Create transaction data
+            transaction = {
                 "date": transaction_date,
                 "description": description,
                 "debit_amount": withdrawal,
@@ -247,8 +247,13 @@ class IciciBankTransformer:
                 "balance": balance,
                 "reference_number": reference,
                 "transaction_type": transaction_type,
-                "currency": currency,
             }
+
+            # Determine currency for this transaction
+            currency = self._determine_transaction_currency(row_data)
+            transaction["currency"] = currency
+
+            return transaction
 
         except Exception as e:
             print(f"Error transforming transaction: {e}")
@@ -260,9 +265,8 @@ class IciciBankTransformer:
             return None
 
         try:
-            amount_clean = str(amount_str).replace(",", "").replace("₹", "").strip()
-            value = float(amount_clean) if amount_clean else None
-            return value if value and value > 0 else None
+            # Use the security-validated amount parsing
+            return validate_amount(str(amount_str))
         except (ValueError, TypeError):
             return None
 
@@ -922,14 +926,47 @@ class IciciBankTransformer:
 
     def _create_transaction_hash(self, transaction_data: Dict[str, Any]) -> str:
         """Create unique hash for transaction deduplication"""
-        date_str = (
-            transaction_data["date"].strftime("%Y-%m-%d")
-            if isinstance(transaction_data["date"], datetime)
-            else str(transaction_data["date"])
+        # Handle ICICI Bank specific field names
+        date_value = (
+            transaction_data.get("date") or 
+            transaction_data.get("Transaction Date") or 
+            transaction_data.get("transaction_date")
         )
-        description = str(transaction_data["description"])
-        debit_amount = str(transaction_data.get("debit_amount") or 0)
-        credit_amount = str(transaction_data.get("credit_amount") or 0)
+        
+        if date_value is None:
+            date_str = "unknown_date"
+        elif isinstance(date_value, datetime):
+            date_str = date_value.strftime("%Y-%m-%d")
+        else:
+            date_str = str(date_value)
 
-        hash_string = f"{date_str}_{description}_{debit_amount}_{credit_amount}".lower().strip()
+        # Handle description field with multiple possible names
+        description = (
+            str(transaction_data.get("description", "")) or
+            str(transaction_data.get("Transaction Remarks", "")) or
+            str(transaction_data.get("transaction_remarks", ""))
+        )
+
+        # Handle amount fields with multiple possible names - fix the logic
+        debit_amount = "0"
+        if "debit_amount" in transaction_data:
+            debit_amount = str(transaction_data["debit_amount"])
+        elif "Withdrawal Amount (INR )" in transaction_data:
+            debit_amount = str(transaction_data["Withdrawal Amount (INR )"])
+        elif "withdrawal_amount" in transaction_data:
+            debit_amount = str(transaction_data["withdrawal_amount"])
+        
+        credit_amount = "0"
+        if "credit_amount" in transaction_data:
+            credit_amount = str(transaction_data["credit_amount"])
+        elif "Deposit Amount (INR )" in transaction_data:
+            credit_amount = str(transaction_data["Deposit Amount (INR )"])
+        elif "deposit_amount" in transaction_data:
+            credit_amount = str(transaction_data["deposit_amount"])
+
+        # Include additional unique identifiers if available
+        reference = str(transaction_data.get("reference_number", "")) or str(transaction_data.get("S No.", ""))
+        
+        hash_string = f"{date_str}_{description}_{debit_amount}_{credit_amount}_{reference}".lower().strip()
+        
         return hashlib.sha256(hash_string.encode()).hexdigest()

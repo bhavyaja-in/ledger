@@ -22,9 +22,10 @@ class IciciBankExtractor:
         self.required_columns = [
             "transaction date",
             "transaction remarks",
-            "withdrawal amount",
-            "deposit amount",
-            "balance",
+            "withdrawal amount (inr )",
+            "deposit amount (inr )",
+            "balance (inr )",
+            "s no."
         ]
 
     def extract(self, file_path: str) -> Dict[str, Any]:
@@ -33,19 +34,24 @@ class IciciBankExtractor:
             # Step 1: Read Excel file using generic extractor
             df = self.excel_extractor.read_excel_file(file_path)
 
+            # Normalize columns for comparison
+            df_columns_normalized = [str(col).strip().lower() for col in df.columns]
+            required_columns_normalized = [col.strip().lower() for col in self.required_columns]
+
             # Step 2: Detect header row
-            header_row = self.excel_extractor.detect_header_row(df, self.required_columns)
+            # If columns match required columns, treat as header_row=0
+            if all(any(req in col for col in df_columns_normalized) for req in required_columns_normalized):
+                header_row = 0
+            else:
+                header_row = self.excel_extractor.detect_header_row(df, self.required_columns)
+                if header_row is None:
+                    header_row = 0
 
-            if header_row is None:
-                raise Exception("Could not detect header row in ICICI Bank file")
-
-            print(f"Header detected at row {header_row}")
-
-            # Step 3: Extract all data from the file
-            raw_data = self.excel_extractor.extract_data_from_row(df, header_row)
+            # Step 3: Extract data
+            transactions = self.excel_extractor.extract_data_from_row(df, header_row)
 
             # Step 4: Filter valid transactions (ICICI specific logic)
-            transactions = self._filter_valid_transactions(raw_data)
+            transactions = self._filter_valid_transactions(transactions)
 
             # Step 5: Get file info
             file_info = self.excel_extractor.get_file_info(file_path)
@@ -53,7 +59,7 @@ class IciciBankExtractor:
             return {
                 "file_info": file_info,
                 "header_row": header_row,
-                "total_rows": len(raw_data),
+                "total_rows": len(transactions),
                 "valid_transactions": len(transactions),
                 "transactions": [{"data": trans} for trans in transactions],
             }
@@ -86,13 +92,23 @@ class IciciBankExtractor:
     def _has_essential_fields(self, row_data: Dict[str, Any]) -> bool:
         """Check if row has essential fields for a transaction"""
         # Must have transaction date
-        date_field = row_data.get("Transaction Date")
+        date_field = None
+        for k, v in row_data.items():
+            if k.strip().lower() == "transaction date":
+                date_field = v
+                break
         if not date_field or str(date_field).strip() in ["", "nan", "None"]:
             return False
 
         # Must have either debit or credit amount
-        debit = row_data.get("Withdrawal Amount (INR )")
-        credit = row_data.get("Deposit Amount (INR )")
+        debit = None
+        credit = None
+        for k, v in row_data.items():
+            key_norm = k.strip().lower()
+            if "withdrawal amount" in key_norm:
+                debit = v
+            if "deposit amount" in key_norm:
+                credit = v
 
         has_amount = False
         if debit is not None and str(debit).strip() not in ["", "nan", "None"]:

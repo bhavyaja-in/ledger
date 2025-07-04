@@ -78,9 +78,10 @@ class TestIciciBankExtractor:
         assert extractor.required_columns == [
             "transaction date",
             "transaction remarks",
-            "withdrawal amount",
-            "deposit amount",
-            "balance",
+            "withdrawal amount (inr )",
+            "deposit amount (inr )",
+            "balance (inr )",
+            "s no."
         ]
 
     @pytest.mark.unit
@@ -135,15 +136,19 @@ class TestIciciBankExtractor:
     @pytest.mark.unit
     @pytest.mark.extractor
     def test_extract_header_not_found(self, extractor):
-        """Test extraction when header row is not found"""
+        """Test extraction when header row is not found - now defaults to row 0"""
         file_path = "/test/path/icici_statement.xlsx"
 
         mock_df = pd.DataFrame([["Random", "Data", "Here"]])
         extractor.excel_extractor.read_excel_file = Mock(return_value=mock_df)
         extractor.excel_extractor.detect_header_row = Mock(return_value=None)
+        extractor.excel_extractor.extract_data_from_row = Mock(return_value=[])
+        extractor.excel_extractor.get_file_info = Mock(return_value={"file_path": file_path})
 
-        with pytest.raises(Exception, match="Could not detect header row in ICICI Bank file"):
-            extractor.extract(file_path)
+        result = extractor.extract(file_path)
+        
+        # Should default to header_row = 0 when detection fails
+        assert result["header_row"] == 0
 
     @pytest.mark.unit
     @pytest.mark.extractor
@@ -161,7 +166,7 @@ class TestIciciBankExtractor:
     def test_extract_with_print_output(
         self, extractor, sample_transaction_data, sample_file_info, capsys
     ):
-        """Test that extract method prints header row information"""
+        """Test that extract method works without print output"""
         file_path = "/test/path/icici_statement.xlsx"
 
         mock_df = pd.DataFrame(sample_transaction_data)
@@ -170,10 +175,11 @@ class TestIciciBankExtractor:
         extractor.excel_extractor.extract_data_from_row = Mock(return_value=[])
         extractor.excel_extractor.get_file_info = Mock(return_value=sample_file_info)
 
-        extractor.extract(file_path)
+        result = extractor.extract(file_path)
 
-        captured = capsys.readouterr()
-        assert "Header detected at row 2" in captured.out
+        # Verify the method works without requiring print output
+        assert result["header_row"] == 2
+        assert "file_info" in result
 
     @pytest.mark.unit
     @pytest.mark.extractor
@@ -748,13 +754,14 @@ class TestIciciBankExtractor:
         expected_columns = [
             "transaction date",
             "transaction remarks",
-            "withdrawal amount",
-            "deposit amount",
-            "balance",
+            "withdrawal amount (inr )",
+            "deposit amount (inr )",
+            "balance (inr )",
+            "s no."
         ]
 
         assert extractor.required_columns == expected_columns
-        assert len(extractor.required_columns) == 5
+        assert len(extractor.required_columns) == 6
 
         # Verify all columns are lowercase for case-insensitive matching
         assert all(col.islower() for col in extractor.required_columns)

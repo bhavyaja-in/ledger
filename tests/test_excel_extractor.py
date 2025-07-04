@@ -417,13 +417,21 @@ class TestExcelExtractor:
 
     @pytest.mark.unit
     @pytest.mark.extractor
+    @patch("builtins.open")
+    @patch("os.access")
     @patch("os.path.getsize")
     @patch("os.path.basename")
-    def test_get_file_info_success(self, mock_basename, mock_getsize, extractor):
+    def test_get_file_info_success(self, mock_basename, mock_getsize, mock_access, mock_open, extractor):
         """Test get_file_info returns correct file information"""
         file_path = "/path/to/test_file.xlsx"
         mock_basename.return_value = "test_file.xlsx"
         mock_getsize.return_value = 1024
+        mock_access.return_value = True  # File is readable
+        
+        # Mock the file open operation
+        mock_file = Mock()
+        mock_file.read.return_value = b"test"
+        mock_open.return_value.__enter__.return_value = mock_file
 
         result = extractor.get_file_info(file_path)
 
@@ -436,16 +444,20 @@ class TestExcelExtractor:
         assert result == expected
         mock_basename.assert_called_once_with(file_path)
         mock_getsize.assert_called_once_with(file_path)
+        mock_access.assert_called_once_with(file_path, os.R_OK)
+        mock_open.assert_called_once_with(file_path, "rb")
 
     @pytest.mark.unit
     @pytest.mark.extractor
+    @patch("os.access")
     @patch("os.path.getsize")
-    def test_get_file_info_file_not_found(self, mock_getsize, extractor):
+    def test_get_file_info_file_not_found(self, mock_getsize, mock_access, extractor):
         """Test get_file_info handles file not found error"""
         file_path = "/path/to/nonexistent.xlsx"
+        mock_access.return_value = False  # File is not readable (doesn't exist)
         mock_getsize.side_effect = FileNotFoundError("File not found")
 
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(PermissionError, match="File is not readable"):
             extractor.get_file_info(file_path)
 
     @pytest.mark.unit
@@ -587,3 +599,45 @@ class TestExcelExtractor:
         result = extractor.extract_data_from_row(df, header_row)
         assert len(result) == num_rows
         assert len(result[0]) == num_cols
+
+    @pytest.mark.unit
+    @pytest.mark.extractor
+    def test_read_excel_file_path_traversal_prevention(self, extractor):
+        """Test read_excel_file prevents path traversal attacks"""
+        malicious_paths = [
+            "../../../etc/passwd",
+            "..\\..\\windows\\system32\\config\\sam",
+            "~/.ssh/id_rsa",
+            "%2e%2e%2fetc%2fpasswd",
+            "/etc/passwd",
+            "/var/log/system.log",
+        ]
+
+        for malicious_path in malicious_paths:
+            with pytest.raises(
+                ValueError,
+                match="Path traversal attempt detected|Access to system directory blocked",
+            ):
+                extractor.read_excel_file(malicious_path)
+
+    @pytest.mark.unit
+    @pytest.mark.extractor
+    def test_read_excel_file_legitimate_paths_allowed(self, extractor, sample_dataframe):
+        """Test read_excel_file allows legitimate test and relative paths"""
+        legitimate_paths = [
+            "/path/to/test.xlsx",
+            "test.xlsx",
+            "./data/file.xlsx",
+            "relative/path/file.xlsx",
+            "C:/Users/test/file.xlsx",  # Windows path
+        ]
+
+        for legitimate_path in legitimate_paths:
+            with patch("pandas.read_excel", return_value=sample_dataframe) as mock_read:
+                try:
+                    result = extractor.read_excel_file(legitimate_path)
+                    mock_read.assert_called_once_with(legitimate_path, sheet_name=0)
+                    pd.testing.assert_frame_equal(result, sample_dataframe)
+                except ValueError as e:
+                    # If it's blocked, it should be for a good reason
+                    assert "system directory" in str(e) or "traversal" in str(e)

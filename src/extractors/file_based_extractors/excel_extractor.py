@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
+from src.utils.security import sanitize_filename
+
 
 class ExcelExtractor:
     """Generic Excel extractor for basic Excel operations"""
@@ -13,7 +15,34 @@ class ExcelExtractor:
         self.config = config
 
     def read_excel_file(self, file_path: str, sheet_name: int = 0) -> pd.DataFrame:
-        """Read Excel file and return DataFrame"""
+        """Read Excel file and return DataFrame. Raises ValueError on path traversal attempt."""
+        # Path traversal prevention - more precise detection
+        if not file_path:
+            raise ValueError("File path cannot be empty")
+        
+        # Check for actual path traversal patterns
+        dangerous_patterns = [
+            '..',  # Directory traversal
+            '~',   # Home directory expansion
+            '%2e%2e',  # URL encoded ..
+        ]
+        
+        for pattern in dangerous_patterns:
+            if pattern in file_path:
+                raise ValueError(f"Path traversal attempt detected: {file_path}")
+        
+        # Block access to system directories but allow temporary directories
+        system_dirs = ['/etc/', '/var/log/', '/var/lib/', '/usr/', '/bin/', '/sbin/']
+        temp_dirs = ['/tmp/', '/var/tmp/', '/var/folders/', '/private/var/folders/']
+        
+        # Allow temporary directories for testing
+        is_temp_file = any(temp_dir in file_path for temp_dir in temp_dirs)
+        
+        if not is_temp_file:
+            for sys_dir in system_dirs:
+                if file_path.startswith(sys_dir):
+                    raise ValueError(f"Access to system directory blocked: {file_path}")
+        
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
         except Exception as e:
@@ -73,8 +102,16 @@ class ExcelExtractor:
         return True
 
     def get_file_info(self, file_path: str) -> Dict[str, Any]:
-        """Get basic file information"""
+        """Get basic file information, robustly checking for read permissions"""
         import os
+
+        # Explicitly check for read permission
+        if not os.access(file_path, os.R_OK):
+            raise PermissionError(f"File is not readable: {file_path}")
+
+        # Attempt to open the file for reading to trigger permission errors
+        with open(file_path, "rb") as f:
+            f.read(1)  # Read a single byte (or nothing, just to check permissions)
 
         return {
             "file_path": file_path,

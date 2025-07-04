@@ -219,6 +219,48 @@ class DatabaseManager:
             # Create tables
             self.base.metadata.create_all(self.engine)
 
+    def __str__(self):
+        """String representation that sanitizes sensitive information"""
+        return f"DatabaseManager(test_mode={self.test_mode}, test_prefix='{self.test_prefix}')"
+
+    def __repr__(self):
+        """Representation that sanitizes sensitive information"""
+        return self.__str__()
+
+    @property
+    def __dict__(self):
+        """Return sanitized dict representation that hides sensitive information"""
+        # Create a copy of the actual __dict__ but sanitize sensitive data
+        safe_dict = {
+            "test_mode": self.test_mode,
+            "test_prefix": self.test_prefix,
+            "engine": self.engine,
+            "Session": self.Session,
+            "models": self.models,
+            "base": self.base,
+        }
+
+        # Add sanitized config (without sensitive connection strings)
+        if hasattr(self, "config"):
+            safe_config = self.config.copy()
+            if "database" in safe_config and "url" in safe_config["database"]:
+                # Sanitize database URL to hide passwords and sensitive info
+                db_url = safe_config["database"]["url"]
+                if "?" in db_url:
+                    # Remove query parameters (passwords, etc.)
+                    safe_config["database"]["url"] = db_url.split("?")[0] + "?***"
+                elif "@" in db_url and "://" in db_url:
+                    # Hide credentials in connection string
+                    parts = db_url.split("@")
+                    if len(parts) > 1:
+                        protocol_parts = parts[0].split("://")
+                        if len(protocol_parts) > 1:
+                            safe_config["database"]["url"] = f"{protocol_parts[0]}://***@{parts[1]}"
+
+            safe_dict["config"] = safe_config
+
+        return safe_dict
+
     def get_session(self):
         """Get database session"""
         return self.Session()
