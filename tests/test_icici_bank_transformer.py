@@ -2,6 +2,7 @@
 Minimal but comprehensive unit tests for icici_bank_transformer.py.
 All interactive methods are properly mocked to prevent hanging.
 """
+
 import signal
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
@@ -746,9 +747,7 @@ class TestIciciBankTransformer:
             result = transformer._ask_for_transaction_category("test")
 
         assert result == "problem_trans_cat"
-        mock_print.assert_any_call(
-            "⚠️  Transaction category created but couldn't save: Save failed"
-        )
+        mock_print.assert_any_call("⚠️  Transaction category created but couldn't save: Save failed")
 
     def test_ask_for_transaction_category_no_config_loader_existing(self, transformer):
         """Test transaction category with no config loader for existing category"""

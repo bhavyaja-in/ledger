@@ -1,6 +1,7 @@
 """
 ICICI Bank Extractor - Handles ICICI Bank specific Excel extraction logic
 """
+
 import os
 import sys
 from typing import Any, Dict, List
@@ -25,7 +26,7 @@ class IciciBankExtractor:
             "withdrawal amount (inr )",
             "deposit amount (inr )",
             "balance (inr )",
-            "s no."
+            "s no.",
         ]
 
     def extract(self, file_path: str) -> Dict[str, Any]:
@@ -40,7 +41,10 @@ class IciciBankExtractor:
 
             # Step 2: Detect header row
             # If columns match required columns, treat as header_row=0
-            if all(any(req in col for col in df_columns_normalized) for req in required_columns_normalized):
+            if all(
+                any(req in col for col in df_columns_normalized)
+                for req in required_columns_normalized
+            ):
                 header_row = 0
             else:
                 header_row = self.excel_extractor.detect_header_row(df, self.required_columns)

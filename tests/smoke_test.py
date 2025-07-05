@@ -659,7 +659,9 @@ class SmokeTestSuite:
 
         # Security summary
         security = report["security_summary"]
-        security_status = "🟢 SECURE" if len(security["security_issues"]) == 0 else "🔴 ISSUES FOUND"
+        security_status = (
+            "🟢 SECURE" if len(security["security_issues"]) == 0 else "🔴 ISSUES FOUND"
+        )
         print(f"\n🔒 SECURITY STATUS: {security_status}")
         print(f"   • Security checks: {security['checks_performed']}")
         print(f"   • Issues found: {len(security['security_issues'])}")

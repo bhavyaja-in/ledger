@@ -1,6 +1,7 @@
 """
 Comprehensive tests for currency detection and management
 """
+
 from unittest.mock import Mock, call, patch
 
 import pytest

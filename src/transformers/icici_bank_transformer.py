@@ -1,6 +1,7 @@
 """
 ICICI Bank Transformer - Interactive transaction processing with enum management
 """
+
 import hashlib
 import os
 import signal
@@ -928,11 +929,11 @@ class IciciBankTransformer:
         """Create unique hash for transaction deduplication"""
         # Handle ICICI Bank specific field names
         date_value = (
-            transaction_data.get("date") or 
-            transaction_data.get("Transaction Date") or 
-            transaction_data.get("transaction_date")
+            transaction_data.get("date")
+            or transaction_data.get("Transaction Date")
+            or transaction_data.get("transaction_date")
         )
-        
+
         if date_value is None:
             date_str = "unknown_date"
         elif isinstance(date_value, datetime):
@@ -942,9 +943,9 @@ class IciciBankTransformer:
 
         # Handle description field with multiple possible names
         description = (
-            str(transaction_data.get("description", "")) or
-            str(transaction_data.get("Transaction Remarks", "")) or
-            str(transaction_data.get("transaction_remarks", ""))
+            str(transaction_data.get("description", ""))
+            or str(transaction_data.get("Transaction Remarks", ""))
+            or str(transaction_data.get("transaction_remarks", ""))
         )
 
         # Handle amount fields with multiple possible names - fix the logic
@@ -955,7 +956,7 @@ class IciciBankTransformer:
             debit_amount = str(transaction_data["Withdrawal Amount (INR )"])
         elif "withdrawal_amount" in transaction_data:
             debit_amount = str(transaction_data["withdrawal_amount"])
-        
+
         credit_amount = "0"
         if "credit_amount" in transaction_data:
             credit_amount = str(transaction_data["credit_amount"])
@@ -965,8 +966,12 @@ class IciciBankTransformer:
             credit_amount = str(transaction_data["deposit_amount"])
 
         # Include additional unique identifiers if available
-        reference = str(transaction_data.get("reference_number", "")) or str(transaction_data.get("S No.", ""))
-        
-        hash_string = f"{date_str}_{description}_{debit_amount}_{credit_amount}_{reference}".lower().strip()
-        
+        reference = str(transaction_data.get("reference_number", "")) or str(
+            transaction_data.get("S No.", "")
+        )
+
+        hash_string = (
+            f"{date_str}_{description}_{debit_amount}_{credit_amount}_{reference}".lower().strip()
+        )
+
         return hashlib.sha256(hash_string.encode()).hexdigest()

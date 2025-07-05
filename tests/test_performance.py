@@ -304,7 +304,7 @@ class TestSystemPerformance:
 
         # Create large Excel file with ICICI format and correct column names
         transactions = large_transaction_dataset(1000)
-        
+
         # Use exact ICICI Bank Excel column names and order (only required columns)
         icici_transactions = []
         for i, trans in enumerate(transactions):
@@ -322,20 +322,28 @@ class TestSystemPerformance:
                 "S No.": f"{i+1}",
             }
             icici_transactions.append(icici_trans)
-        
+
         # Write Excel file with generic column names and header row as first row of data
-        headers = ["Transaction Date", "Transaction Remarks", "Withdrawal Amount (INR )", 
-                  "Deposit Amount (INR )", "Balance (INR )", "S No."]
+        headers = [
+            "Transaction Date",
+            "Transaction Remarks",
+            "Withdrawal Amount (INR )",
+            "Deposit Amount (INR )",
+            "Balance (INR )",
+            "S No.",
+        ]
         data_rows = []
         for trans in icici_transactions:
-            data_rows.append([
-                trans["Transaction Date"],
-                trans["Transaction Remarks"], 
-                trans["Withdrawal Amount (INR )"],
-                trans["Deposit Amount (INR )"],
-                trans["Balance (INR )"],
-                trans["S No."]
-            ])
+            data_rows.append(
+                [
+                    trans["Transaction Date"],
+                    trans["Transaction Remarks"],
+                    trans["Withdrawal Amount (INR )"],
+                    trans["Deposit Amount (INR )"],
+                    trans["Balance (INR )"],
+                    trans["S No."],
+                ]
+            )
         all_rows = [headers] + data_rows
         df = pd.DataFrame(all_rows, columns=["A", "B", "C", "D", "E", "F"])
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
@@ -396,7 +404,7 @@ class TestSystemPerformance:
                 "s no.": f"TXN{i:04d}",
             }
             icici_transactions.append(icici_trans)
-        
+
         extracted_data = {"transactions": [{"data": trans} for trans in icici_transactions]}
 
         mock_institution = Mock(id=1)
@@ -407,7 +415,11 @@ class TestSystemPerformance:
         # Mock user interactions to avoid blocking
         with patch("builtins.input", return_value="1"), patch("builtins.print"), patch.object(
             transformer, "_ask_for_transaction_category", return_value="other"
-        ), patch.object(transformer, "_ask_for_transaction_category_with_options", return_value={"action": "process", "category": "other"}):
+        ), patch.object(
+            transformer,
+            "_ask_for_transaction_category_with_options",
+            return_value={"action": "process", "category": "other"},
+        ):
             result = transformer.process_transactions(
                 extracted_data, mock_institution, mock_processed_file
             )
@@ -442,16 +454,16 @@ class TestSystemPerformance:
             "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
             "logging": {"level": "ERROR"},  # Reduce logging for performance
         }
-        
+
         # Mock config loader to return test config
-        with patch.object(ConfigLoader, 'get_config', return_value=test_config):
+        with patch.object(ConfigLoader, "get_config", return_value=test_config):
             config_loader = ConfigLoader()
             config = config_loader.get_config()
             db_manager = DatabaseManager(config, test_mode=True)
 
         # Create test file with correct ICICI Bank format
         transactions = large_transaction_dataset(500)  # Smaller dataset for full e2e
-        
+
         # Convert to ICICI Bank format with correct lowercase column names
         icici_transactions = []
         for i, trans in enumerate(transactions):
@@ -464,7 +476,7 @@ class TestSystemPerformance:
                 "s no.": f"TXN{i:04d}",
             }
             icici_transactions.append(icici_trans)
-        
+
         df = pd.DataFrame(icici_transactions)
 
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
@@ -479,7 +491,9 @@ class TestSystemPerformance:
             # Mock user interactions and file processing
             with patch("builtins.input", side_effect=["1", "1", "y"]), patch(
                 "builtins.print"
-            ), patch.object(main_handler, "_select_file_with_details", return_value=temp_file_path), patch.object(
+            ), patch.object(
+                main_handler, "_select_file_with_details", return_value=temp_file_path
+            ), patch.object(
                 main_handler, "_process_file", return_value={"status": "success", "processed": 500}
             ):
                 # Test the core processing logic without full file processing
@@ -536,18 +550,26 @@ class TestSystemPerformance:
                     "S No.": f"{i+1}",
                 }
                 icici_transactions.append(icici_trans)
-            headers = ["Transaction Date", "Transaction Remarks", "Withdrawal Amount (INR )", 
-                      "Deposit Amount (INR )", "Balance (INR )", "S No."]
+            headers = [
+                "Transaction Date",
+                "Transaction Remarks",
+                "Withdrawal Amount (INR )",
+                "Deposit Amount (INR )",
+                "Balance (INR )",
+                "S No.",
+            ]
             data_rows = []
             for trans in icici_transactions:
-                data_rows.append([
-                    trans["Transaction Date"],
-                    trans["Transaction Remarks"], 
-                    trans["Withdrawal Amount (INR )"],
-                    trans["Deposit Amount (INR )"],
-                    trans["Balance (INR )"],
-                    trans["S No."]
-                ])
+                data_rows.append(
+                    [
+                        trans["Transaction Date"],
+                        trans["Transaction Remarks"],
+                        trans["Withdrawal Amount (INR )"],
+                        trans["Deposit Amount (INR )"],
+                        trans["Balance (INR )"],
+                        trans["S No."],
+                    ]
+                )
             all_rows = [headers] + data_rows
             df = pd.DataFrame(all_rows, columns=["A", "B", "C", "D", "E", "F"])
             with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
@@ -754,35 +776,48 @@ class TestSystemPerformance:
                 "S No.": f"{i+1}",
             }
             icici_transactions.append(icici_trans)
-        
+
         # Create DataFrame with generic column names, then add headers as first row
-        headers = ["Transaction Date", "Transaction Remarks", "Withdrawal Amount (INR )", 
-                  "Deposit Amount (INR )", "Balance (INR )", "S No."]
+        headers = [
+            "Transaction Date",
+            "Transaction Remarks",
+            "Withdrawal Amount (INR )",
+            "Deposit Amount (INR )",
+            "Balance (INR )",
+            "S No.",
+        ]
         data_rows = []
         for trans in icici_transactions:
-            data_rows.append([
-                trans["Transaction Date"],
-                trans["Transaction Remarks"], 
-                trans["Withdrawal Amount (INR )"],
-                trans["Deposit Amount (INR )"],
-                trans["Balance (INR )"],
-                trans["S No."]
-            ])
+            data_rows.append(
+                [
+                    trans["Transaction Date"],
+                    trans["Transaction Remarks"],
+                    trans["Withdrawal Amount (INR )"],
+                    trans["Deposit Amount (INR )"],
+                    trans["Balance (INR )"],
+                    trans["S No."],
+                ]
+            )
         all_rows = [headers] + data_rows
         df = pd.DataFrame(all_rows, columns=["A", "B", "C", "D", "E", "F"])
         with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
             df.to_excel(temp_file.name, index=False)
             temp_file_path = temp_file.name
         try:
-            from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
+            from src.extractors.channel_based_extractors.icici_bank_extractor import (
+                IciciBankExtractor,
+            )
+
             config = {"processors": {"icici_bank": {"enabled": True}}}
             extractor = IciciBankExtractor(config)
             resource_data = []
+
             def monitor_resources():
                 while len(resource_data) < 10:
                     cpu_percent = psutil.cpu_percent(interval=1)
                     memory_percent = psutil.virtual_memory().percent
                     resource_data.append((cpu_percent, memory_percent))
+
             monitor_thread = threading.Thread(target=monitor_resources)
             monitor_thread.daemon = True
             monitor_thread.start()

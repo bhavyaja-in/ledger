@@ -4,6 +4,7 @@ Comprehensive unit tests for database_loader.py with 100% line coverage.
 Tests all DatabaseLoader methods including CRUD operations, split handling,
 aggregation queries, error scenarios, and edge cases to ensure enterprise-grade quality.
 """
+
 import os
 from datetime import date, datetime
 from typing import Any, Dict
@@ -426,7 +427,7 @@ class TestDatabaseLoader:
             "transaction_date": datetime(2023, 12, 1),
             "description": "Test transaction",
             "transaction_type": "debit",
-            "splits": splits_data
+            "splits": splits_data,
             # No debit_amount or credit_amount
         }
 
@@ -788,7 +789,7 @@ class TestDatabaseLoader:
             "institution_id": 1,
             "processed_file_id": 1,
             "raw_data": {"col1": "value1"},
-            "skip_reason": "Invalid format"
+            "skip_reason": "Invalid format",
             # No row_number
         }
 

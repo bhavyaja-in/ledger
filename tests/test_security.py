@@ -666,7 +666,7 @@ class TestSystemBoundarySecurity:
         import pytest
         import os
         from pathlib import Path
-        
+
         # Skip if LEDGER_TEST_MODE is not set
         if os.environ.get("LEDGER_TEST_MODE") != "true":
             pytest.skip("LEDGER_TEST_MODE is not enabled; skipping isolation test.")
@@ -676,7 +676,9 @@ class TestSystemBoundarySecurity:
 
         for prod_file in production_files:
             if Path(prod_file).exists() and os.access(prod_file, os.W_OK):
-                pytest.skip(f"Production file {prod_file} is writable; skipping strict isolation test.")
+                pytest.skip(
+                    f"Production file {prod_file} is writable; skipping strict isolation test."
+                )
 
         # If we reach here, all files are either non-existent or not writable (secure)
         assert True
@@ -746,19 +748,21 @@ class TestSystemBoundarySecurity:
             "logging:\n"
             "  level: INFO\n"
         )
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as temp_config:
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as temp_config:
             temp_config.write(test_config_content)
             temp_config_path = temp_config.name
 
         try:
             # Use a simpler mocking approach to avoid recursion
-            with patch("builtins.open", mock_open(read_data=test_config_content)), \
-                 patch("yaml.safe_load", return_value={
-                     "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-                     "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
-                     "logging": {"level": "INFO"}
-                 }):
+            with patch("builtins.open", mock_open(read_data=test_config_content)), patch(
+                "yaml.safe_load",
+                return_value={
+                    "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
+                    "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
+                    "logging": {"level": "INFO"},
+                },
+            ):
                 config_loader = ConfigLoader(config_path=temp_config_path)
                 config = config_loader.get_config()
 

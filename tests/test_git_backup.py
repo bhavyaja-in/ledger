@@ -4,6 +4,7 @@ Comprehensive unit tests for GitDatabaseBackup with 100% line coverage.
 Tests every method, branch condition, exception path, and edge case
 to ensure enterprise-grade quality and complete code coverage.
 """
+
 import base64
 import os
 import shutil

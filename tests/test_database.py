@@ -4,6 +4,7 @@ Comprehensive unit tests for database.py with 100% line coverage.
 Tests model creation, DatabaseManager functionality, relationships,
 test mode support, and all edge cases to ensure enterprise-grade quality.
 """
+
 import os
 import tempfile
 from datetime import datetime

@@ -1,6 +1,7 @@
 """
 Test database models with currency support
 """
+
 from datetime import datetime
 
 import pytest

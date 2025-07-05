@@ -1,6 +1,7 @@
 """
 Configuration loader for enterprise financial data processor
 """
+
 import os
 from typing import Any, Dict
 

@@ -42,7 +42,9 @@ def check_python_version():
         print(f"✅ Python version {version.major}.{version.minor}.{version.micro} is compatible")
         return True
     else:
-        print(f"❌ Python version {version.major}.{version.minor}.{version.micro} is not compatible")
+        print(
+            f"❌ Python version {version.major}.{version.minor}.{version.micro} is not compatible"
+        )
         print("   Requires Python 3.8 or higher")
         return False
 

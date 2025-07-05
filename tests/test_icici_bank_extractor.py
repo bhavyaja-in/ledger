@@ -4,6 +4,7 @@ Comprehensive unit tests for icici_bank_extractor.py with 100% line coverage.
 Tests all IciciBankExtractor methods including transaction extraction, filtering,
 validation, error scenarios, and ICICI Bank specific business logic to ensure enterprise-grade quality.
 """
+
 import os
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
@@ -81,7 +82,7 @@ class TestIciciBankExtractor:
             "withdrawal amount (inr )",
             "deposit amount (inr )",
             "balance (inr )",
-            "s no."
+            "s no.",
         ]
 
     @pytest.mark.unit
@@ -146,7 +147,7 @@ class TestIciciBankExtractor:
         extractor.excel_extractor.get_file_info = Mock(return_value={"file_path": file_path})
 
         result = extractor.extract(file_path)
-        
+
         # Should default to header_row = 0 when detection fails
         assert result["header_row"] == 0
 
@@ -757,7 +758,7 @@ class TestIciciBankExtractor:
             "withdrawal amount (inr )",
             "deposit amount (inr )",
             "balance (inr )",
-            "s no."
+            "s no.",
         ]
 
         assert extractor.required_columns == expected_columns

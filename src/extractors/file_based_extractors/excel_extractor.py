@@ -1,6 +1,7 @@
 """
 Generic Excel Extractor - Handles basic Excel file operations
 """
+
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -19,30 +20,30 @@ class ExcelExtractor:
         # Path traversal prevention - more precise detection
         if not file_path:
             raise ValueError("File path cannot be empty")
-        
+
         # Check for actual path traversal patterns
         dangerous_patterns = [
-            '..',  # Directory traversal
-            '~',   # Home directory expansion
-            '%2e%2e',  # URL encoded ..
+            "..",  # Directory traversal
+            "~",  # Home directory expansion
+            "%2e%2e",  # URL encoded ..
         ]
-        
+
         for pattern in dangerous_patterns:
             if pattern in file_path:
                 raise ValueError(f"Path traversal attempt detected: {file_path}")
-        
+
         # Block access to system directories but allow temporary directories
-        system_dirs = ['/etc/', '/var/log/', '/var/lib/', '/usr/', '/bin/', '/sbin/']
-        temp_dirs = ['/tmp/', '/var/tmp/', '/var/folders/', '/private/var/folders/']
-        
+        system_dirs = ["/etc/", "/var/log/", "/var/lib/", "/usr/", "/bin/", "/sbin/"]
+        temp_dirs = ["/tmp/", "/var/tmp/", "/var/folders/", "/private/var/folders/"]
+
         # Allow temporary directories for testing
         is_temp_file = any(temp_dir in file_path for temp_dir in temp_dirs)
-        
+
         if not is_temp_file:
             for sys_dir in system_dirs:
                 if file_path.startswith(sys_dir):
                     raise ValueError(f"Access to system directory blocked: {file_path}")
-        
+
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
         except Exception as e:

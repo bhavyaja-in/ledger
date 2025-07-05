@@ -1,6 +1,7 @@
 """
 Test ICICI Bank Transformer with currency support
 """
+
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
@@ -319,7 +320,7 @@ class TestIciciBankTransformerCurrency:
             "transaction_type": "credit",
             "credit_amount": 2000.0,
             "balance": 7000.0,
-            "reference_number": "REF000"
+            "reference_number": "REF000",
             # No currency field
         }
 

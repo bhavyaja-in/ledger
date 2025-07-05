@@ -1,6 +1,7 @@
 """
 Currency detection and management utilities
 """
+
 import re
 from typing import Dict, List, Optional
 

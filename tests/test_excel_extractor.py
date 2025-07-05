@@ -4,6 +4,7 @@ Comprehensive unit tests for excel_extractor.py with 100% line coverage.
 Tests all ExcelExtractor methods including file reading, header detection,
 data extraction, error scenarios, and edge cases to ensure enterprise-grade quality.
 """
+
 import os
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, mock_open, patch
@@ -421,13 +422,15 @@ class TestExcelExtractor:
     @patch("os.access")
     @patch("os.path.getsize")
     @patch("os.path.basename")
-    def test_get_file_info_success(self, mock_basename, mock_getsize, mock_access, mock_open, extractor):
+    def test_get_file_info_success(
+        self, mock_basename, mock_getsize, mock_access, mock_open, extractor
+    ):
         """Test get_file_info returns correct file information"""
         file_path = "/path/to/test_file.xlsx"
         mock_basename.return_value = "test_file.xlsx"
         mock_getsize.return_value = 1024
         mock_access.return_value = True  # File is readable
-        
+
         # Mock the file open operation
         mock_file = Mock()
         mock_file.read.return_value = b"test"

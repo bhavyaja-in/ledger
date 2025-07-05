@@ -4,6 +4,7 @@ Enterprise-grade pytest configuration and fixtures.
 This module provides comprehensive test fixtures for isolated, secure testing
 of the financial data processing system.
 """
+
 import os
 import sqlite3
 import tempfile
