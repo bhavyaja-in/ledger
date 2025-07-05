@@ -8,6 +8,8 @@ on:
 
 env:
   PYTHON_VERSION: "3.9"
+  LEDGER_TEST_MODE: "true"
+  PYTHONPATH: "."
 
 permissions:
   contents: read
@@ -32,9 +34,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-ci.txt
 
+    - name: Debug test discovery
+      run: |
+        echo "=== Test Discovery Debug ==="
+        find tests/ -name "test_*.py" -type f
+        echo "=== Python Path ==="
+        python -c "import sys; print('\\n'.join(sys.path))"
+        echo "=== Pytest Version ==="
+        pytest --version
+
     - name: Run unit tests
       run: |
-        pytest -m "not integration and not performance and not security" --maxfail=1 --tb=short -q --disable-warnings
+        pytest -m "not integration and not performance and not security" --maxfail=1 --tb=short -q --disable-warnings -v
 
     - name: Generate coverage report
       run: |
