@@ -667,7 +667,8 @@ class TestErrorHandlingIntegration:
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         # Test missing file scenario
-        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import \
+            ExcelExtractor
 
         extractor = ExcelExtractor()
 

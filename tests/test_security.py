@@ -24,13 +24,9 @@ from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 
-from src.utils.security import (
-    is_safe_for_display,
-    sanitize_filename,
-    sanitize_sql_like_pattern,
-    sanitize_text_input,
-    validate_amount,
-)
+from src.utils.security import (is_safe_for_display, sanitize_filename,
+                                sanitize_sql_like_pattern, sanitize_text_input,
+                                validate_amount)
 
 
 @pytest.mark.security
@@ -121,7 +117,8 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_xss_injection_prevention(self, malicious_inputs):
         """Test that XSS injection attempts are properly handled"""
-        from src.transformers.icici_bank_transformer import IciciBankTransformer
+        from src.transformers.icici_bank_transformer import \
+            IciciBankTransformer
 
         xss_injections = malicious_inputs["xss_injection"]
 
@@ -158,7 +155,8 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_path_traversal_prevention(self, malicious_inputs):
         """Test that path traversal attempts are prevented"""
-        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import \
+            ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -174,7 +172,8 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_buffer_overflow_prevention(self, malicious_inputs):
         """Test handling of extremely large inputs"""
-        from src.transformers.icici_bank_transformer import IciciBankTransformer
+        from src.transformers.icici_bank_transformer import \
+            IciciBankTransformer
 
         overflow_inputs = malicious_inputs["overflow_inputs"]
 
@@ -259,7 +258,8 @@ class TestSensitiveDataProtection:
     @pytest.mark.security
     def test_sensitive_data_not_logged(self, security_monitor):
         """Test that sensitive financial data is never logged"""
-        from src.transformers.icici_bank_transformer import IciciBankTransformer
+        from src.transformers.icici_bank_transformer import \
+            IciciBankTransformer
 
         security_monitor.setup_log_monitoring()
 
@@ -305,7 +305,8 @@ class TestSensitiveDataProtection:
     @pytest.mark.security
     def test_memory_data_clearing(self):
         """Test that sensitive data is properly cleared from memory"""
-        from src.transformers.icici_bank_transformer import IciciBankTransformer
+        from src.transformers.icici_bank_transformer import \
+            IciciBankTransformer
 
         mock_db_manager = Mock()
         mock_config_loader = Mock()
@@ -421,7 +422,8 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_file_permission_validation(self, secure_temp_environment):
         """Test that file access respects proper permissions"""
-        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import \
+            ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -437,7 +439,8 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_safe_file_handling(self, secure_temp_environment):
         """Test safe file handling practices"""
-        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import \
+            ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -462,7 +465,8 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_directory_traversal_in_file_operations(self, secure_temp_environment):
         """Test that directory traversal is prevented in file operations"""
-        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import \
+            ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -607,7 +611,8 @@ class TestCryptographicSecurity:
     @pytest.mark.security
     def test_hash_collision_resistance(self):
         """Test that transaction hashing is collision-resistant"""
-        from src.transformers.icici_bank_transformer import IciciBankTransformer
+        from src.transformers.icici_bank_transformer import \
+            IciciBankTransformer
 
         mock_db_manager = Mock()
         mock_config_loader = Mock()
@@ -677,9 +682,10 @@ class TestSystemBoundarySecurity:
     @pytest.mark.security
     def test_test_mode_isolation_complete(self):
         """Test complete isolation in test mode"""
-        import pytest
         import os
         from pathlib import Path
+
+        import pytest
 
         # Skip if LEDGER_TEST_MODE is not set
         if os.environ.get("LEDGER_TEST_MODE") != "true":
@@ -748,11 +754,13 @@ class TestSystemBoundarySecurity:
     @pytest.mark.security
     def test_default_security_settings(self):
         """Test that default security settings are secure"""
-        from src.utils.config_loader import ConfigLoader
-        import tempfile
         import os
+        import tempfile
+        from unittest.mock import mock_open, patch
+
         import pytest
-        from unittest.mock import patch, mock_open
+
+        from src.utils.config_loader import ConfigLoader
 
         # Create a temporary test config file
         test_config_content = (

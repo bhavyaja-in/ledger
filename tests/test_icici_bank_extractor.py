@@ -13,9 +13,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.extractors.channel_based_extractors.icici_bank_extractor import (
-    IciciBankExtractor,
-)
+from src.extractors.channel_based_extractors.icici_bank_extractor import \
+    IciciBankExtractor
 
 
 class TestIciciBankExtractor:
