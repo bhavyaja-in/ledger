@@ -219,20 +219,31 @@ class SmokeTestSuite:
             return False
 
     def test_database_connectivity(self) -> bool:
-        """Test database connectivity and basic operations"""
+        """Test database connectivity and basic operations using in-memory database"""
         start_time = time.time()
 
         try:
             from src.models.database import DatabaseManager
             from src.utils.config_loader import ConfigLoader
 
-            # Load config and create database manager
+            # Create a test config with in-memory database to avoid writing to filesystem
             config_loader = ConfigLoader()
             config = config_loader.get_config()
-            db_manager = DatabaseManager(config, test_mode=True)
+            
+            # Override database URL to use in-memory SQLite
+            test_config = config.copy()
+            test_config["database"] = test_config.get("database", {}).copy()
+            test_config["database"]["url"] = "sqlite:///:memory:"
+            test_config["database"]["test_prefix"] = "test_"
+            
+            db_manager = DatabaseManager(test_config, test_mode=True)
 
-            # Test database connection
+            # Test database connection (read-only test)
             session = db_manager.get_session()
+            
+            # Just verify we can connect and get a session - no writes
+            from sqlalchemy import text
+            session.execute(text("SELECT 1"))
             session.close()
 
             duration = time.time() - start_time
@@ -242,8 +253,8 @@ class SmokeTestSuite:
                 "Database Connectivity",
                 True,
                 duration,
-                "Database connection successful",
-                {"test_mode": True},
+                "Database connection successful (in-memory)",
+                {"test_mode": True, "database_type": "in-memory"},
             )
 
             return True
@@ -255,7 +266,7 @@ class SmokeTestSuite:
                 False,
                 duration,
                 f"Database connectivity failed: {e}",
-                {"exception_type": type(e).__name__},
+                {"exception_type": type(e).__name__, "error_details": str(e)},
             )
             return False
 
