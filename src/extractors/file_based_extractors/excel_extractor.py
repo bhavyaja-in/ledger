@@ -106,6 +106,33 @@ class ExcelExtractor:
         """Get basic file information, robustly checking for read permissions"""
         import os
 
+        # Path traversal prevention - same as read_excel_file
+        if not file_path:
+            raise ValueError("File path cannot be empty")
+
+        # Check for actual path traversal patterns
+        dangerous_patterns = [
+            "..",  # Directory traversal
+            "~",  # Home directory expansion
+            "%2e%2e",  # URL encoded ..
+        ]
+
+        for pattern in dangerous_patterns:
+            if pattern in file_path:
+                raise ValueError(f"Path traversal attempt detected: {file_path}")
+
+        # Block access to system directories but allow temporary directories
+        system_dirs = ["/etc/", "/var/log/", "/var/lib/", "/usr/", "/bin/", "/sbin/"]
+        temp_dirs = ["/tmp/", "/var/tmp/", "/var/folders/", "/private/var/folders/"]
+
+        # Allow temporary directories for testing
+        is_temp_file = any(temp_dir in file_path for temp_dir in temp_dirs)
+
+        if not is_temp_file:
+            for sys_dir in system_dirs:
+                if file_path.startswith(sys_dir):
+                    raise ValueError(f"Access to system directory blocked: {file_path}")
+
         # Explicitly check for read permission
         if not os.access(file_path, os.R_OK):
             raise PermissionError(f"File is not readable: {file_path}")
