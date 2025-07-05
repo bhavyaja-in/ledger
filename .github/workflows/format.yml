@@ -34,11 +34,11 @@ jobs:
 
     - name: Run Black formatter
       run: |
-        black --check --diff --line-length=88 src/ tests/ scripts/
+        black --check --diff --line-length=100 src/ tests/ scripts/ config/
 
     - name: Run isort
       run: |
-        isort --check-only --diff --profile=black src/ tests/ scripts/
+        isort --check-only --diff --profile=black --line-length=100 src/ tests/ scripts/ config/
 
     - name: Check for trailing whitespace
       run: |
