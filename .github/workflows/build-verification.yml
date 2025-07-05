@@ -47,7 +47,7 @@ jobs:
         
     - name: Check database schema
       run: |
-        python -c "from src.models.database import Base; print('✅ Database schema valid')"
+        python -c "from src.models.database import DatabaseManager; print('✅ Database manager imports successfully')"
         
     - name: Test main handler
       run: |
