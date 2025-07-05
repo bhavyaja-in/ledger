@@ -41,7 +41,9 @@ def create_models_with_prefix(prefix=""):
             "name": Column(String(100), nullable=False),
             "institution_type": Column(String(50), nullable=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -60,7 +62,9 @@ def create_models_with_prefix(prefix=""):
             "processor_type": Column(String(50), nullable=False),
             "processing_status": Column(String(20), default="processing"),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
         },
     )
@@ -77,7 +81,9 @@ def create_models_with_prefix(prefix=""):
             "processor_type": Column(String(50), nullable=False),
             "is_active": Column(Boolean, default=True),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -96,7 +102,9 @@ def create_models_with_prefix(prefix=""):
             "currency": Column(String(3), nullable=False, default="INR"),
             "is_settled": Column(Boolean, default=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -129,16 +137,22 @@ def create_models_with_prefix(prefix=""):
             "has_splits": Column(Boolean, default=False),
             "is_settled": Column(Boolean, default=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
             "processed_file": relationship(ProcessedFile),
             "enum": relationship(TransactionEnum),
-            "transaction_splits": relationship(TransactionSplit, back_populates="transaction"),
+            "transaction_splits": relationship(
+                TransactionSplit, back_populates="transaction"
+            ),
         },
     )
 
     # Add back reference to TransactionSplit
-    TransactionSplit.transaction = relationship(Transaction, back_populates="transaction_splits")
+    TransactionSplit.transaction = relationship(
+        Transaction, back_populates="transaction_splits"
+    )
 
     SkippedTransaction = type(
         f"SkippedTransaction{class_suffix}",
@@ -157,7 +171,9 @@ def create_models_with_prefix(prefix=""):
             "row_number": Column(Integer),
             "skip_reason": Column(Text, nullable=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
             "processed_file": relationship(ProcessedFile),
         },
@@ -256,7 +272,9 @@ class DatabaseManager:
                     if len(parts) > 1:
                         protocol_parts = parts[0].split("://")
                         if len(protocol_parts) > 1:
-                            safe_config["database"]["url"] = f"{protocol_parts[0]}://***@{parts[1]}"
+                            safe_config["database"][
+                                "url"
+                            ] = f"{protocol_parts[0]}://***@{parts[1]}"
 
             safe_dict["config"] = safe_config
 
@@ -278,7 +296,9 @@ class DatabaseManager:
                 # Try to query the currency column
                 test_table_name = f"{self.test_prefix}transactions"
                 try:
-                    conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))
+                    conn.execute(
+                        text(f"SELECT currency FROM {test_table_name} LIMIT 1")
+                    )
                     # If we get here, currency column exists, just create any missing tables
                     self.base.metadata.create_all(self.engine)
                 except Exception:

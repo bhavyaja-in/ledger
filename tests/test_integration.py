@@ -84,7 +84,9 @@ class TestIntegrationSafety:
         # Use test configuration instead of production config
         test_config = {
             "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-            "processors": {"icici_bank": {"enabled": True, "data_path": "data/icici_bank"}},
+            "processors": {
+                "icici_bank": {"enabled": True, "data_path": "data/icici_bank"}
+            },
             "logging": {"level": "DEBUG"},
         }
 
@@ -99,7 +101,9 @@ class TestIntegrationSafety:
         # Ensure we're not loading production config in test mode
         # The test should use test configuration, not production
         test_config_loader = ConfigLoader()
-        test_config_loader.config_path = "config/config.yaml"  # This would be production config
+        test_config_loader.config_path = (
+            "config/config.yaml"  # This would be production config
+        )
 
         # Verify that test environment is properly isolated
         # Production files can exist, but tests should use test configurations
@@ -107,7 +111,9 @@ class TestIntegrationSafety:
             "✅ Production isolation verified - using test configuration, production files may exist but are not accessed"
         )
 
-        print("✅ Production isolation verified - safe to proceed with integration tests")
+        print(
+            "✅ Production isolation verified - safe to proceed with integration tests"
+        )
 
 
 @pytest.mark.integration
@@ -129,7 +135,11 @@ class TestIntegrationFixtures:
         }
 
         # Create directory structure
-        for dir_path in [test_env["data_dir"], test_env["config_dir"], test_env["backup_dir"]]:
+        for dir_path in [
+            test_env["data_dir"],
+            test_env["config_dir"],
+            test_env["backup_dir"],
+        ]:
             dir_path.mkdir(parents=True, exist_ok=True)
 
         # Create bank-specific data directories
@@ -305,8 +315,13 @@ class TestIntegrationFixtures:
         # Test config.yaml
         test_config = {
             "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-            "processors": {"icici_bank": {"currency": "INR", "date_format": "%d-%m-%Y"}},
-            "backup": {"enabled": False, "git_repo": None},  # Disable for integration tests
+            "processors": {
+                "icici_bank": {"currency": "INR", "date_format": "%d-%m-%Y"}
+            },
+            "backup": {
+                "enabled": False,
+                "git_repo": None,
+            },  # Disable for integration tests
         }
 
         config_file = config_dir / "config.yaml"
@@ -345,12 +360,17 @@ class TestEndToEndWorkflowRealistic:
     @pytest.mark.integration
     @pytest.mark.unit
     def test_complete_processing_simulation(
-        self, integration_test_environment, realistic_transaction_files, test_configurations
+        self,
+        integration_test_environment,
+        realistic_transaction_files,
+        test_configurations,
     ):
         """Test complete workflow simulation without actual file processing"""
 
         # Setup test environment
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         # Import components
@@ -428,15 +448,26 @@ class TestEndToEndWorkflowRealistic:
 
         # Test various currency detection scenarios
         test_cases = [
-            {"description": "UPI-SWIGGY-BANGALORE-9876543210@paytm", "expected_currency": "INR"},
-            {"description": "INTERNATIONAL TXN - USD 45.50 - NETFLIX", "expected_currency": "USD"},
+            {
+                "description": "UPI-SWIGGY-BANGALORE-9876543210@paytm",
+                "expected_currency": "INR",
+            },
+            {
+                "description": "INTERNATIONAL TXN - USD 45.50 - NETFLIX",
+                "expected_currency": "USD",
+            },
             {"description": "ATM WITHDRAWAL EUR 100.00", "expected_currency": "EUR"},
-            {"description": "REGULAR TRANSACTION", "expected_currency": "INR"},  # Default
+            {
+                "description": "REGULAR TRANSACTION",
+                "expected_currency": "INR",
+            },  # Default
         ]
 
         for test_case in test_cases:
             # Test currency detection logic exists
-            detected_currency = currency_detector.detect_from_text(test_case["description"])
+            detected_currency = currency_detector.detect_from_text(
+                test_case["description"]
+            )
             assert detected_currency in [
                 "INR",
                 "USD",
@@ -453,10 +484,14 @@ class TestDatabaseIntegrationRealistic:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_database_operations_complete(self, integration_test_environment, test_configurations):
+    def test_database_operations_complete(
+        self, integration_test_environment, test_configurations
+    ):
         """Test complete database operations with proper error handling"""
 
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         from src.loaders.database_loader import DatabaseLoader
@@ -482,7 +517,9 @@ class TestDatabaseIntegrationRealistic:
         assert Institution is not None
 
         # Test basic CRUD operations
-        test_institution = db_loader.get_or_create_institution("Integration Test Bank", "test")
+        test_institution = db_loader.get_or_create_institution(
+            "Integration Test Bank", "test"
+        )
         assert test_institution.name == "Integration Test Bank"
 
         # Verify transaction creation and retrieval
@@ -558,7 +595,9 @@ class TestDatabaseIntegrationRealistic:
         try:
             TransactionSplit = db_manager.models["TransactionSplit"]
             splits = (
-                session.query(TransactionSplit).filter_by(transaction_id=split_transaction.id).all()
+                session.query(TransactionSplit)
+                .filter_by(transaction_id=split_transaction.id)
+                .all()
             )
 
             assert len(splits) == 3
@@ -582,7 +621,9 @@ class TestConfigurationIntegration:
     ):
         """Test complete configuration loading with all components"""
 
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         from src.utils.config_loader import ConfigLoader
@@ -615,7 +656,11 @@ class TestConfigurationIntegration:
         assert os.environ.get("LEDGER_TEST_MODE") == "true"
 
         # Verify no production files are accessible
-        production_files = ["financial_data.db", "production.db", "config/production.yaml"]
+        production_files = [
+            "financial_data.db",
+            "production.db",
+            "config/production.yaml",
+        ]
 
         for prod_file in production_files:
             if os.path.exists(prod_file):
@@ -638,7 +683,9 @@ class TestErrorHandlingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_file_error_scenarios(self, integration_test_environment, realistic_transaction_files):
+    def test_file_error_scenarios(
+        self, integration_test_environment, realistic_transaction_files
+    ):
         """Test file error handling scenarios"""
 
         os.environ["LEDGER_TEST_MODE"] = "true"
@@ -726,7 +773,9 @@ class TestSecurityIntegration:
             from sqlalchemy import text
 
             # This should work with test tables
-            result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+            result = session.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table'")
+            )
             tables = [row[0] for row in result.fetchall()]
 
             # All tables should have test prefix or be test-related
@@ -743,7 +792,9 @@ class TestSecurityIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_configuration_security(self, integration_test_environment, test_configurations):
+    def test_configuration_security(
+        self, integration_test_environment, test_configurations
+    ):
         """Test configuration security in integration environment"""
 
         # Verify test configurations don't expose sensitive data
@@ -771,7 +822,9 @@ class TestPerformanceIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_large_dataset_simulation(self, integration_test_environment, test_configurations):
+    def test_large_dataset_simulation(
+        self, integration_test_environment, test_configurations
+    ):
         """Test performance with simulated large datasets"""
 
         os.environ["LEDGER_TEST_MODE"] = "true"
@@ -788,7 +841,9 @@ class TestPerformanceIntegration:
         db_loader = DatabaseLoader(db_manager)
 
         # Create test institution
-        institution = db_loader.get_or_create_institution("Performance Test Bank", "test")
+        institution = db_loader.get_or_create_institution(
+            "Performance Test Bank", "test"
+        )
 
         # Test batch transaction creation performance
         start_time = time.time()
@@ -857,6 +912,8 @@ class TestPerformanceIntegration:
         memory_increase = final_memory - initial_memory
 
         # Memory increase should be reasonable (less than 100MB)
-        assert memory_increase < 100, f"Memory usage increased by {memory_increase:.2f}MB"
+        assert (
+            memory_increase < 100
+        ), f"Memory usage increased by {memory_increase:.2f}MB"
 
         print(f"✅ Memory usage integration complete: {memory_increase:.2f}MB increase")

@@ -39,7 +39,9 @@ def check_python_version():
     """Check if Python version is compatible"""
     version = sys.version_info
     if version.major == 3 and version.minor >= 8:
-        print(f"✅ Python version {version.major}.{version.minor}.{version.micro} is compatible")
+        print(
+            f"✅ Python version {version.major}.{version.minor}.{version.micro} is compatible"
+        )
         return True
     else:
         print(
@@ -51,7 +53,9 @@ def check_python_version():
 
 def check_git_repository():
     """Check if we're in a git repository"""
-    if Path(".git").exists() or run_command("git rev-parse --git-dir", "Checking git repository"):
+    if Path(".git").exists() or run_command(
+        "git rev-parse --git-dir", "Checking git repository"
+    ):
         print("✅ Git repository detected")
         return True
     else:
@@ -100,7 +104,8 @@ def setup_pre_commit():
 
     # Install pre-commit hooks
     if not run_command(
-        "pre-commit install --config config/.pre-commit-config.yaml", "Installing pre-commit hooks"
+        "pre-commit install --config config/.pre-commit-config.yaml",
+        "Installing pre-commit hooks",
     ):
         return False
 
@@ -144,7 +149,10 @@ def run_initial_check():
         print("   Please review changes and commit them")
 
         # Show summary of what was changed
-        if "files were re-formatted" in result.stdout or "would reformat" in result.stdout:
+        if (
+            "files were re-formatted" in result.stdout
+            or "would reformat" in result.stdout
+        ):
             print("\n📝 Files were automatically formatted by Black")
         if "Fixing" in result.stdout:
             print("🔧 Files were automatically fixed by other hooks")
@@ -233,9 +241,13 @@ def main():
         description="Setup pre-commit hooks for Financial Data Processor"
     )
     parser.add_argument(
-        "--install-only", action="store_true", help="Only install dependencies, skip hook setup"
+        "--install-only",
+        action="store_true",
+        help="Only install dependencies, skip hook setup",
     )
-    parser.add_argument("--check", action="store_true", help="Check current setup status")
+    parser.add_argument(
+        "--check", action="store_true", help="Check current setup status"
+    )
     args = parser.parse_args()
 
     print("🚀 Financial Data Processor - Pre-commit Hooks Setup")
@@ -271,7 +283,9 @@ def main():
         display_usage_info()
     else:
         print("\n✅ Dependencies installed successfully")
-        print("   Run 'pre-commit install --config config/.pre-commit-config.yaml' to setup hooks")
+        print(
+            "   Run 'pre-commit install --config config/.pre-commit-config.yaml' to setup hooks"
+        )
 
 
 if __name__ == "__main__":

@@ -71,7 +71,9 @@ class ExcelExtractor:
 
         return None
 
-    def extract_data_from_row(self, df: pd.DataFrame, header_row: int) -> List[Dict[str, Any]]:
+    def extract_data_from_row(
+        self, df: pd.DataFrame, header_row: int
+    ) -> List[Dict[str, Any]]:
         """Extract data starting from the row after header"""
         # Use header row as column names
         header_values = df.iloc[header_row].values

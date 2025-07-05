@@ -254,7 +254,10 @@ class TestDatabaseCurrency:
 
         # Create split without currency (should default to INR)
         split = TransactionSplit(
-            transaction_id=transaction.id, person_name="alice", percentage=50.0, amount=500.0
+            transaction_id=transaction.id,
+            person_name="alice",
+            percentage=50.0,
+            amount=500.0,
         )
         session.add(split)
         session.commit()
@@ -358,7 +361,11 @@ class TestDatabaseCurrency:
         session.flush()
 
         # Create multiple splits with same currency as transaction
-        splits_data = [("alice", 40.0, 40.0), ("bob", 35.0, 35.0), ("charlie", 25.0, 25.0)]
+        splits_data = [
+            ("alice", 40.0, 40.0),
+            ("bob", 35.0, 35.0),
+            ("charlie", 25.0, 25.0),
+        ]
 
         splits = []
         for person, percentage, amount in splits_data:
@@ -429,9 +436,15 @@ class TestDatabaseCurrency:
         session.commit()
 
         # Query transactions by currency
-        usd_transactions = session.query(Transaction).filter(Transaction.currency == "USD").all()
-        eur_transactions = session.query(Transaction).filter(Transaction.currency == "EUR").all()
-        inr_transactions = session.query(Transaction).filter(Transaction.currency == "INR").all()
+        usd_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "USD").all()
+        )
+        eur_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "EUR").all()
+        )
+        inr_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "INR").all()
+        )
 
         # Verify query results
         assert len(usd_transactions) == 2
@@ -522,10 +535,14 @@ class TestDatabaseCurrency:
 
         # Query splits by currency
         usd_splits = (
-            session.query(TransactionSplit).filter(TransactionSplit.currency == "USD").all()
+            session.query(TransactionSplit)
+            .filter(TransactionSplit.currency == "USD")
+            .all()
         )
         eur_splits = (
-            session.query(TransactionSplit).filter(TransactionSplit.currency == "EUR").all()
+            session.query(TransactionSplit)
+            .filter(TransactionSplit.currency == "EUR")
+            .all()
         )
 
         # Verify query results

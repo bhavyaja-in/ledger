@@ -90,7 +90,10 @@ class TestConfigLoader:
     @pytest.mark.config
     def test_load_config_success(self, temp_config_dir):
         """Test _load_config successfully loads YAML configuration"""
-        config_data = {"database": {"url": "sqlite:///test.db"}, "processors": {"test": True}}
+        config_data = {
+            "database": {"url": "sqlite:///test.db"},
+            "processors": {"test": True},
+        }
 
         config_file = temp_config_dir / "config.yaml"
         with open(config_file, "w") as f:
@@ -100,9 +103,13 @@ class TestConfigLoader:
         with open(categories_file, "w") as f:
             yaml.dump({"categories": [{"name": "test"}]}, f)
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
-        with patch("src.utils.config_loader.ConfigLoader._load_categories") as mock_load_cat:
+        with patch(
+            "src.utils.config_loader.ConfigLoader._load_categories"
+        ) as mock_load_cat:
             loader._load_config()
 
             assert loader._config["database"] == config_data["database"]
@@ -121,7 +128,9 @@ class TestConfigLoader:
         with open(categories_file, "w") as f:
             yaml.dump({"categories": []}, f)
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
         with patch("src.utils.config_loader.ConfigLoader._load_categories"):
             loader._load_config()
@@ -149,7 +158,9 @@ class TestConfigLoader:
         ), patch.object(
             loader, "_extract_database_categories", return_value=db_categories
         ), patch.object(
-            loader, "_merge_categories", return_value=template_categories + db_categories
+            loader,
+            "_merge_categories",
+            return_value=template_categories + db_categories,
         ) as mock_merge, patch.object(
             loader, "_update_categories_file"
         ) as mock_update:
@@ -173,7 +184,9 @@ class TestConfigLoader:
 
         with patch.object(
             loader, "_load_template_categories", return_value=template_categories
-        ), patch.object(loader, "_extract_database_categories", return_value=[]), patch.object(
+        ), patch.object(
+            loader, "_extract_database_categories", return_value=[]
+        ), patch.object(
             loader, "_merge_categories", return_value=template_categories
         ), patch.object(
             loader, "_update_categories_file"
@@ -312,8 +325,16 @@ class TestConfigLoader:
     @pytest.mark.config
     def test_merge_categories_yaml_priority(self):
         """Test _merge_categories preserves YAML order and priority"""
-        yaml_categories = [{"name": "food"}, {"name": "transport"}, {"name": "shopping"}]
-        database_categories = [{"name": "food"}, {"name": "medical"}, {"name": "education"}]
+        yaml_categories = [
+            {"name": "food"},
+            {"name": "transport"},
+            {"name": "shopping"},
+        ]
+        database_categories = [
+            {"name": "food"},
+            {"name": "medical"},
+            {"name": "education"},
+        ]
 
         loader = ConfigLoader()
         result = loader._merge_categories(yaml_categories, database_categories)
@@ -333,7 +354,11 @@ class TestConfigLoader:
     def test_merge_categories_case_insensitive(self):
         """Test _merge_categories handles case-insensitive matching"""
         yaml_categories = [{"name": "Food"}, {"name": "TRANSPORT"}]
-        database_categories = [{"name": "food"}, {"name": "transport"}, {"name": "Medical"}]
+        database_categories = [
+            {"name": "food"},
+            {"name": "transport"},
+            {"name": "Medical"},
+        ]
 
         loader = ConfigLoader()
         result = loader._merge_categories(yaml_categories, database_categories)
@@ -386,13 +411,16 @@ class TestConfigLoader:
 
         loader = ConfigLoader(categories_path=str(categories_path))
 
-        with patch("os.makedirs", side_effect=PermissionError("Permission denied")), patch(
-            "builtins.print"
-        ) as mock_print:
+        with patch(
+            "os.makedirs", side_effect=PermissionError("Permission denied")
+        ), patch("builtins.print") as mock_print:
             loader._update_categories_file(categories)
 
             mock_print.assert_called_once()
-            assert "Warning: Could not update categories file" in mock_print.call_args[0][0]
+            assert (
+                "Warning: Could not update categories file"
+                in mock_print.call_args[0][0]
+            )
 
     @pytest.mark.unit
     @pytest.mark.config
@@ -541,9 +569,9 @@ class TestConfigLoader:
         loader._config = {"categories": []}
 
         # Mock template categories to avoid file operations
-        with patch.object(loader, "_load_template_categories", return_value=[]), patch.object(
-            loader, "save_categories"
-        ) as mock_save:
+        with patch.object(
+            loader, "_load_template_categories", return_value=[]
+        ), patch.object(loader, "save_categories") as mock_save:
             loader.add_category("")  # Empty string after strip becomes ''
             loader.add_category("   ")  # Whitespace only after strip becomes ''
 
@@ -563,7 +591,9 @@ class TestConfigLoader:
         with open(categories_file, "w") as f:
             f.write("")
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
         with patch("src.utils.config_loader.ConfigLoader._load_categories"):
             loader._load_config()
@@ -588,7 +618,9 @@ class TestConfigLoader:
             [],
         ]
 
-        loader = ConfigLoader(categories_path=str(categories_file), db_manager=mock_db_manager)
+        loader = ConfigLoader(
+            categories_path=str(categories_file), db_manager=mock_db_manager
+        )
 
         # This should trigger the "Discovered new categories" print
         loader._load_categories()

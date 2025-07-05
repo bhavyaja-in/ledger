@@ -72,7 +72,9 @@ class TestSystemPerformance:
 
                 return duration, memory_delta
 
-            def assert_performance(self, operation_name, max_duration=None, max_memory=None):
+            def assert_performance(
+                self, operation_name, max_duration=None, max_memory=None
+            ):
                 if operation_name not in self.metrics:
                     pytest.fail(f"No metrics found for operation: {operation_name}")
 
@@ -175,7 +177,9 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.database
-    def test_database_initialization_performance(self, performance_monitor, test_config):
+    def test_database_initialization_performance(
+        self, performance_monitor, test_config
+    ):
         """Test database initialization performance"""
         performance_monitor.start()
 
@@ -204,7 +208,9 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.database
-    def test_bulk_database_operations_performance(self, performance_monitor, test_config):
+    def test_bulk_database_operations_performance(
+        self, performance_monitor, test_config
+    ):
         """Test bulk database insert/query performance"""
         from src.models.database import DatabaseManager
 
@@ -265,10 +271,15 @@ class TestSystemPerformance:
         # Test various query patterns
         count = session.query(Transaction).count()
         debit_transactions = (
-            session.query(Transaction).filter(Transaction.transaction_type == "debit").all()
+            session.query(Transaction)
+            .filter(Transaction.transaction_type == "debit")
+            .all()
         )
         recent_transactions = (
-            session.query(Transaction).order_by(Transaction.created_at.desc()).limit(100).all()
+            session.query(Transaction)
+            .order_by(Transaction.created_at.desc())
+            .limit(100)
+            .all()
         )
 
         assert count == 1000
@@ -298,9 +309,13 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.extractor
-    def test_excel_extraction_performance(self, performance_monitor, large_transaction_dataset):
+    def test_excel_extraction_performance(
+        self, performance_monitor, large_transaction_dataset
+    ):
         """Test Excel file extraction performance"""
-        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import (
+            IciciBankExtractor,
+        )
 
         # Create large Excel file with ICICI format and correct column names
         transactions = large_transaction_dataset(1000)
@@ -368,7 +383,9 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.transformer
-    def test_icici_transformation_performance(self, performance_monitor, large_transaction_dataset):
+    def test_icici_transformation_performance(
+        self, performance_monitor, large_transaction_dataset
+    ):
         """Test ICICI Bank transformation performance"""
         from src.transformers.icici_bank_transformer import IciciBankTransformer
         from src.utils.config_loader import ConfigLoader
@@ -405,7 +422,9 @@ class TestSystemPerformance:
             }
             icici_transactions.append(icici_trans)
 
-        extracted_data = {"transactions": [{"data": trans} for trans in icici_transactions]}
+        extracted_data = {
+            "transactions": [{"data": trans} for trans in icici_transactions]
+        }
 
         mock_institution = Mock(id=1)
         mock_processed_file = Mock(id=1)
@@ -413,7 +432,9 @@ class TestSystemPerformance:
         performance_monitor.start()
 
         # Mock user interactions to avoid blocking
-        with patch("builtins.input", return_value="1"), patch("builtins.print"), patch.object(
+        with patch("builtins.input", return_value="1"), patch(
+            "builtins.print"
+        ), patch.object(
             transformer, "_ask_for_transaction_category", return_value="other"
         ), patch.object(
             transformer,
@@ -494,7 +515,9 @@ class TestSystemPerformance:
             ), patch.object(
                 main_handler, "_select_file_with_details", return_value=temp_file_path
             ), patch.object(
-                main_handler, "_process_file", return_value={"status": "success", "processed": 500}
+                main_handler,
+                "_process_file",
+                return_value={"status": "success", "processed": 500},
             ):
                 # Test the core processing logic without full file processing
                 result = main_handler._process_file("icici_bank", temp_file_path)
@@ -519,13 +542,17 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.memory
-    def test_memory_efficiency_large_datasets(self, performance_monitor, large_transaction_dataset):
+    def test_memory_efficiency_large_datasets(
+        self, performance_monitor, large_transaction_dataset
+    ):
         """Test memory efficiency with large datasets"""
         # Test memory usage with progressively larger datasets
         dataset_sizes = [100, 500, 1000, 2000]
         memory_usage = []
 
-        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import (
+            IciciBankExtractor,
+        )
 
         config = {"processors": {"icici_bank": {"enabled": True}}}
         extractor = IciciBankExtractor(config)
@@ -540,9 +567,13 @@ class TestSystemPerformance:
                 deposit = f"{(i * 15) % 3000}.00" if i % 2 == 1 else ""
                 if not withdrawal and not deposit:
                     withdrawal = "100.00"
-                remarks = trans.get("description", f"Transaction {i}") or f"Transaction {i}"
+                remarks = (
+                    trans.get("description", f"Transaction {i}") or f"Transaction {i}"
+                )
                 icici_trans = {
-                    "Transaction Date": trans.get("date", f"{(i % 28) + 1:02d}/01/2023"),
+                    "Transaction Date": trans.get(
+                        "date", f"{(i % 28) + 1:02d}/01/2023"
+                    ),
                     "Transaction Remarks": remarks,
                     "Withdrawal Amount (INR )": withdrawal,
                     "Deposit Amount (INR )": deposit,
@@ -648,7 +679,10 @@ class TestSystemPerformance:
                 result = detector.detect_currency(text, ["USD", "EUR", "GBP", "INR"])
 
             duration, memory = performance_monitor.stop("benchmark_currency")
-            benchmark_results["currency_detection"] = {"duration": duration, "memory": memory}
+            benchmark_results["currency_detection"] = {
+                "duration": duration,
+                "memory": memory,
+            }
 
         except ImportError:
             benchmark_results["currency_detection"] = {
@@ -730,7 +764,9 @@ class TestSystemPerformance:
         for i in range(iterations):
             performance_monitor.start()
 
-            with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
+            with patch.object(
+                transformer, "_determine_transaction_currency", return_value="INR"
+            ):
                 result = transformer._transform_transaction(transaction_data)
 
             duration, _ = performance_monitor.stop(f"single_transaction_{i}")
@@ -751,7 +787,9 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.system
-    def test_system_resource_usage(self, performance_monitor, large_transaction_dataset):
+    def test_system_resource_usage(
+        self, performance_monitor, large_transaction_dataset
+    ):
         """Test system resource usage during processing"""
         import psutil
         import threading
@@ -830,6 +868,8 @@ class TestSystemPerformance:
                 avg_cpu = sum(cpu for cpu, _ in resource_data) / len(resource_data)
                 avg_memory = sum(mem for _, mem in resource_data) / len(resource_data)
                 assert avg_cpu < 80.0, f"Average CPU usage too high: {avg_cpu}%"
-                assert avg_memory < 90.0, f"Average memory usage too high: {avg_memory}%"
+                assert (
+                    avg_memory < 90.0
+                ), f"Average memory usage too high: {avg_memory}%"
         finally:
             os.unlink(temp_file_path)

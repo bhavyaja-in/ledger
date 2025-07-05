@@ -40,7 +40,9 @@ class TestBackupManager:
     @pytest.mark.handler
     def test_backup_manager_init_test_mode(self):
         """Test backup manager initialization in test mode"""
-        with patch.object(BackupManager, "_check_backup_availability", return_value=True):
+        with patch.object(
+            BackupManager, "_check_backup_availability", return_value=True
+        ):
             manager = BackupManager(test_mode=True)
 
             assert manager.test_mode is True
@@ -51,7 +53,9 @@ class TestBackupManager:
     @pytest.mark.handler
     def test_backup_manager_init_prod_mode(self):
         """Test backup manager initialization in production mode"""
-        with patch.object(BackupManager, "_check_backup_availability", return_value=False):
+        with patch.object(
+            BackupManager, "_check_backup_availability", return_value=False
+        ):
             manager = BackupManager(test_mode=False)
 
             assert manager.test_mode is False
@@ -215,7 +219,9 @@ class TestMainHandler:
     @pytest.fixture
     def main_handler(self, mock_config):
         """Create main handler instance with mocked dependencies"""
-        with patch("src.handlers.main_handler.ConfigLoader") as mock_config_loader_class, patch(
+        with patch(
+            "src.handlers.main_handler.ConfigLoader"
+        ) as mock_config_loader_class, patch(
             "src.handlers.main_handler.DatabaseManager"
         ) as mock_db_manager_class, patch(
             "src.handlers.main_handler.DatabaseLoader"
@@ -264,9 +270,13 @@ class TestMainHandler:
     @pytest.mark.handler
     def test_main_handler_init_config_reload(self, mock_config):
         """Test config loader reinitialization with database manager"""
-        with patch("src.handlers.main_handler.ConfigLoader") as mock_config_loader_class, patch(
+        with patch(
+            "src.handlers.main_handler.ConfigLoader"
+        ) as mock_config_loader_class, patch(
             "src.handlers.main_handler.DatabaseManager"
-        ), patch("src.handlers.main_handler.DatabaseLoader"), patch(
+        ), patch(
+            "src.handlers.main_handler.DatabaseLoader"
+        ), patch(
             "src.handlers.main_handler.BackupManager"
         ), patch(
             "builtins.print"
@@ -301,10 +311,14 @@ class TestMainHandler:
 
         with patch("os.path.exists", return_value=True), patch.object(
             main_handler, "_process_file", return_value=mock_result
-        ) as mock_process, patch.object(main_handler, "_display_summary") as mock_display, patch(
+        ) as mock_process, patch.object(
+            main_handler, "_display_summary"
+        ) as mock_display, patch(
             "builtins.print"
         ):
-            result = main_handler.run(processor_type=processor_type, file_path=file_path)
+            result = main_handler.run(
+                processor_type=processor_type, file_path=file_path
+            )
 
         assert result == mock_result
         mock_process.assert_called_once_with(processor_type, file_path)
@@ -331,7 +345,9 @@ class TestMainHandler:
         """Test run method with non-existent file"""
         file_path = "/nonexistent/file.xlsx"
 
-        with patch("os.path.exists", return_value=False), patch("builtins.print") as mock_print:
+        with patch("os.path.exists", return_value=False), patch(
+            "builtins.print"
+        ) as mock_print:
             result = main_handler.run(processor_type="icici_bank", file_path=file_path)
 
         assert result["status"] == "error"
@@ -358,7 +374,9 @@ class TestMainHandler:
         with patch("os.path.exists", return_value=True), patch.object(
             main_handler, "_process_file", side_effect=Exception(error_msg)
         ), patch("builtins.print") as mock_print:
-            result = main_handler.run(processor_type="icici_bank", file_path="/test/file.xlsx")
+            result = main_handler.run(
+                processor_type="icici_bank", file_path="/test/file.xlsx"
+            )
 
         assert result["status"] == "error"
         assert error_msg in result["message"]
@@ -433,7 +451,9 @@ class TestMainHandler:
             },
         ]
 
-        with patch("builtins.input", return_value="1"), patch("builtins.print") as mock_print:
+        with patch("builtins.input", return_value="1"), patch(
+            "builtins.print"
+        ) as mock_print:
             result = main_handler._select_file_with_details(files, "/test")
 
         assert result == "/test/file1.xlsx"
@@ -535,7 +555,9 @@ class TestMainHandler:
         with patch.object(
             main_handler, "_get_or_create_institution", return_value=mock_institution
         ), patch.object(
-            main_handler, "_create_processed_file_record", return_value=mock_processed_file
+            main_handler,
+            "_create_processed_file_record",
+            return_value=mock_processed_file,
         ), patch.object(
             main_handler, "_extract_data", return_value=mock_extracted_data
         ), patch.object(
@@ -550,7 +572,9 @@ class TestMainHandler:
         assert result["status"] == "success"
         assert result["final_status"] == "completed"
         assert result["processing_time"] == 5
-        main_handler.mock_db_loader.update_processed_file_status.assert_called_with(1, "completed")
+        main_handler.mock_db_loader.update_processed_file_status.assert_called_with(
+            1, "completed"
+        )
 
     @pytest.mark.unit
     @pytest.mark.handler
@@ -564,7 +588,9 @@ class TestMainHandler:
         with patch.object(
             main_handler, "_get_or_create_institution", return_value=mock_institution
         ), patch.object(
-            main_handler, "_create_processed_file_record", return_value=mock_processed_file
+            main_handler,
+            "_create_processed_file_record",
+            return_value=mock_processed_file,
         ), patch.object(
             main_handler, "_extract_data", return_value=mock_extracted_data
         ), patch.object(
@@ -575,7 +601,9 @@ class TestMainHandler:
             result = main_handler._process_file("icici_bank", "/test/file.xlsx")
 
         assert result["final_status"] == "partially_processed"
-        mock_print.assert_any_call("\n⚠️  Processing interrupted - marked as partially processed")
+        mock_print.assert_any_call(
+            "\n⚠️  Processing interrupted - marked as partially processed"
+        )
         main_handler.mock_db_loader.update_processed_file_status.assert_called_with(
             1, "partially_processed"
         )
@@ -590,7 +618,9 @@ class TestMainHandler:
         with patch.object(
             main_handler, "_get_or_create_institution", return_value=mock_institution
         ), patch.object(
-            main_handler, "_create_processed_file_record", return_value=mock_processed_file
+            main_handler,
+            "_create_processed_file_record",
+            return_value=mock_processed_file,
         ), patch.object(
             main_handler, "_extract_data", side_effect=Exception("Extract error")
         ), pytest.raises(
@@ -599,7 +629,9 @@ class TestMainHandler:
             main_handler._process_file("icici_bank", "/test/file.xlsx")
 
         assert "Extract error" in str(exc_info.value)
-        main_handler.mock_db_loader.update_processed_file_status.assert_called_with(1, "failed")
+        main_handler.mock_db_loader.update_processed_file_status.assert_called_with(
+            1, "failed"
+        )
 
     # =====================
     # 7. DYNAMIC IMPORT TESTS
@@ -665,7 +697,9 @@ class TestMainHandler:
         processor_type = "icici_bank"
         mock_institution = Mock()
 
-        main_handler.mock_db_loader.get_or_create_institution.return_value = mock_institution
+        main_handler.mock_db_loader.get_or_create_institution.return_value = (
+            mock_institution
+        )
 
         result = main_handler._get_or_create_institution(processor_type)
 
@@ -686,7 +720,9 @@ class TestMainHandler:
         with patch("os.path.basename", return_value="test_file.xlsx"), patch(
             "os.path.getsize", return_value=1024
         ):
-            main_handler.mock_db_loader.create_processed_file.return_value = mock_processed_file
+            main_handler.mock_db_loader.create_processed_file.return_value = (
+                mock_processed_file
+            )
 
             result = main_handler._create_processed_file_record(
                 institution_id, file_path, processor_type
@@ -788,7 +824,11 @@ class TestMainHandler:
     @pytest.mark.handler
     def test_display_summary_error(self, main_handler):
         """Test display summary for error status"""
-        result = {"status": "error", "total_transactions": 0, "processed_transactions": 0}
+        result = {
+            "status": "error",
+            "total_transactions": 0,
+            "processed_transactions": 0,
+        }
 
         with patch("builtins.print") as mock_print:
             main_handler._display_summary(result)
@@ -872,7 +912,9 @@ class TestMainFunction:
 
         with patch("sys.argv", test_args), patch(
             "src.handlers.main_handler.MainHandler"
-        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch("builtins.print"):
+        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch(
+            "builtins.print"
+        ):
             mock_handler = Mock()
             mock_handler.run.return_value = {"status": "success"}
             mock_handler_class.return_value = mock_handler
@@ -898,7 +940,9 @@ class TestMainFunction:
 
         with patch("sys.argv", test_args), patch(
             "src.handlers.main_handler.MainHandler"
-        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch("builtins.print"):
+        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch(
+            "builtins.print"
+        ):
             mock_handler = Mock()
             mock_handler.run.return_value = {"status": "success"}
             mock_handler_class.return_value = mock_handler
@@ -919,7 +963,9 @@ class TestMainFunction:
 
         with patch("sys.argv", test_args), patch(
             "src.handlers.main_handler.MainHandler"
-        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch("builtins.print"):
+        ) as mock_handler_class, patch("sys.exit") as mock_exit, patch(
+            "builtins.print"
+        ):
             mock_handler = Mock()
             mock_handler.run.return_value = {"status": "error"}
             mock_handler_class.return_value = mock_handler
@@ -935,7 +981,8 @@ class TestMainFunction:
         test_args = ["main_handler.py"]
 
         with patch("sys.argv", test_args), patch(
-            "src.handlers.main_handler.MainHandler", side_effect=Exception("Fatal error")
+            "src.handlers.main_handler.MainHandler",
+            side_effect=Exception("Fatal error"),
         ), patch("sys.exit") as mock_exit, patch("builtins.print") as mock_print:
             main()
 
@@ -956,4 +1003,6 @@ class TestMainFunction:
         ), patch("sys.exit"), patch("builtins.print"):
             main()
 
-        mock_handler.backup_manager.create_backup.assert_called_once_with("interruption")
+        mock_handler.backup_manager.create_backup.assert_called_once_with(
+            "interruption"
+        )

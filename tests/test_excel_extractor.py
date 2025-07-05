@@ -47,7 +47,13 @@ class TestExcelExtractor:
         return pd.DataFrame(
             [
                 ["Some header text", "More text", "Extra"],
-                ["Transaction Date", "Description", "Debit Amount", "Credit Amount", "Balance"],
+                [
+                    "Transaction Date",
+                    "Description",
+                    "Debit Amount",
+                    "Credit Amount",
+                    "Balance",
+                ],
                 ["2023-01-01", "Payment 1", "100.0", "", "1000.0"],
                 ["2023-01-02", "Payment 2", "", "200.0", "1200.0"],
                 ["2023-01-03", "Payment 3", "300.0", "", "900.0"],
@@ -93,7 +99,9 @@ class TestExcelExtractor:
         """Test read_excel_file handles pandas exceptions"""
         file_path = "/path/to/nonexistent.xlsx"
 
-        with patch("pandas.read_excel", side_effect=FileNotFoundError("File not found")):
+        with patch(
+            "pandas.read_excel", side_effect=FileNotFoundError("File not found")
+        ):
             with pytest.raises(Exception, match="Error reading Excel file"):
                 extractor.read_excel_file(file_path)
 
@@ -103,13 +111,17 @@ class TestExcelExtractor:
         """Test read_excel_file handles permission errors"""
         file_path = "/path/to/protected.xlsx"
 
-        with patch("pandas.read_excel", side_effect=PermissionError("Permission denied")):
+        with patch(
+            "pandas.read_excel", side_effect=PermissionError("Permission denied")
+        ):
             with pytest.raises(Exception, match="Error reading Excel file"):
                 extractor.read_excel_file(file_path)
 
     @pytest.mark.unit
     @pytest.mark.extractor
-    def test_detect_header_row_found_perfect_match(self, extractor, sample_header_detection_df):
+    def test_detect_header_row_found_perfect_match(
+        self, extractor, sample_header_detection_df
+    ):
         """Test detect_header_row finds header with perfect match"""
         required_columns = [
             "Transaction Date",
@@ -119,7 +131,9 @@ class TestExcelExtractor:
             "Balance",
         ]
 
-        result = extractor.detect_header_row(sample_header_detection_df, required_columns)
+        result = extractor.detect_header_row(
+            sample_header_detection_df, required_columns
+        )
 
         assert result == 1  # Header is in row 1 (0-indexed)
 
@@ -130,7 +144,13 @@ class TestExcelExtractor:
         df = pd.DataFrame(
             [
                 ["Some text", "More text", "Extra"],
-                ["Date", "Description", "Amount", "Other Column", "Another"],  # 3/4 = 75% match
+                [
+                    "Date",
+                    "Description",
+                    "Amount",
+                    "Other Column",
+                    "Another",
+                ],  # 3/4 = 75% match
                 ["2023-01-01", "Payment 1", "100.0", "data", "more"],
             ]
         )
@@ -319,8 +339,18 @@ class TestExcelExtractor:
         result = extractor.extract_data_from_row(df, header_row)
 
         expected = [
-            {"Date": "2023-01-01", "Description": "Payment 1", "Amount": 100.0, "Balance": np.nan},
-            {"Date": "2023-01-02", "Description": "Payment 2", "Amount": 200.0, "Balance": 1000.0},
+            {
+                "Date": "2023-01-01",
+                "Description": "Payment 1",
+                "Amount": 100.0,
+                "Balance": np.nan,
+            },
+            {
+                "Date": "2023-01-02",
+                "Description": "Payment 2",
+                "Amount": 200.0,
+                "Balance": 1000.0,
+            },
         ]
 
         # Need to handle NaN comparison properly
@@ -467,7 +497,9 @@ class TestExcelExtractor:
     @pytest.mark.extractor
     @patch("os.path.getsize")
     @patch("os.path.basename")
-    def test_get_file_info_permission_error(self, mock_basename, mock_getsize, extractor):
+    def test_get_file_info_permission_error(
+        self, mock_basename, mock_getsize, extractor
+    ):
         """Test get_file_info handles permission error"""
         file_path = "/path/to/protected.xlsx"
         mock_basename.return_value = "protected.xlsx"
@@ -595,7 +627,9 @@ class TestExcelExtractor:
         df = pd.DataFrame(data)
 
         # Test header detection
-        header_row = extractor.detect_header_row(df, headers[:10])  # Search for first 10 columns
+        header_row = extractor.detect_header_row(
+            df, headers[:10]
+        )  # Search for first 10 columns
         assert header_row == 0
 
         # Test data extraction
@@ -625,7 +659,9 @@ class TestExcelExtractor:
 
     @pytest.mark.unit
     @pytest.mark.extractor
-    def test_read_excel_file_legitimate_paths_allowed(self, extractor, sample_dataframe):
+    def test_read_excel_file_legitimate_paths_allowed(
+        self, extractor, sample_dataframe
+    ):
         """Test read_excel_file allows legitimate test and relative paths"""
         legitimate_paths = [
             "/path/to/test.xlsx",
