@@ -729,7 +729,8 @@ class TestIciciBankTransformer:
             result = transformer._ask_for_category()
 
         assert result == "problem_cat"
-        mock_print.assert_any_call("⚠️  Enum category created but couldn't save: Save failed")
+        msg = "⚠️  Enum category created but couldn't save: Save failed"
+        mock_print.assert_any_call(msg)
 
     # =====================
     # MISSING COVERAGE TESTS - TRANSACTION CATEGORY SELECTION
@@ -756,7 +757,8 @@ class TestIciciBankTransformer:
             result = transformer._ask_for_transaction_category("test")
 
         assert result == "problem_trans_cat"
-        mock_print.assert_any_call("⚠️  Transaction category created but couldn't save: Save failed")
+        msg = "⚠️  Transaction category created but couldn't save: Save failed"
+        mock_print.assert_any_call(msg)
 
     def test_ask_for_transaction_category_no_config_loader_existing(self, transformer):
         """Test transaction category with no config loader for existing category"""
