@@ -613,7 +613,7 @@ class TestSystemPerformance:
 
     @pytest.mark.performance
     @pytest.mark.benchmark
-    def test_performance_benchmark_suite(self, performance_monitor):
+    def test_performance_benchmark_suite(self, performance_monitor, test_config):
         """Comprehensive performance benchmark suite"""
         benchmark_results = {}
 
@@ -630,7 +630,7 @@ class TestSystemPerformance:
         performance_monitor.start()
         from src.models.database import DatabaseManager
 
-        db_manager = DatabaseManager(config, test_mode=True)
+        db_manager = DatabaseManager(test_config, test_mode=True)
         session = db_manager.get_session()
         session.close()
         duration, memory = performance_monitor.stop("benchmark_db")
