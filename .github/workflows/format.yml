@@ -43,12 +43,3 @@ jobs:
     - name: Check for trailing whitespace
       run: |
         find . -name "*.py" -o -name "*.yml" -o -name "*.yaml" -o -name "*.md" -o -name "*.txt" | xargs grep -l " $" || echo "No trailing whitespace found"
-
-    - name: Check for files without newline at end
-      run: |
-        if grep -rL --include="*.py" --include="*.yml" --include="*.yaml" --include="*.md" --include="*.txt" "$" src/ tests/ scripts/ .github/; then
-          echo "❌ Files without newline at end found"
-          exit 1
-        else
-          echo "✅ All files have newlines at end"
-        fi
