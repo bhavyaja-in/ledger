@@ -7,21 +7,3 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 10
-    reviewers:
-      - "bhavyajain"
-    assignees:
-      - "bhavyajain"
-    ignore:
-      - dependency-name: "sqlite3"
-      - dependency-name: "pytest"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "black"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "isort"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "mypy"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "bandit"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "pylint"
-        update-types: ["version-update:semver-major"]
