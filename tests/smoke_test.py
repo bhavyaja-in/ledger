@@ -109,9 +109,7 @@ class SmokeTestSuite:
 
         # Log result
         status_emoji = "✅" if passed else "❌"
-        self.logger.info(
-            f"{status_emoji} {test_name}: {result['status']} ({duration:.3f}s)"
-        )
+        self.logger.info(f"{status_emoji} {test_name}: {result['status']} ({duration:.3f}s)")
 
         if not passed:
             self.logger.error(f"FAILURE DETAILS: {message}")
@@ -310,9 +308,7 @@ class SmokeTestSuite:
                     if hasattr(module, "__all__"):
                         exports = module.__all__
                     else:
-                        exports = [
-                            name for name in dir(module) if not name.startswith("_")
-                        ]
+                        exports = [name for name in dir(module) if not name.startswith("_")]
 
                     import_results[module_name] = {
                         "status": "success",
@@ -331,9 +327,7 @@ class SmokeTestSuite:
             self.performance_metrics["module_import_time"] = duration
 
             failed_imports = [
-                name
-                for name, result in import_results.items()
-                if result["status"] == "failed"
+                name for name, result in import_results.items() if result["status"] == "failed"
             ]
             success = len(failed_imports) == 0
 
@@ -402,16 +396,12 @@ class SmokeTestSuite:
                     }
 
             # Test configuration access
-            config_accessible = (
-                hasattr(extractor, "config") and extractor.config is not None
-            )
+            config_accessible = hasattr(extractor, "config") and extractor.config is not None
 
             duration = time.time() - start_time
             self.performance_metrics["file_detection_time"] = duration
 
-            correct_detections = sum(
-                1 for r in detection_results.values() if r["correct"]
-            )
+            correct_detections = sum(1 for r in detection_results.values() if r["correct"])
             success = correct_detections == len(test_files) and config_accessible
 
             self.record_result(
@@ -732,9 +722,7 @@ Examples:
         action="store_true",
         help="Output results in JSON format for CI/CD integration",
     )
-    parser.add_argument(
-        "--output-file", "-o", type=str, help="Save JSON results to specified file"
-    )
+    parser.add_argument("--output-file", "-o", type=str, help="Save JSON results to specified file")
 
     args = parser.parse_args()
 

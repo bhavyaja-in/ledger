@@ -37,10 +37,7 @@ class TestCurrencyDetector:
         assert detector.detect_currency("Received 100 dollars", available) == "USD"
 
         # Test united states
-        assert (
-            detector.detect_currency("Transaction from United States", available)
-            == "USD"
-        )
+        assert detector.detect_currency("Transaction from United States", available) == "USD"
 
     @pytest.mark.unit
     @pytest.mark.transformer
@@ -79,9 +76,7 @@ class TestCurrencyDetector:
         available = ["USD", "EUR", "INR"]
 
         # Test rupee sign
-        assert (
-            detector.detect_currency("Payment ₹1500 for shopping", available) == "INR"
-        )
+        assert detector.detect_currency("Payment ₹1500 for shopping", available) == "INR"
 
         # Test INR text
         assert detector.detect_currency("Exchange to INR", available) == "INR"
@@ -290,9 +285,7 @@ class TestCurrencyDetector:
         available = ["USD", "EUR", "INR"]
         description = "Test transaction"
 
-        with patch("builtins.input", side_effect=["5", "abc", "1"]), patch(
-            "builtins.print"
-        ):
+        with patch("builtins.input", side_effect=["5", "abc", "1"]), patch("builtins.print"):
             result = detector.ask_user_for_currency(available, description)
             assert result == "USD"
 
@@ -303,9 +296,7 @@ class TestCurrencyDetector:
         available = ["USD", "EUR", "INR"]
         description = "Test transaction"
 
-        with patch("builtins.input", side_effect=KeyboardInterrupt), patch(
-            "builtins.print"
-        ):
+        with patch("builtins.input", side_effect=KeyboardInterrupt), patch("builtins.print"):
             result = detector.ask_user_for_currency(available, description)
             assert result == "USD"  # Should return first currency
 
@@ -327,17 +318,13 @@ class TestCurrencyDetector:
         available = ["USD", "EUR"]
         long_description = "A" * 100  # Very long description
 
-        with patch("builtins.input", return_value="1"), patch(
-            "builtins.print"
-        ) as mock_print:
+        with patch("builtins.input", return_value="1"), patch("builtins.print") as mock_print:
             result = detector.ask_user_for_currency(available, long_description)
             assert result == "USD"
 
             # Verify description was truncated
             print_calls = [call.args[0] for call in mock_print.call_args_list]
-            description_line = [line for line in print_calls if "Transaction:" in line][
-                0
-            ]
+            description_line = [line for line in print_calls if "Transaction:" in line][0]
             assert "..." in description_line
             assert len(description_line) < len(long_description) + 20
 

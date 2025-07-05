@@ -85,9 +85,7 @@ class DatabaseLoader:
         try:
             ProcessedFile = self.models["ProcessedFile"]
 
-            processed_file = (
-                session.query(ProcessedFile).filter_by(id=processed_file_id).first()
-            )
+            processed_file = session.query(ProcessedFile).filter_by(id=processed_file_id).first()
             if processed_file:
                 processed_file.processing_status = status
                 processed_file.updated_at = datetime.utcnow()
@@ -255,9 +253,7 @@ class DatabaseLoader:
             ).filter(TransactionSplit.is_settled == False)
 
             if person_name:
-                query = query.filter(
-                    TransactionSplit.person_name == person_name.lower().strip()
-                )
+                query = query.filter(TransactionSplit.person_name == person_name.lower().strip())
 
             results = query.group_by(TransactionSplit.person_name).all()
             return [(person, float(amount), count) for person, amount, count in results]
@@ -274,9 +270,7 @@ class DatabaseLoader:
 
             query = (
                 session.query(Transaction, TransactionSplit)
-                .join(
-                    TransactionSplit, Transaction.id == TransactionSplit.transaction_id
-                )
+                .join(TransactionSplit, Transaction.id == TransactionSplit.transaction_id)
                 .filter(
                     TransactionSplit.person_name == person_name.lower().strip(),
                     TransactionSplit.is_settled == False,
@@ -301,9 +295,7 @@ class DatabaseLoader:
 
             query = (
                 session.query(Transaction, TransactionSplit)
-                .join(
-                    TransactionSplit, Transaction.id == TransactionSplit.transaction_id
-                )
+                .join(TransactionSplit, Transaction.id == TransactionSplit.transaction_id)
                 .filter(TransactionSplit.person_name == person_name.lower().strip())
             )
 
@@ -413,9 +405,7 @@ class DatabaseLoader:
             Transaction = self.models["Transaction"]
 
             existing = (
-                session.query(Transaction)
-                .filter_by(transaction_hash=transaction_hash)
-                .first()
+                session.query(Transaction).filter_by(transaction_hash=transaction_hash).first()
             )
 
             return existing is not None

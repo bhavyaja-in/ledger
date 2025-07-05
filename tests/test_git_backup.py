@@ -53,9 +53,7 @@ class TestGitDatabaseBackup:
             },
         }
 
-        with patch.object(
-            GitDatabaseBackup, "_load_config", return_value=custom_config
-        ):
+        with patch.object(GitDatabaseBackup, "_load_config", return_value=custom_config):
             backup = GitDatabaseBackup(
                 config_path="custom/config.yaml",
                 db_path="override.db",
@@ -64,12 +62,8 @@ class TestGitDatabaseBackup:
             )
 
             assert backup.db_path == "override.db"  # Parameter overrides config
-            assert (
-                backup.backup_repo_path == "/override/path"
-            )  # Parameter overrides config
-            assert (
-                backup.repo_url == "https://override.git"
-            )  # Parameter overrides config
+            assert backup.backup_repo_path == "/override/path"  # Parameter overrides config
+            assert backup.repo_url == "https://override.git"  # Parameter overrides config
             assert backup.backup_filename == "custom_backup.db"  # From config
             assert backup.encrypt_enabled is False  # From config
             assert backup.auto_push_enabled is False  # From config
@@ -157,9 +151,7 @@ class TestGitDatabaseBackup:
         mock_run.return_value = Mock()
 
         with patch.object(GitDatabaseBackup, "_load_config", return_value={}):
-            backup = GitDatabaseBackup(
-                backup_repo_path=str(repo_path), repo_url=repo_url
-            )
+            backup = GitDatabaseBackup(backup_repo_path=str(repo_path), repo_url=repo_url)
             result = backup.setup_backup_repo()
 
             assert result is True
@@ -182,9 +174,7 @@ class TestGitDatabaseBackup:
         mock_run.side_effect = subprocess.CalledProcessError(1, "git clone")
 
         with patch.object(GitDatabaseBackup, "_load_config", return_value={}):
-            backup = GitDatabaseBackup(
-                backup_repo_path=str(repo_path), repo_url=repo_url
-            )
+            backup = GitDatabaseBackup(backup_repo_path=str(repo_path), repo_url=repo_url)
             result = backup.setup_backup_repo()
 
             assert result is False
@@ -291,9 +281,7 @@ class TestGitDatabaseBackup:
 
             # Verify file was moved
             expected_old_path = str(backup_file)
-            expected_new_path = str(
-                repo_path / "financial_data_backup_2023-12-01_12-30-45.db"
-            )
+            expected_new_path = str(repo_path / "financial_data_backup_2023-12-01_12-30-45.db")
             mock_move.assert_called_once_with(expected_old_path, expected_new_path)
 
             # Verify git commands
@@ -323,9 +311,7 @@ class TestGitDatabaseBackup:
     @pytest.mark.backup
     @patch("subprocess.run")
     @patch("shutil.move")
-    def test_preserve_previous_backup_git_error(
-        self, mock_move, mock_run, temp_dir, capsys
-    ):
+    def test_preserve_previous_backup_git_error(self, mock_move, mock_run, temp_dir, capsys):
         """Test _preserve_previous_backup handles git command errors"""
         repo_path = temp_dir / "repo"
         repo_path.mkdir()
@@ -363,13 +349,11 @@ class TestGitDatabaseBackup:
     @patch("os.path.exists")
     def test_create_backup_setup_repo_failure(self, mock_exists, capsys):
         """Test create_backup when repository setup fails"""
-        mock_exists.side_effect = lambda path: path.endswith(
-            ".db"
-        )  # DB exists, repo doesn't
+        mock_exists.side_effect = lambda path: path.endswith(".db")  # DB exists, repo doesn't
 
-        with patch.object(
-            GitDatabaseBackup, "_load_config", return_value={}
-        ), patch.object(GitDatabaseBackup, "setup_backup_repo", return_value=False):
+        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch.object(
+            GitDatabaseBackup, "setup_backup_repo", return_value=False
+        ):
             backup = GitDatabaseBackup()
             result = backup.create_backup()
 
@@ -450,9 +434,7 @@ class TestGitDatabaseBackup:
     @patch("subprocess.run")
     @patch("os.chdir")
     @patch("scripts.git_backup.datetime")
-    def test_commit_backup_success(
-        self, mock_datetime, mock_chdir, mock_run, temp_dir, capsys
-    ):
+    def test_commit_backup_success(self, mock_datetime, mock_chdir, mock_run, temp_dir, capsys):
         """Test _commit_backup successfully commits to git"""
         repo_path = temp_dir / "repo"
         repo_path.mkdir()
@@ -586,9 +568,7 @@ class TestGitDatabaseBackup:
     @pytest.mark.backup
     @patch("shutil.copy2")
     @patch("scripts.git_backup.datetime")
-    def test_restore_backup_success_encrypted(
-        self, mock_datetime, mock_copy, temp_dir, capsys
-    ):
+    def test_restore_backup_success_encrypted(self, mock_datetime, mock_copy, temp_dir, capsys):
         """Test restore_backup successfully restores encrypted backup"""
         repo_path = temp_dir / "repo"
         repo_path.mkdir()
@@ -606,9 +586,7 @@ class TestGitDatabaseBackup:
         mock_datetime.now.return_value.strftime.return_value = "20231201_123045"
 
         with patch.object(GitDatabaseBackup, "_load_config", return_value={}):
-            backup = GitDatabaseBackup(
-                backup_repo_path=str(repo_path), db_path=str(db_path)
-            )
+            backup = GitDatabaseBackup(backup_repo_path=str(repo_path), db_path=str(db_path))
             result = backup.restore_backup()
 
             assert result is True
@@ -641,9 +619,7 @@ class TestGitDatabaseBackup:
         db_path = temp_dir / "current.db"
 
         with patch.object(GitDatabaseBackup, "_load_config", return_value={}):
-            backup = GitDatabaseBackup(
-                backup_repo_path=str(repo_path), db_path=str(db_path)
-            )
+            backup = GitDatabaseBackup(backup_repo_path=str(repo_path), db_path=str(db_path))
             result = backup.restore_backup(decrypt=False)
 
             assert result is True
@@ -665,14 +641,10 @@ class TestGitDatabaseBackup:
 
         db_path = temp_dir / "current.db"
 
-        with patch.object(
-            GitDatabaseBackup, "_load_config", return_value={}
-        ), patch.object(
+        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch.object(
             GitDatabaseBackup, "_simple_decrypt", side_effect=Exception("Decrypt error")
         ):
-            backup = GitDatabaseBackup(
-                backup_repo_path=str(repo_path), db_path=str(db_path)
-            )
+            backup = GitDatabaseBackup(backup_repo_path=str(repo_path), db_path=str(db_path))
             result = backup.restore_backup()
 
             assert result is False
@@ -710,9 +682,7 @@ class TestGitDatabaseBackup:
             result = backup.sync_from_remote()
 
             assert result is True
-            mock_run.assert_called_once_with(
-                ["git", "pull"], check=True, capture_output=True
-            )
+            mock_run.assert_called_once_with(["git", "pull"], check=True, capture_output=True)
             captured = capsys.readouterr()
             assert "Synced latest backups" in captured.out
 
@@ -891,9 +861,7 @@ class TestBackupManager:
         """Test create_backup when backup system is not available"""
         from src.handlers.main_handler import BackupManager
 
-        with patch.object(
-            BackupManager, "_check_backup_availability", return_value=False
-        ):
+        with patch.object(BackupManager, "_check_backup_availability", return_value=False):
             manager = BackupManager()
             result = manager.create_backup("startup")
 
@@ -910,9 +878,9 @@ class TestBackupManager:
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = True
 
-        with patch.object(
-            BackupManager, "_check_backup_availability", return_value=True
-        ), patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup):
+        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
+            "scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup
+        ):
             manager = BackupManager()
             result = manager.create_backup("completion")
 
@@ -931,9 +899,9 @@ class TestBackupManager:
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = False
 
-        with patch.object(
-            BackupManager, "_check_backup_availability", return_value=True
-        ), patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup):
+        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
+            "scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup
+        ):
             manager = BackupManager()
             result = manager.create_backup("automatic")
 
@@ -948,9 +916,7 @@ class TestBackupManager:
         """Test create_backup handles exceptions gracefully"""
         from src.handlers.main_handler import BackupManager
 
-        with patch.object(
-            BackupManager, "_check_backup_availability", return_value=True
-        ), patch(
+        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
             "scripts.git_backup.GitDatabaseBackup", side_effect=Exception("Test error")
         ):
             manager = BackupManager()
@@ -977,9 +943,7 @@ class TestBackupManager:
 
         backup_types = ["startup", "completion", "interruption", "automatic", "unknown"]
 
-        with patch.object(
-            BackupManager, "_check_backup_availability", return_value=False
-        ):
+        with patch.object(BackupManager, "_check_backup_availability", return_value=False):
             manager = BackupManager()
 
             for backup_type in backup_types:
