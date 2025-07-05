@@ -110,7 +110,6 @@ jobs:
 
   commit-message-check:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
 
     steps:
     - name: 📥 Checkout Repository
