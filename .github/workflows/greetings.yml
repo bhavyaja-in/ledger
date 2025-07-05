@@ -1,0 +1,60 @@
+name: Greetings
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    name: Welcome New Contributors
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Welcome first time contributors
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const { user } = context.payload.pull_request;
+          
+          // Check if this is the user's first contribution
+          const { data: contributions } = await github.rest.repos.listContributors({
+            owner,
+            repo,
+          });
+          
+          const isFirstContribution = !contributions.some(contributor => 
+            contributor.login === user.login
+          );
+          
+          if (isFirstContribution) {
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+              body: `🎉 Welcome to the project, @${user.login}! Thank you for your first contribution!
+              
+              We're excited to have you on board! Here are some things to help you get started:
+              
+              - 📖 Check out our [README](https://github.com/${owner}/${repo}#readme) for project overview
+              - 🧪 Run tests locally with \`pytest\`
+              - 🔧 See our [contributing guidelines](https://github.com/${owner}/${repo}/blob/main/CONTRIBUTING.md) (if available)
+              
+              Your contribution is much appreciated! 🙏`
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: context.issue.number,
+              body: `👋 Welcome back, @${user.login}! Thanks for another contribution to the project! 🙏`
+            });
+          }

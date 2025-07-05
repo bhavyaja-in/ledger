@@ -1,0 +1,45 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.9"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-ci.txt
+
+    - name: Run integration tests
+      run: |
+        pytest -m integration --maxfail=1 --tb=short -q --disable-warnings
+
+    - name: Run smoke tests
+      run: |
+        pytest tests/smoke_test.py -v
+
+    - name: Test database operations
+      run: |
+        pytest -m "database" --maxfail=1 --tb=short -q --disable-warnings
