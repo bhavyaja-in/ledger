@@ -229,20 +229,21 @@ class SmokeTestSuite:
             # Create a test config with in-memory database to avoid writing to filesystem
             config_loader = ConfigLoader()
             config = config_loader.get_config()
-            
+
             # Override database URL to use in-memory SQLite
             test_config = config.copy()
             test_config["database"] = test_config.get("database", {}).copy()
             test_config["database"]["url"] = "sqlite:///:memory:"
             test_config["database"]["test_prefix"] = "test_"
-            
+
             db_manager = DatabaseManager(test_config, test_mode=True)
 
             # Test database connection (read-only test)
             session = db_manager.get_session()
-            
+
             # Just verify we can connect and get a session - no writes
             from sqlalchemy import text
+
             session.execute(text("SELECT 1"))
             session.close()
 
@@ -293,9 +294,11 @@ class SmokeTestSuite:
                 "Critical Modules",
                 success,
                 duration,
-                f"All {len(self.test_config['critical_modules'])} modules imported successfully"
-                if success
-                else f"{len(issues)} import failures",
+                (
+                    f"All {len(self.test_config['critical_modules'])} modules imported successfully"
+                    if success
+                    else f"{len(issues)} import failures"
+                ),
                 {"failed_modules": issues},
             )
 
