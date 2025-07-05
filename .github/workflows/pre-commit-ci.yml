@@ -43,12 +43,12 @@ jobs:
         black --check --diff --line-length=100 src/ scripts/ tests/
 
         echo "📦 Running isort import sorting..."
-        isort --check-only --diff src/ scripts/ tests/
+        isort --check-only --diff --profile=black --line-length=100 src/ scripts/ tests/
 
     - name: 🔍 Run Code Quality Analysis
       run: |
         echo "🔍 Running Pylint analysis..."
-        pylint src/ scripts/ --rcfile=config/pylintrc --output-format=colorized
+        pylint src/ scripts/ --rcfile=config/.pylintrc --output-format=colorized
 
         echo "🛡️ Running Bandit security analysis..."
         bandit -r src/ scripts/ -f txt
@@ -56,34 +56,34 @@ jobs:
     - name: 🔬 Run Type Checking
       run: |
         echo "🔬 Running MyPy type checking..."
-        mypy src/ --ignore-missing-imports --show-error-codes
+        mypy src/ --config-file=config/mypy.ini --ignore-missing-imports --show-error-codes
 
     - name: 🧪 Run Unit Tests
       run: |
         echo "🧪 Running unit tests..."
-        pytest -m unit --maxfail=1 --tb=short -q
+        pytest -m unit --maxfail=1 --tb=short -q --disable-warnings
 
     - name: 🔄 Run Integration Tests
       run: |
         echo "🔄 Running integration tests..."
-        pytest -m integration --maxfail=1 --tb=short -q
+        pytest -m integration --maxfail=1 --tb=short -q --disable-warnings
 
     - name: 🛡️ Run Security Tests
       run: |
         echo "🛡️ Running security tests..."
-        pytest -m security --maxfail=1 --tb=short -q
+        pytest -m security --maxfail=1 --tb=short -q --disable-warnings
 
     - name: ⚡ Run Performance Tests
       if: github.event_name == 'push'
       run: |
         echo "⚡ Running performance tests..."
-        pytest -m performance --maxfail=1 --tb=short -q
+        pytest -m performance --maxfail=1 --tb=short -q --disable-warnings
 
     - name: 📊 Generate Coverage Report
       if: github.event_name == 'push'
       run: |
         echo "📊 Generating test coverage report..."
-        pytest --cov=src --cov-report=xml --cov-report=html --cov-fail-under=80
+        pytest --cov=src --cov-report=xml --cov-report=html --cov-fail-under=80 --cov-report=term-missing -q --disable-warnings
 
     - name: 📈 Upload Coverage to Codecov
       if: github.event_name == 'push' && matrix.python-version == '3.10'
