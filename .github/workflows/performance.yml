@@ -8,6 +8,8 @@ on:
 
 env:
   PYTHON_VERSION: "3.9"
+  LEDGER_TEST_MODE: "true"
+  PYTHONPATH: "."
 
 permissions:
   contents: read
@@ -32,9 +34,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-ci.txt
 
+    - name: Debug test discovery
+      run: |
+        echo "=== Test Discovery Debug ==="
+        find tests/ -name "test_*.py" -type f
+        echo "=== Python Path ==="
+        python -c "import sys; print('\\n'.join(sys.path))"
+        echo "=== Pytest Version ==="
+        pytest --version
+
     - name: Run performance tests
       run: |
-        pytest -m performance --maxfail=1 --tb=short -q --disable-warnings
+        pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v
 
     - name: Run memory profiling
       run: |
@@ -42,4 +53,4 @@ jobs:
 
     - name: Check execution time
       run: |
-        time pytest -m performance --maxfail=1 --tb=short -q --disable-warnings
+        time pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v
