@@ -300,8 +300,7 @@ class TestSystemPerformance:
     @pytest.mark.extractor
     def test_excel_extraction_performance(self, performance_monitor, large_transaction_dataset):
         """Test Excel file extraction performance"""
-        from src.extractors.channel_based_extractors.icici_bank_extractor import \
-            IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
 
         # Create large Excel file with ICICI format and correct column names
         transactions = large_transaction_dataset(1000)
@@ -371,8 +370,7 @@ class TestSystemPerformance:
     @pytest.mark.transformer
     def test_icici_transformation_performance(self, performance_monitor, large_transaction_dataset):
         """Test ICICI Bank transformation performance"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
         from src.utils.config_loader import ConfigLoader
 
         # Mock dependencies
@@ -415,12 +413,15 @@ class TestSystemPerformance:
         performance_monitor.start()
 
         # Mock user interactions to avoid blocking
-        with patch("builtins.input", return_value="1"), patch("builtins.print"), patch.object(
-            transformer, "_ask_for_transaction_category", return_value="other"
-        ), patch.object(
-            transformer,
-            "_ask_for_transaction_category_with_options",
-            return_value={"action": "process", "category": "other"},
+        with (
+            patch("builtins.input", return_value="1"),
+            patch("builtins.print"),
+            patch.object(transformer, "_ask_for_transaction_category", return_value="other"),
+            patch.object(
+                transformer,
+                "_ask_for_transaction_category_with_options",
+                return_value={"action": "process", "category": "other"},
+            ),
         ):
             result = transformer.process_transactions(
                 extracted_data, mock_institution, mock_processed_file
@@ -491,14 +492,17 @@ class TestSystemPerformance:
             performance_monitor.start()
 
             # Mock user interactions and file processing
-            with patch("builtins.input", side_effect=["1", "1", "y"]), patch(
-                "builtins.print"
-            ), patch.object(
-                main_handler, "_select_file_with_details", return_value=temp_file_path
-            ), patch.object(
-                main_handler,
-                "_process_file",
-                return_value={"status": "success", "processed": 500},
+            with (
+                patch("builtins.input", side_effect=["1", "1", "y"]),
+                patch("builtins.print"),
+                patch.object(
+                    main_handler, "_select_file_with_details", return_value=temp_file_path
+                ),
+                patch.object(
+                    main_handler,
+                    "_process_file",
+                    return_value={"status": "success", "processed": 500},
+                ),
             ):
                 # Test the core processing logic without full file processing
                 result = main_handler._process_file("icici_bank", temp_file_path)
@@ -529,8 +533,7 @@ class TestSystemPerformance:
         dataset_sizes = [100, 500, 1000, 2000]
         memory_usage = []
 
-        from src.extractors.channel_based_extractors.icici_bank_extractor import \
-            IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
 
         config = {"processors": {"icici_bank": {"enabled": True}}}
         extractor = IciciBankExtractor(config)
@@ -709,8 +712,7 @@ class TestSystemPerformance:
     @pytest.mark.regression
     def test_single_transaction_performance(self, performance_monitor):
         """Test single transaction processing performance for regression detection"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         mock_db_manager = Mock()
         mock_config_loader = Mock()
@@ -814,8 +816,9 @@ class TestSystemPerformance:
             df.to_excel(temp_file.name, index=False)
             temp_file_path = temp_file.name
         try:
-            from src.extractors.channel_based_extractors.icici_bank_extractor import \
-                IciciBankExtractor
+            from src.extractors.channel_based_extractors.icici_bank_extractor import (
+                IciciBankExtractor,
+            )
 
             config = {"processors": {"icici_bank": {"enabled": True}}}
             extractor = IciciBankExtractor(config)

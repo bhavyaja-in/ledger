@@ -341,9 +341,10 @@ class TestDatabaseManager:
         """Test DatabaseManager initialization in production mode"""
         config = {"database": {"url": "sqlite:///:memory:", "test_prefix": "test_"}}
 
-        with patch("src.models.database.create_engine") as mock_create_engine, patch(
-            "src.models.database.sessionmaker"
-        ) as mock_sessionmaker:
+        with (
+            patch("src.models.database.create_engine") as mock_create_engine,
+            patch("src.models.database.sessionmaker") as mock_sessionmaker,
+        ):
             mock_engine = Mock()
             mock_create_engine.return_value = mock_engine
             mock_session_factory = Mock()
@@ -374,9 +375,10 @@ class TestDatabaseManager:
         """Test DatabaseManager initialization in test mode"""
         config = {"database": {"url": "sqlite:///:memory:", "test_prefix": "test_"}}
 
-        with patch("src.models.database.create_engine") as mock_create_engine, patch(
-            "src.models.database.sessionmaker"
-        ) as mock_sessionmaker:
+        with (
+            patch("src.models.database.create_engine") as mock_create_engine,
+            patch("src.models.database.sessionmaker") as mock_sessionmaker,
+        ):
             mock_engine = Mock()
             mock_create_engine.return_value = mock_engine
 
@@ -426,9 +428,10 @@ class TestDatabaseManager:
         """Test get_session method returns session instance"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch(
-            "src.models.database.sessionmaker"
-        ) as mock_sessionmaker:
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker") as mock_sessionmaker,
+        ):
             mock_session = Mock()
             mock_session_factory = Mock()
             mock_session_factory.return_value = mock_session
@@ -505,8 +508,9 @@ class TestDatabaseManager:
         """Test that create_all is called on base metadata"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine") as mock_create_engine, patch(
-            "src.models.database.sessionmaker"
+        with (
+            patch("src.models.database.create_engine") as mock_create_engine,
+            patch("src.models.database.sessionmaker"),
         ):
             mock_engine = Mock()
             mock_create_engine.return_value = mock_engine

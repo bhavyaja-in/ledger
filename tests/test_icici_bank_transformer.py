@@ -53,9 +53,10 @@ class TestIciciBankTransformer:
 
     def test_init_basic(self, mock_db_manager, mock_config):
         """Test transformer initialization"""
-        with patch("src.transformers.icici_bank_transformer.DatabaseLoader"), patch(
-            "signal.signal"
-        ) as mock_signal:
+        with (
+            patch("src.transformers.icici_bank_transformer.DatabaseLoader"),
+            patch("signal.signal") as mock_signal,
+        ):
             transformer = IciciBankTransformer(mock_db_manager, mock_config)
 
             assert transformer.db_manager == mock_db_manager
@@ -165,8 +166,9 @@ class TestIciciBankTransformer:
     @patch("builtins.input", return_value="")
     def test_ask_for_pattern_word_with_suggestion(self, mock_input, transformer):
         """Test pattern word selection with suggestion"""
-        with patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]),
+            patch("builtins.print"),
         ):
             result = transformer._ask_for_pattern_word("UPI Payment")
             assert result == "upi"
@@ -174,8 +176,9 @@ class TestIciciBankTransformer:
     @patch("builtins.input", return_value="2")
     def test_ask_for_pattern_word_skip(self, mock_input, transformer):
         """Test pattern word selection with skip"""
-        with patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]),
+            patch("builtins.print"),
         ):
             result = transformer._ask_for_pattern_word("UPI Payment")
             assert result is None
@@ -183,8 +186,9 @@ class TestIciciBankTransformer:
     @patch("builtins.input", return_value="custom_pattern")
     def test_ask_for_pattern_word_custom(self, mock_input, transformer):
         """Test pattern word selection with custom input"""
-        with patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]),
+            patch("builtins.print"),
         ):
             result = transformer._ask_for_pattern_word("UPI Payment")
             assert result == "custom_pattern"
@@ -291,8 +295,9 @@ class TestIciciBankTransformer:
     def test_ask_for_pattern_word_interrupted(self, transformer):
         """Test pattern word when interrupted"""
         transformer._interrupted = True
-        with patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["upi"]),
+            patch("builtins.print"),
         ):
             result = transformer._ask_for_pattern_word("UPI Payment")
             assert result is None
@@ -320,13 +325,14 @@ class TestIciciBankTransformer:
         transaction = {"description": "UPI Payment", "debit_amount": 500.0}
         mock_enum = {"id": 1, "enum_name": "upi_payments", "category": "transfer"}
 
-        with patch.object(
-            transformer, "_check_existing_enum_match", return_value=mock_enum
-        ), patch.object(
-            transformer,
-            "_handle_existing_enum_match",
-            return_value={"action": "process", "enum_id": 1},
-        ) as mock_handle:
+        with (
+            patch.object(transformer, "_check_existing_enum_match", return_value=mock_enum),
+            patch.object(
+                transformer,
+                "_handle_existing_enum_match",
+                return_value={"action": "process", "enum_id": 1},
+            ) as mock_handle,
+        ):
             result = transformer._process_transaction_interactive(transaction)
             assert result["action"] == "process"
             mock_handle.assert_called_once()
@@ -335,13 +341,14 @@ class TestIciciBankTransformer:
         """Test interactive processing without existing enum"""
         transaction = {"description": "NEW Payment", "debit_amount": 200.0}
 
-        with patch.object(
-            transformer, "_check_existing_enum_match", return_value=None
-        ), patch.object(
-            transformer,
-            "_full_interactive_flow",
-            return_value={"action": "process", "enum_id": 2},
-        ) as mock_flow:
+        with (
+            patch.object(transformer, "_check_existing_enum_match", return_value=None),
+            patch.object(
+                transformer,
+                "_full_interactive_flow",
+                return_value={"action": "process", "enum_id": 2},
+            ) as mock_flow,
+        ):
             result = transformer._process_transaction_interactive(transaction)
             assert result["action"] == "process"
             mock_flow.assert_called_once()
@@ -351,11 +358,15 @@ class TestIciciBankTransformer:
         """Test handling existing enum with auto approval"""
         existing_enum = {"id": 1, "enum_name": "grocery", "category": "food"}
 
-        with patch.object(
-            transformer,
-            "_ask_for_transaction_category_with_options",
-            return_value={"action": "process", "category": "food"},
-        ), patch("builtins.print"), patch.object(transformer, "_ask_for_splits", return_value=None):
+        with (
+            patch.object(
+                transformer,
+                "_ask_for_transaction_category_with_options",
+                return_value={"action": "process", "category": "food"},
+            ),
+            patch("builtins.print"),
+            patch.object(transformer, "_ask_for_splits", return_value=None),
+        ):
             result = transformer._handle_existing_enum_match(existing_enum, "grocery payment")
             assert result["action"] == "process"
             assert result["enum_id"] == 1
@@ -367,18 +378,14 @@ class TestIciciBankTransformer:
         mock_enum.category = "transfer"
         mock_enum.id = 123
 
-        with patch.object(transformer, "_ask_for_pattern_word", return_value="upi"), patch.object(
-            transformer, "_ask_for_enum_name", return_value="upi_payments"
-        ), patch.object(
-            transformer, "_handle_enum_and_category", return_value=mock_enum
-        ), patch.object(
-            transformer, "_ask_for_transaction_category", return_value="transfer"
-        ), patch.object(
-            transformer, "_ask_for_reason", return_value="Payment"
-        ), patch.object(
-            transformer, "_ask_for_splits", return_value=None
-        ), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_ask_for_pattern_word", return_value="upi"),
+            patch.object(transformer, "_ask_for_enum_name", return_value="upi_payments"),
+            patch.object(transformer, "_handle_enum_and_category", return_value=mock_enum),
+            patch.object(transformer, "_ask_for_transaction_category", return_value="transfer"),
+            patch.object(transformer, "_ask_for_reason", return_value="Payment"),
+            patch.object(transformer, "_ask_for_splits", return_value=None),
+            patch("builtins.print"),
         ):
             result = transformer._full_interactive_flow("UPI Payment")
             assert result["action"] == "process"
@@ -386,9 +393,11 @@ class TestIciciBankTransformer:
 
     def test_full_interactive_flow_no_pattern(self, transformer):
         """Test interactive flow when no pattern selected"""
-        with patch.object(transformer, "_ask_for_pattern_word", return_value=None), patch.object(
-            transformer, "_ask_for_reason", return_value="User skipped"
-        ), patch("builtins.print"):
+        with (
+            patch.object(transformer, "_ask_for_pattern_word", return_value=None),
+            patch.object(transformer, "_ask_for_reason", return_value="User skipped"),
+            patch("builtins.print"),
+        ):
             result = transformer._full_interactive_flow("Complex transaction")
             assert result["action"] == "skip"
 
@@ -478,32 +487,29 @@ class TestIciciBankTransformer:
             "currency": "INR",
         }
 
-        with patch.object(
-            transformer, "_transform_transaction", return_value=complete_transaction
-        ), patch.object(
-            transformer, "_create_transaction_hash", return_value="hash123"
-        ), patch.object(
-            transformer.db_loader, "check_transaction_exists", return_value=False
-        ), patch.object(
-            transformer.db_loader,
-            "check_skipped_transaction_exists",
-            return_value=False,
-        ), patch.object(
-            transformer, "_display_transaction"
-        ), patch.object(
-            transformer,
-            "_process_transaction_interactive",
-            return_value={
-                "action": "process",
-                "enum_id": 1,
-                "category": "test",
-                "transaction_category": "test",
-                "reason": "Test",
-            },
-        ), patch.object(
-            transformer.db_loader, "create_transaction"
-        ), patch(
-            "builtins.print"
+        with (
+            patch.object(transformer, "_transform_transaction", return_value=complete_transaction),
+            patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
+            patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
+            patch.object(
+                transformer.db_loader,
+                "check_skipped_transaction_exists",
+                return_value=False,
+            ),
+            patch.object(transformer, "_display_transaction"),
+            patch.object(
+                transformer,
+                "_process_transaction_interactive",
+                return_value={
+                    "action": "process",
+                    "enum_id": 1,
+                    "category": "test",
+                    "transaction_category": "test",
+                    "reason": "Test",
+                },
+            ),
+            patch.object(transformer.db_loader, "create_transaction"),
+            patch("builtins.print"),
         ):
             result = transformer.process_transactions(
                 extracted_data, mock_institution, mock_processed_file
@@ -526,16 +532,15 @@ class TestIciciBankTransformer:
             ]
         }
 
-        with patch.object(
-            transformer,
-            "_transform_transaction",
-            return_value={"description": "Duplicate", "date": datetime(2023, 1, 1)},
-        ), patch.object(
-            transformer, "_create_transaction_hash", return_value="hash123"
-        ), patch.object(
-            transformer.db_loader, "check_transaction_exists", return_value=True
-        ), patch(
-            "builtins.print"
+        with (
+            patch.object(
+                transformer,
+                "_transform_transaction",
+                return_value={"description": "Duplicate", "date": datetime(2023, 1, 1)},
+            ),
+            patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
+            patch.object(transformer.db_loader, "check_transaction_exists", return_value=True),
+            patch("builtins.print"),
         ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
             assert result["duplicate_transactions"] == 1
@@ -545,11 +550,14 @@ class TestIciciBankTransformer:
         extracted_data = {"transactions": [{"data": {"Transaction Date": "01-01-2023"}}]}
         transformer._interrupted = True
 
-        with patch.object(
-            transformer,
-            "_transform_transaction",
-            return_value={"description": "Test", "date": datetime(2023, 1, 1)},
-        ), patch("builtins.print"):
+        with (
+            patch.object(
+                transformer,
+                "_transform_transaction",
+                return_value={"description": "Test", "date": datetime(2023, 1, 1)},
+            ),
+            patch("builtins.print"),
+        ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
             assert result["status"] == "partially_completed"
 
@@ -659,9 +667,10 @@ class TestIciciBankTransformer:
         mock_enum = Mock()
         transformer.db_loader.create_or_update_enum.return_value = mock_enum
 
-        with patch.object(transformer, "_ask_for_category", return_value="new_category"), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch.object(transformer, "_ask_for_category", return_value="new_category"),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._handle_enum_and_category("new_enum", ["pattern"])
 
         assert result == mock_enum
@@ -723,9 +732,10 @@ class TestIciciBankTransformer:
         """Test category creation with config loader exception"""
         transformer.config_loader.add_category.side_effect = Exception("Save failed")
 
-        with patch("builtins.input", return_value="problem_cat"), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch("builtins.input", return_value="problem_cat"),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._ask_for_category()
 
         assert result == "problem_cat"
@@ -751,9 +761,10 @@ class TestIciciBankTransformer:
         """Test transaction category creation with config loader exception"""
         transformer.config_loader.add_category.side_effect = Exception("Save failed")
 
-        with patch("builtins.input", return_value="problem_trans_cat"), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch("builtins.input", return_value="problem_trans_cat"),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._ask_for_transaction_category("test")
 
         assert result == "problem_trans_cat"
@@ -765,9 +776,10 @@ class TestIciciBankTransformer:
         transformer.config_loader = None
         transformer.config = {"categories": [{"name": "food"}, {"name": "existing_cat"}]}
 
-        with patch("builtins.input", return_value="existing_cat"), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch("builtins.input", return_value="existing_cat"),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._ask_for_transaction_category("test")
 
         assert result == "existing_cat"
@@ -887,11 +899,14 @@ class TestIciciBankTransformer:
             ]
         }
 
-        with patch.object(
-            transformer,
-            "_transform_transaction",
-            side_effect=Exception("Processing error"),
-        ), patch("builtins.print") as mock_print:
+        with (
+            patch.object(
+                transformer,
+                "_transform_transaction",
+                side_effect=Exception("Processing error"),
+            ),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
 
         assert result["skipped_transactions"] == 1
@@ -933,19 +948,19 @@ class TestIciciBankTransformer:
 
         transformer.config = {"processing": {"reprocess_skipped_transactions": False}}
 
-        with patch.object(
-            transformer,
-            "_transform_transaction",
-            return_value={"description": "Test", "date": datetime(2023, 1, 1)},
-        ), patch.object(
-            transformer, "_create_transaction_hash", return_value="hash123"
-        ), patch.object(
-            transformer.db_loader, "check_transaction_exists", return_value=False
-        ), patch.object(
-            transformer.db_loader, "check_skipped_transaction_exists", return_value=True
-        ), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch.object(
+                transformer,
+                "_transform_transaction",
+                return_value={"description": "Test", "date": datetime(2023, 1, 1)},
+            ),
+            patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
+            patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
+            patch.object(
+                transformer.db_loader, "check_skipped_transaction_exists", return_value=True
+            ),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
 
         assert result["auto_skipped_transactions"] == 1
@@ -969,27 +984,26 @@ class TestIciciBankTransformer:
 
         transformer.config = {"processing": {"reprocess_skipped_transactions": True}}
 
-        with patch.object(
-            transformer,
-            "_transform_transaction",
-            return_value={"description": "Test", "date": datetime(2023, 1, 1)},
-        ), patch.object(
-            transformer, "_create_transaction_hash", return_value="hash123"
-        ), patch.object(
-            transformer.db_loader, "check_transaction_exists", return_value=False
-        ), patch.object(
-            transformer.db_loader, "check_skipped_transaction_exists", return_value=True
-        ), patch.object(
-            transformer, "_display_transaction"
-        ), patch.object(
-            transformer,
-            "_process_transaction_interactive",
-            return_value={"action": "skip", "reason": "User skipped again"},
-        ), patch.object(
-            transformer, "_handle_skipped_transaction"
-        ), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch.object(
+                transformer,
+                "_transform_transaction",
+                return_value={"description": "Test", "date": datetime(2023, 1, 1)},
+            ),
+            patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
+            patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
+            patch.object(
+                transformer.db_loader, "check_skipped_transaction_exists", return_value=True
+            ),
+            patch.object(transformer, "_display_transaction"),
+            patch.object(
+                transformer,
+                "_process_transaction_interactive",
+                return_value={"action": "skip", "reason": "User skipped again"},
+            ),
+            patch.object(transformer, "_handle_skipped_transaction"),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
 
         mock_print.assert_any_call(
@@ -1027,9 +1041,10 @@ class TestIciciBankTransformer:
 
     def test_full_interactive_flow_keyboard_interrupt(self, transformer):
         """Test full interactive flow with KeyboardInterrupt"""
-        with patch.object(
-            transformer, "_ask_for_pattern_word", side_effect=KeyboardInterrupt
-        ), patch("builtins.print") as mock_print:
+        with (
+            patch.object(transformer, "_ask_for_pattern_word", side_effect=KeyboardInterrupt),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._full_interactive_flow("test description")
 
         assert result["action"] == "skip"
@@ -1039,9 +1054,10 @@ class TestIciciBankTransformer:
     @patch("builtins.input", side_effect=["a", "custom_pattern"])
     def test_ask_for_pattern_word_invalid_then_valid_number(self, mock_input, transformer):
         """Test pattern word with invalid input then valid custom pattern"""
-        with patch.object(
-            transformer, "_get_pattern_suggestions", return_value=["upi", "payment"]
-        ), patch("builtins.print") as mock_print:
+        with (
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["upi", "payment"]),
+            patch("builtins.print") as mock_print,
+        ):
             result = transformer._ask_for_pattern_word("UPI Payment test")
 
         assert result == "custom_pattern"

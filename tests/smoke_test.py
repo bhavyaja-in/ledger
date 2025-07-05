@@ -357,8 +357,7 @@ class SmokeTestSuite:
         start_time = time.time()
 
         try:
-            from src.extractors.file_based_extractors.excel_extractor import \
-                ExcelExtractor
+            from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
             from src.utils.config_loader import ConfigLoader
 
             config_loader = ConfigLoader()

@@ -147,17 +147,16 @@ class TestConfigLoader:
         loader = ConfigLoader(categories_path=str(categories_file))
         loader._config = {}
 
-        with patch.object(
-            loader, "_load_template_categories", return_value=template_categories
-        ), patch.object(
-            loader, "_extract_database_categories", return_value=db_categories
-        ), patch.object(
-            loader,
-            "_merge_categories",
-            return_value=template_categories + db_categories,
-        ) as mock_merge, patch.object(
-            loader, "_update_categories_file"
-        ) as mock_update:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=template_categories),
+            patch.object(loader, "_extract_database_categories", return_value=db_categories),
+            patch.object(
+                loader,
+                "_merge_categories",
+                return_value=template_categories + db_categories,
+            ) as mock_merge,
+            patch.object(loader, "_update_categories_file") as mock_update,
+        ):
             loader._load_categories()
 
             mock_merge.assert_called_once_with(template_categories, db_categories)
@@ -176,13 +175,12 @@ class TestConfigLoader:
         loader = ConfigLoader(categories_path=str(categories_file))
         loader._config = {}
 
-        with patch.object(
-            loader, "_load_template_categories", return_value=template_categories
-        ), patch.object(loader, "_extract_database_categories", return_value=[]), patch.object(
-            loader, "_merge_categories", return_value=template_categories
-        ), patch.object(
-            loader, "_update_categories_file"
-        ) as mock_update:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=template_categories),
+            patch.object(loader, "_extract_database_categories", return_value=[]),
+            patch.object(loader, "_merge_categories", return_value=template_categories),
+            patch.object(loader, "_update_categories_file") as mock_update,
+        ):
             loader._load_categories()
 
             mock_update.assert_not_called()
@@ -403,9 +401,10 @@ class TestConfigLoader:
 
         loader = ConfigLoader(categories_path=str(categories_path))
 
-        with patch("os.makedirs", side_effect=PermissionError("Permission denied")), patch(
-            "builtins.print"
-        ) as mock_print:
+        with (
+            patch("os.makedirs", side_effect=PermissionError("Permission denied")),
+            patch("builtins.print") as mock_print,
+        ):
             loader._update_categories_file(categories)
 
             mock_print.assert_called_once()
@@ -424,9 +423,10 @@ class TestConfigLoader:
         loader = ConfigLoader(categories_path=str(categories_file))
         loader._config = {"categories": existing_categories.copy()}
 
-        with patch.object(
-            loader, "_load_template_categories", return_value=existing_categories
-        ), patch.object(loader, "save_categories") as mock_save:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=existing_categories),
+            patch.object(loader, "save_categories") as mock_save,
+        ):
             loader.add_category("medical")
 
             expected_categories = existing_categories + [{"name": "medical"}]
@@ -456,9 +456,10 @@ class TestConfigLoader:
         loader = ConfigLoader(categories_path=str(categories_file))
         loader._config = {"categories": existing_categories.copy()}
 
-        with patch.object(
-            loader, "_load_template_categories", return_value=existing_categories
-        ), patch.object(loader, "save_categories") as mock_save:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=existing_categories),
+            patch.object(loader, "save_categories") as mock_save,
+        ):
             loader.add_category("  medical  ")
 
             expected_categories = existing_categories + [{"name": "medical"}]
@@ -475,9 +476,10 @@ class TestConfigLoader:
         loader = ConfigLoader(categories_path=str(categories_file))
         loader._config = {"categories": current_categories}
 
-        with patch.object(
-            loader, "_load_template_categories", return_value=template_categories
-        ), patch.object(loader, "save_categories") as mock_save:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=template_categories),
+            patch.object(loader, "save_categories") as mock_save,
+        ):
             loader.add_category("medical")
 
             # Should maintain template order: income, food, then customs
@@ -558,9 +560,10 @@ class TestConfigLoader:
         loader._config = {"categories": []}
 
         # Mock template categories to avoid file operations
-        with patch.object(loader, "_load_template_categories", return_value=[]), patch.object(
-            loader, "save_categories"
-        ) as mock_save:
+        with (
+            patch.object(loader, "_load_template_categories", return_value=[]),
+            patch.object(loader, "save_categories") as mock_save,
+        ):
             loader.add_category("")  # Empty string after strip becomes ''
             loader.add_category("   ")  # Whitespace only after strip becomes ''
 

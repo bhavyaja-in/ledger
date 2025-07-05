@@ -196,14 +196,17 @@ class TestIciciBankTransformerCurrency:
     def test_determine_currency_multi_currency_ambiguous(self, transformer_multi_currency):
         """Test currency determination when multiple currencies detected"""
         # Mock detect_currency to return None (ambiguous)
-        with patch.object(
-            transformer_multi_currency.currency_detector,
-            "detect_currency",
-            return_value=None,
-        ), patch.object(
-            transformer_multi_currency.currency_detector,
-            "ask_user_for_currency",
-            return_value="USD",
+        with (
+            patch.object(
+                transformer_multi_currency.currency_detector,
+                "detect_currency",
+                return_value=None,
+            ),
+            patch.object(
+                transformer_multi_currency.currency_detector,
+                "ask_user_for_currency",
+                return_value="USD",
+            ),
         ):
             row_data = {
                 "Transaction Remarks": "Payment with mixed currencies",

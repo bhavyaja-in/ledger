@@ -24,9 +24,13 @@ from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 
-from src.utils.security import (is_safe_for_display, sanitize_filename,
-                                sanitize_sql_like_pattern, sanitize_text_input,
-                                validate_amount)
+from src.utils.security import (
+    is_safe_for_display,
+    sanitize_filename,
+    sanitize_sql_like_pattern,
+    sanitize_text_input,
+    validate_amount,
+)
 
 
 @pytest.mark.security
@@ -117,8 +121,7 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_xss_injection_prevention(self, malicious_inputs):
         """Test that XSS injection attempts are properly handled"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         xss_injections = malicious_inputs["xss_injection"]
 
@@ -155,8 +158,7 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_path_traversal_prevention(self, malicious_inputs):
         """Test that path traversal attempts are prevented"""
-        from src.extractors.file_based_extractors.excel_extractor import \
-            ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -172,8 +174,7 @@ class TestInputValidationSecurity:
     @pytest.mark.security
     def test_buffer_overflow_prevention(self, malicious_inputs):
         """Test handling of extremely large inputs"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         overflow_inputs = malicious_inputs["overflow_inputs"]
 
@@ -258,8 +259,7 @@ class TestSensitiveDataProtection:
     @pytest.mark.security
     def test_sensitive_data_not_logged(self, security_monitor):
         """Test that sensitive financial data is never logged"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         security_monitor.setup_log_monitoring()
 
@@ -283,12 +283,12 @@ class TestSensitiveDataProtection:
                 "S No.": "CONF123456",  # Reference number
             }
 
-            with patch.object(
-                transformer, "_determine_transaction_currency", return_value="INR"
-            ), patch("builtins.print"), patch("logging.Logger.info"), patch(
-                "logging.Logger.debug"
-            ), patch(
-                "logging.Logger.warning"
+            with (
+                patch.object(transformer, "_determine_transaction_currency", return_value="INR"),
+                patch("builtins.print"),
+                patch("logging.Logger.info"),
+                patch("logging.Logger.debug"),
+                patch("logging.Logger.warning"),
             ):
                 transformer._transform_transaction(sensitive_data)
 
@@ -305,8 +305,7 @@ class TestSensitiveDataProtection:
     @pytest.mark.security
     def test_memory_data_clearing(self):
         """Test that sensitive data is properly cleared from memory"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         mock_db_manager = Mock()
         mock_config_loader = Mock()
@@ -376,8 +375,9 @@ class TestSensitiveDataProtection:
 
         config = {"database": {"url": "sqlite:///sensitive_database.db?password=secret123"}}
 
-        with patch("src.models.database.create_engine") as mock_create_engine, patch(
-            "src.models.database.sessionmaker"
+        with (
+            patch("src.models.database.create_engine") as mock_create_engine,
+            patch("src.models.database.sessionmaker"),
         ):
             # Mock engine that might leak connection info
             mock_engine = Mock()
@@ -422,8 +422,7 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_file_permission_validation(self, secure_temp_environment):
         """Test that file access respects proper permissions"""
-        from src.extractors.file_based_extractors.excel_extractor import \
-            ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -439,8 +438,7 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_safe_file_handling(self, secure_temp_environment):
         """Test safe file handling practices"""
-        from src.extractors.file_based_extractors.excel_extractor import \
-            ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -465,8 +463,7 @@ class TestFileAccessSecurity:
     @pytest.mark.security
     def test_directory_traversal_in_file_operations(self, secure_temp_environment):
         """Test that directory traversal is prevented in file operations"""
-        from src.extractors.file_based_extractors.excel_extractor import \
-            ExcelExtractor
+        from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
         config = {"test": "config"}
         extractor = ExcelExtractor(config)
@@ -554,8 +551,9 @@ class TestDatabaseSecurity:
 
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine") as mock_create_engine, patch(
-            "src.models.database.sessionmaker"
+        with (
+            patch("src.models.database.create_engine") as mock_create_engine,
+            patch("src.models.database.sessionmaker"),
         ):
             mock_engine = Mock()
             mock_create_engine.return_value = mock_engine
@@ -587,7 +585,10 @@ class TestCryptographicSecurity:
             # Test encryption with known data
             test_data = b"sensitive financial data"
 
-            with tempfile.NamedTemporaryFile() as input_file, tempfile.NamedTemporaryFile() as encrypted_file:
+            with (
+                tempfile.NamedTemporaryFile() as input_file,
+                tempfile.NamedTemporaryFile() as encrypted_file,
+            ):
                 input_file.write(test_data)
                 input_file.flush()
 
@@ -611,8 +612,7 @@ class TestCryptographicSecurity:
     @pytest.mark.security
     def test_hash_collision_resistance(self):
         """Test that transaction hashing is collision-resistant"""
-        from src.transformers.icici_bank_transformer import \
-            IciciBankTransformer
+        from src.transformers.icici_bank_transformer import IciciBankTransformer
 
         mock_db_manager = Mock()
         mock_config_loader = Mock()
@@ -781,13 +781,16 @@ class TestSystemBoundarySecurity:
 
         try:
             # Use a simpler mocking approach to avoid recursion
-            with patch("builtins.open", mock_open(read_data=test_config_content)), patch(
-                "yaml.safe_load",
-                return_value={
-                    "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-                    "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
-                    "logging": {"level": "INFO"},
-                },
+            with (
+                patch("builtins.open", mock_open(read_data=test_config_content)),
+                patch(
+                    "yaml.safe_load",
+                    return_value={
+                        "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
+                        "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
+                        "logging": {"level": "INFO"},
+                    },
+                ),
             ):
                 config_loader = ConfigLoader(config_path=temp_config_path)
                 config = config_loader.get_config()

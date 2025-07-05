@@ -194,9 +194,10 @@ class TestGitDatabaseBackup:
 
         mock_run.return_value = Mock()
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch(
-            "builtins.open", mock_open()
-        ) as mock_file:
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch("builtins.open", mock_open()) as mock_file,
+        ):
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path))
             result = backup.setup_backup_repo()
 
@@ -273,9 +274,10 @@ class TestGitDatabaseBackup:
 
         mock_run.return_value = Mock()
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch(
-            "builtins.open", mock_open()
-        ) as mock_file:
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch("builtins.open", mock_open()) as mock_file,
+        ):
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path))
             backup._preserve_previous_backup()
 
@@ -321,9 +323,10 @@ class TestGitDatabaseBackup:
 
         mock_run.side_effect = subprocess.CalledProcessError(1, "git add")
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch(
-            "scripts.git_backup.datetime"
-        ) as mock_datetime:
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch("scripts.git_backup.datetime") as mock_datetime,
+        ):
             mock_datetime.now.return_value.strftime.return_value = "2023-12-01_12-30-45"
 
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path))
@@ -351,8 +354,9 @@ class TestGitDatabaseBackup:
         """Test create_backup when repository setup fails"""
         mock_exists.side_effect = lambda path: path.endswith(".db")  # DB exists, repo doesn't
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch.object(
-            GitDatabaseBackup, "setup_backup_repo", return_value=False
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch.object(GitDatabaseBackup, "setup_backup_repo", return_value=False),
         ):
             backup = GitDatabaseBackup()
             result = backup.create_backup()
@@ -510,9 +514,10 @@ class TestGitDatabaseBackup:
             subprocess.CalledProcessError(1, "git push"),  # git push fails
         ]
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch(
-            "scripts.git_backup.datetime"
-        ) as mock_datetime:
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch("scripts.git_backup.datetime") as mock_datetime,
+        ):
             mock_datetime.now.return_value.strftime.return_value = "2023-12-01 12:30:45"
 
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path))
@@ -537,9 +542,10 @@ class TestGitDatabaseBackup:
             subprocess.CalledProcessError(1, "git commit"),  # git commit fails
         ]
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch(
-            "scripts.git_backup.datetime"
-        ) as mock_datetime:
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch("scripts.git_backup.datetime") as mock_datetime,
+        ):
             mock_datetime.now.return_value.strftime.return_value = "2023-12-01 12:30:45"
 
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path))
@@ -641,8 +647,11 @@ class TestGitDatabaseBackup:
 
         db_path = temp_dir / "current.db"
 
-        with patch.object(GitDatabaseBackup, "_load_config", return_value={}), patch.object(
-            GitDatabaseBackup, "_simple_decrypt", side_effect=Exception("Decrypt error")
+        with (
+            patch.object(GitDatabaseBackup, "_load_config", return_value={}),
+            patch.object(
+                GitDatabaseBackup, "_simple_decrypt", side_effect=Exception("Decrypt error")
+            ),
         ):
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path), db_path=str(db_path))
             result = backup.restore_backup()
@@ -878,8 +887,9 @@ class TestBackupManager:
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = True
 
-        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
-            "scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup
+        with (
+            patch.object(BackupManager, "_check_backup_availability", return_value=True),
+            patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup),
         ):
             manager = BackupManager()
             result = manager.create_backup("completion")
@@ -899,8 +909,9 @@ class TestBackupManager:
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = False
 
-        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
-            "scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup
+        with (
+            patch.object(BackupManager, "_check_backup_availability", return_value=True),
+            patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup),
         ):
             manager = BackupManager()
             result = manager.create_backup("automatic")
@@ -916,8 +927,9 @@ class TestBackupManager:
         """Test create_backup handles exceptions gracefully"""
         from src.handlers.main_handler import BackupManager
 
-        with patch.object(BackupManager, "_check_backup_availability", return_value=True), patch(
-            "scripts.git_backup.GitDatabaseBackup", side_effect=Exception("Test error")
+        with (
+            patch.object(BackupManager, "_check_backup_availability", return_value=True),
+            patch("scripts.git_backup.GitDatabaseBackup", side_effect=Exception("Test error")),
         ):
             manager = BackupManager()
             result = manager.create_backup("interruption")
