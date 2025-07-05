@@ -172,4 +172,4 @@ except (ValueError, PermissionError) as e:
 - Choose security over convenience
 - Write tests first
 - Document your decisions
-- Ask for review on complex changes 
+- Ask for review on complex changes
