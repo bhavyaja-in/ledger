@@ -47,10 +47,6 @@ jobs:
       run: |
         pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v
 
-    - name: Run memory profiling
-      run: |
-        python -m memory_profiler tests/test_performance.py
-
     - name: Check execution time
       run: |
         time pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v
