@@ -1,0 +1,36 @@
+name: Checkmarx One Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Checkmarx One Security Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Checkmarx One scan
+      uses: checkmarx/ast-github-action@master
+      with:
+        cx_server: ${{ secrets.CX_SERVER }}
+        cx_user: ${{ secrets.CX_USER }}
+        cx_password: ${{ secrets.CX_PASSWORD }}
+        cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
+        cx_team: ${{ secrets.CX_TEAM }}
+        cx_project_name: "ledger"
+        cx_preset: "Checkmarx Default"
+        cx_configuration: "Default Configuration"
+        cx_scan_timeout: 600
+        cx_comment_pr: true
+        cx_break_build: false

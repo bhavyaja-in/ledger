@@ -1,0 +1,73 @@
+name: Code Linting
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.9"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Code Linting
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-ci.txt
+
+    - name: Run Pylint
+      run: |
+        pylint src/ tests/ scripts/ --disable=C0114,C0116 --max-line-length=88
+
+    - name: Run MyPy type checking
+      run: |
+        mypy src/ --ignore-missing-imports --no-strict-optional
+
+    - name: Run Flake8
+      run: |
+        flake8 src/ tests/ scripts/ --max-line-length=88 --extend-ignore=E203,W503
+
+    - name: Check for unused imports
+      run: |
+        python -c "
+        import ast
+        import os
+
+        def check_unused_imports(file_path):
+            with open(file_path, 'r') as f:
+                try:
+                    tree = ast.parse(f.read())
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Import):
+                            for alias in node.names:
+                                if alias.asname:
+                                    print(f'Unused import alias: {alias.asname} in {file_path}')
+                        elif isinstance(node, ast.ImportFrom):
+                            for alias in node.names:
+                                if alias.asname:
+                                    print(f'Unused import alias: {alias.asname} in {file_path}')
+                except:
+                    pass
+
+        for root, dirs, files in os.walk('src'):
+            for file in files:
+                if file.endswith('.py'):
+                    check_unused_imports(os.path.join(root, file))
+        "

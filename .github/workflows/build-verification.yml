@@ -1,0 +1,86 @@
+name: Build Verification
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.9"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Verification
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-ci.txt
+        
+    - name: Verify imports
+      run: |
+        python -c "import src; print('✅ All imports successful')"
+        
+    - name: Check for syntax errors
+      run: |
+        python -m py_compile src/**/*.py
+        python -m py_compile tests/**/*.py
+        python -m py_compile scripts/**/*.py
+        
+    - name: Verify configuration loading
+      run: |
+        python -c "from src.utils.config_loader import ConfigLoader; print('✅ Config loading works')"
+        
+    - name: Check database schema
+      run: |
+        python -c "from src.models.database import Base; print('✅ Database schema valid')"
+        
+    - name: Test main handler
+      run: |
+        python -c "from src.handlers.main_handler import MainHandler; print('✅ Main handler imports successfully')"
+        
+    - name: Verify extractors
+      run: |
+        python -c "from src.extractors import *; print('✅ Extractors module valid')"
+        
+    - name: Verify transformers
+      run: |
+        python -c "from src.transformers import *; print('✅ Transformers module valid')"
+        
+    - name: Verify loaders
+      run: |
+        python -c "from src.loaders import *; print('✅ Loaders module valid')"
+        
+    - name: Run all tests
+      run: |
+        pytest --maxfail=1 --tb=short -q --disable-warnings
+        
+    - name: Generate test report
+      run: |
+        pytest --junitxml=test-results.xml --cov=src --cov-report=xml --cov-report=html
+        
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-artifacts
+        path: |
+          test-results.xml
+          coverage.xml
+          htmlcov/

@@ -1,0 +1,45 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.9"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-ci.txt
+
+    - name: Run performance tests
+      run: |
+        pytest -m performance --maxfail=1 --tb=short -q --disable-warnings
+
+    - name: Run memory profiling
+      run: |
+        python -m memory_profiler tests/test_performance.py
+
+    - name: Check execution time
+      run: |
+        time pytest -m performance --maxfail=1 --tb=short -q --disable-warnings
