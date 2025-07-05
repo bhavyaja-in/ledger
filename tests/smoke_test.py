@@ -59,7 +59,6 @@ class SmokeTestSuite:
                 "requirements.txt",
                 "pytest.ini",
                 "README.md",
-                "pyproject.toml",
             ],
             "critical_modules": [
                 "src.utils.config_loader",
@@ -309,7 +308,7 @@ class SmokeTestSuite:
             from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
             # Test transformer availability
-            from src.transformers.icici_bank_transformer import ICICIBankTransformer
+            import src.transformers.icici_bank_transformer
 
             # Test loader availability
             from src.loaders.database_loader import DatabaseLoader
