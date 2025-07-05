@@ -40,7 +40,7 @@ jobs:
     - name: 🎨 Run Code Formatting Checks
       run: |
         echo "🎨 Running Black formatter..."
-        black --check --diff src/ scripts/ tests/
+        black --check --diff --line-length=100 src/ scripts/ tests/
 
         echo "📦 Running isort import sorting..."
         isort --check-only --diff src/ scripts/ tests/
