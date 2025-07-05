@@ -1,0 +1,8 @@
+# Global codeowners
+* @bhavyaja-in
+
+# Specific file ownership (if needed)
+# /src/ @bhavyaja-in
+# /tests/ @bhavyaja-in
+# /config/ @bhavyaja-in
+# /.github/ @bhavyaja-in 
