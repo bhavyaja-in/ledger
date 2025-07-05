@@ -6,6 +6,7 @@ of the financial data processing system.
 """
 
 import os
+import shutil
 import sqlite3
 import tempfile
 from datetime import date, datetime
@@ -27,6 +28,210 @@ def test_environment():
     # Cleanup after all tests
     if "LEDGER_TEST_MODE" in os.environ:
         del os.environ["LEDGER_TEST_MODE"]
+
+
+# Integration Test Environment Fixture
+@pytest.fixture
+def integration_test_environment():
+    """Create complete isolated test environment with realistic data"""
+    # Create temporary directory structure
+    test_dir = tempfile.mkdtemp(prefix="ledger_integration_test_")
+
+    test_env = {
+        "test_dir": test_dir,
+        "data_dir": Path(test_dir) / "data",
+        "config_dir": Path(test_dir) / "config",
+        "backup_dir": Path(test_dir) / "backup",
+        "temp_files": [],
+    }
+
+    # Create directory structure
+    for dir_path in [
+        test_env["data_dir"],
+        test_env["config_dir"],
+        test_env["backup_dir"],
+    ]:
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+    # Create bank-specific data directories
+    icici_dir = test_env["data_dir"] / "icici_bank"
+    icici_dir.mkdir(exist_ok=True)
+
+    yield test_env
+
+    # Cleanup
+    try:
+        shutil.rmtree(test_dir)
+    except:
+        pass  # Best effort cleanup
+
+
+@pytest.fixture
+def test_configurations(integration_test_environment):
+    """Create test configuration files"""
+    config_dir = integration_test_environment["config_dir"]
+
+    # Test config.yaml
+    test_config = {
+        "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
+        "processors": {"icici_bank": {"currency": "INR", "date_format": "%d-%m-%Y"}},
+        "backup": {
+            "enabled": False,
+            "git_repo": None,
+        },  # Disable for integration tests
+    }
+
+    config_file = config_dir / "config.yaml"
+    with open(config_file, "w") as f:
+        yaml.dump(test_config, f)
+
+    # Test categories.yaml
+    test_categories = {
+        "categories": [
+            {"name": "income"},
+            {"name": "food"},
+            {"name": "transport"},
+            {"name": "shopping"},
+            {"name": "entertainment"},
+            {"name": "transfer"},
+            {"name": "other"},
+        ]
+    }
+
+    categories_file = config_dir / "categories.yaml"
+    with open(categories_file, "w") as f:
+        yaml.dump(test_categories, f)
+
+    integration_test_environment["config_files"] = {
+        "config": str(config_file),
+        "categories": str(categories_file),
+    }
+
+    return integration_test_environment["config_files"]
+
+
+@pytest.fixture
+def realistic_transaction_files(integration_test_environment):
+    """Create realistic bank statement files for testing"""
+    icici_dir = integration_test_environment["data_dir"] / "icici_bank"
+
+    # Create realistic ICICI Bank statement data
+    test_files = {}
+
+    # File 1: Mixed transaction types with currency detection scenarios
+    transactions_mixed = [
+        {
+            "Transaction Date": "01-01-2024",
+            "Transaction Remarks": "UPI-SWIGGY-BANGALORE-9876543210@paytm",
+            "Withdrawal Amount (INR )": "250.00",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "15750.00",
+            "S No.": "1",
+        },
+        {
+            "Transaction Date": "02-01-2024",
+            "Transaction Remarks": "SALARY CREDIT FROM COMPANY XYZ",
+            "Withdrawal Amount (INR )": "",
+            "Deposit Amount (INR )": "50000.00",
+            "Balance (INR )": "65750.00",
+            "S No.": "2",
+        },
+        {
+            "Transaction Date": "03-01-2024",
+            "Transaction Remarks": "UPI-AMAZON-PAYMENT-8765432109@okaxis",
+            "Withdrawal Amount (INR )": "1299.99",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "64450.01",
+            "S No.": "3",
+        },
+        {
+            "Transaction Date": "04-01-2024",
+            "Transaction Remarks": "INTERNATIONAL TXN - USD 45.50 - NETFLIX",
+            "Withdrawal Amount (INR )": "3787.25",  # Converted amount
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "60662.76",
+            "S No.": "4",
+        },
+        {
+            "Transaction Date": "05-01-2024",
+            "Transaction Remarks": "UPI-JOHNSMITH-9123456789@paytm",
+            "Withdrawal Amount (INR )": "2500.00",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "58162.76",
+            "S No.": "5",
+        },
+    ]
+
+    # Create Excel file with mixed transactions
+    df_mixed = pd.DataFrame(transactions_mixed)
+    mixed_file = icici_dir / "statement_mixed_2024_01.xlsx"
+    df_mixed.to_excel(mixed_file, index=False)
+    test_files["mixed_transactions"] = str(mixed_file)
+
+    # File 2: Split transaction scenarios
+    transactions_splits = [
+        {
+            "Transaction Date": "10-01-2024",
+            "Transaction Remarks": "RESTAURANT BILL - GROUP DINNER",
+            "Withdrawal Amount (INR )": "4800.00",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "53362.76",
+            "S No.": "6",
+        },
+        {
+            "Transaction Date": "11-01-2024",
+            "Transaction Remarks": "UBER TRIP - AIRPORT",
+            "Withdrawal Amount (INR )": "850.00",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "52512.76",
+            "S No.": "7",
+        },
+    ]
+
+    df_splits = pd.DataFrame(transactions_splits)
+    splits_file = icici_dir / "statement_splits_2024_01.xlsx"
+    df_splits.to_excel(splits_file, index=False)
+    test_files["split_transactions"] = str(splits_file)
+
+    # File 3: Duplicate detection scenarios
+    transactions_duplicates = [
+        {
+            "Transaction Date": "15-01-2024",
+            "Transaction Remarks": "UPI-SWIGGY-BANGALORE-9876543210@paytm",
+            "Withdrawal Amount (INR )": "250.00",  # Same as first file
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "52262.76",
+            "S No.": "8",
+        },
+        {
+            "Transaction Date": "16-01-2024",
+            "Transaction Remarks": "NEW UNIQUE TRANSACTION",
+            "Withdrawal Amount (INR )": "150.00",
+            "Deposit Amount (INR )": "",
+            "Balance (INR )": "52112.76",
+            "S No.": "9",
+        },
+    ]
+
+    df_duplicates = pd.DataFrame(transactions_duplicates)
+    duplicates_file = icici_dir / "statement_duplicates_2024_01.xlsx"
+    df_duplicates.to_excel(duplicates_file, index=False)
+    test_files["duplicate_scenarios"] = str(duplicates_file)
+
+    # File 4: Corrupted/malformed file for error testing
+    corrupted_file = icici_dir / "corrupted_statement.xlsx"
+    with open(corrupted_file, "w") as f:
+        f.write("This is not a valid Excel file")
+    test_files["corrupted_file"] = str(corrupted_file)
+
+    # File 5: Empty file
+    empty_file = icici_dir / "empty_statement.xlsx"
+    empty_df = pd.DataFrame()
+    empty_df.to_excel(empty_file, index=False)
+    test_files["empty_file"] = str(empty_file)
+
+    integration_test_environment["test_files"] = test_files
+    return test_files
 
 
 # Temporary Directory Fixtures
