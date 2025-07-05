@@ -321,16 +321,15 @@ class SmokeTestSuite:
 
         try:
             # Test extractor availability
-            from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
-
             # Test transformer availability
             import src.transformers.icici_bank_transformer
-
-            # Test loader availability
-            from src.loaders.database_loader import DatabaseLoader
+            from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
 
             # Test handler availability
             from src.handlers.main_handler import MainHandler
+
+            # Test loader availability
+            from src.loaders.database_loader import DatabaseLoader
 
             duration = time.time() - start_time
 
