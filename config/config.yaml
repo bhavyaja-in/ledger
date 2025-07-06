@@ -7,6 +7,30 @@ processing:
   # If false, skipped transactions will be automatically skipped (like processed transactions)
   reprocess_skipped_transactions: false
 
+# ML-powered contextual transaction categorization
+ml:
+  enabled: true
+  confidence_threshold: 0.6
+  max_suggestions: 5
+  feature_extraction:
+    min_pattern_length: 3
+    max_pattern_length: 50
+    min_description_length: 5
+  similarity:
+    fuzzy_threshold: 0.8
+    cosine_threshold: 0.7
+  learning:
+    feedback_weight: 1.5
+    decay_factor: 0.95
+    short_term_days: 30
+  models:
+    naive_bayes_alpha: 1.0
+    tfidf:
+      max_features: 1000
+      min_df: 2
+      max_df: 0.8
+      ngram_range: [1, 2]
+
 processors:
   icici_bank:
     extractor: "icici_bank_extractor"
