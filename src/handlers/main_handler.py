@@ -4,7 +4,6 @@ Handles processor selection and orchestrates the entire processing flow
 """
 
 import argparse
-import glob
 import os
 import sys
 import time
@@ -14,9 +13,19 @@ from typing import Any, Dict, List
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.loaders.database_loader import DatabaseLoader
-from src.models.database import DatabaseManager
-from src.utils.config_loader import ConfigLoader
+# Local imports after path setup
+from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
+from src.models.database import DatabaseManager  # pylint: disable=wrong-import-position
+from src.utils.config_loader import ConfigLoader  # pylint: disable=wrong-import-position
+
+
+def _import_git_backup():
+    try:
+        from scripts.git_backup import GitDatabaseBackup  # pylint: disable=import-outside-toplevel
+
+        return GitDatabaseBackup
+    except ImportError:
+        return None
 
 
 class BackupManager:
@@ -34,12 +43,9 @@ class BackupManager:
             if not os.path.exists(self.backup_config_path):
                 return False
 
-            # Try to import the backup functionality
-            sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-            from scripts.git_backup import GitDatabaseBackup
-
-            return True
-        except Exception:
+            # Use helper for import
+            return _import_git_backup() is not None
+        except (ImportError, OSError, AttributeError):
             return False
 
     def create_backup(self, backup_type="automatic") -> bool:
@@ -50,10 +56,12 @@ class BackupManager:
             return False
 
         try:
-            from scripts.git_backup import GitDatabaseBackup
-
+            git_database_backup = _import_git_backup()
+            if git_database_backup is None:
+                print("⚠️  Backup system not available (import failed)")
+                return False
             # Create backup manager
-            git_backup = GitDatabaseBackup(config_path=self.backup_config_path)
+            git_backup = git_database_backup(config_path=self.backup_config_path)
 
             # Create backup
             backup_type_emoji = {
@@ -75,8 +83,8 @@ class BackupManager:
 
             return success
 
-        except Exception as e:
-            print(f"⚠️  Backup error: {e}")
+        except Exception as exception:  # pylint: disable=broad-except
+            print(f"⚠️  Backup error: {exception}")
             return False
 
 
@@ -160,22 +168,23 @@ class MainHandler:
             self.backup_manager.create_backup("interruption")
             print("👋 Goodbye!")
             sys.exit(0)
-        except Exception as e:
-            print(f"💥 Error in main processing: {e}")
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            AttributeError,
+        ) as exception:
+            print(f"💥 Error in main processing: {exception}")
             # Create backup even on error
             print("\n🔄 Creating backup before exit...")
             self.backup_manager.create_backup("interruption")
-            return {"status": "error", "message": str(e)}
+            return {"status": "error", "message": str(exception)}
 
     def _select_processor(self) -> str:
-        """Interactive processor selection with intelligent menu"""
+        """Show processor selection menu"""
         processors = list(self.config["processors"].keys())
-
-        print("\n" + "=" * 50)
-        print("📊 FINANCIAL DATA PROCESSOR")
-        print("=" * 50)
-        print("🏦 Available processors:")
-
+        print("\n🔢 Select processor:")
         for i, processor in enumerate(processors, 1):
             # Make processor names more readable
             display_name = processor.replace("_", " ").title()
@@ -197,11 +206,10 @@ class MainHandler:
                     selected = processors[idx]
                     print(f"✅ Selected: {selected.replace('_', ' ').title()}")
                     return selected
-                else:
-                    print("❌ Invalid choice. Please try again.")
+                print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 # Signal handler will take care of this
                 raise
 
@@ -272,7 +280,7 @@ class MainHandler:
 
                 if choice == str(len(files) + 2):
                     return self._select_processor()
-                elif choice == str(len(files) + 1):
+                if choice == str(len(files) + 1):
                     return self._browse_for_file()
 
                 idx = int(choice) - 1
@@ -280,11 +288,10 @@ class MainHandler:
                     selected_file = files[idx]["path"]
                     print(f"✅ Selected: {files[idx]['name']}")
                     return selected_file
-                else:
-                    print("❌ Invalid choice. Please try again.")
+                print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 # Signal handler will take care of this
                 raise
 
@@ -296,14 +303,12 @@ class MainHandler:
                 if os.path.exists(file_path):
                     print(f"✅ File found: {os.path.basename(file_path)}")
                     return file_path
-                else:
-                    print("❌ File not found. Please try again.")
-                    retry = input("🔄 Try again? (y/n): ").strip().lower()
-                    if retry != "y":
-                        print("🔙 Returning to file selection...")
-                        return self._select_processor()
-            except KeyboardInterrupt:
-                # Signal handler will take care of this
+                print("❌ File not found. Please try again.")
+                retry = input("🔄 Try again? (y/n): ").strip().lower()
+                if retry != "y":
+                    print("🔙 Returning to file selection...")
+                    return self._select_processor()
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 raise
 
     def _process_file(self, processor_type: str, file_path: str) -> Dict[str, Any]:
@@ -367,10 +372,10 @@ class MainHandler:
             result["processed_file_id"] = processed_file.id
             result["processing_time"] = processing_time
 
-        except Exception as e:
+        except (OSError, IOError, ValueError, KeyError, AttributeError) as exception:
             # Update status to failed
             self.db_loader.update_processed_file_status(processed_file.id, "failed")
-            raise e
+            raise exception
 
         return result
 
@@ -530,14 +535,26 @@ Examples:
         # Exit with appropriate code
         sys.exit(0 if result.get("status") == "success" else 1)
 
-    except Exception as e:
-        print(f"\n💥 Fatal error: {e}")
+    except (
+        OSError,
+        IOError,
+        ValueError,
+        KeyError,
+        AttributeError,
+    ) as exception:
+        print(f"\n💥 Fatal error: {exception}")
         # Try to create emergency backup
         try:
             if "handler" in locals():
                 print("🔄 Creating emergency backup...")
                 handler.backup_manager.create_backup("interruption")
-        except:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            AttributeError,
+        ):  # Catch specific exceptions to avoid backup failure crashing CLI
             pass  # Don't fail if backup fails
         sys.exit(1)
 

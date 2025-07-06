@@ -5,6 +5,9 @@ Tests model creation, DatabaseManager functionality, relationships,
 test mode support, and all edge cases to ensure enterprise-grade quality.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import os
 import tempfile
 from datetime import datetime

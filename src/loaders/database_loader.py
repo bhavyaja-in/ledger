@@ -1,9 +1,14 @@
 """
-Database Loader - Handles create and update operations
+Database loader for financial data processing.
+
+Handles all database operations including transactions, institutions,
+processed files, and processing logs with comprehensive error handling.
 """
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from sqlalchemy import func
 
 
 class DatabaseLoader:
@@ -34,12 +39,6 @@ class DatabaseLoader:
                 session.refresh(institution)
 
             # Return detached instance
-            institution_data = {
-                "id": institution.id,
-                "name": institution.name,
-                "institution_type": institution.institution_type,
-            }
-
             session.expunge(institution)
             return institution
 
@@ -242,15 +241,13 @@ class DatabaseLoader:
         """Get unsettled amounts by person"""
         session = self.db_manager.get_session()
         try:
-            from sqlalchemy import func
-
             TransactionSplit = self.models["TransactionSplit"]
 
             query = session.query(
                 TransactionSplit.person_name,
                 func.sum(TransactionSplit.amount).label("unsettled_amount"),
                 func.count(TransactionSplit.id).label("unsettled_count"),
-            ).filter(TransactionSplit.is_settled == False)
+            ).filter(TransactionSplit.is_settled.is_(False))
 
             if person_name:
                 query = query.filter(TransactionSplit.person_name == person_name.lower().strip())
@@ -261,7 +258,7 @@ class DatabaseLoader:
         finally:
             session.close()
 
-    def get_person_unsettled_transactions(self, person_name: str):
+    def get_unsettled_transactions(self, person_name: str):
         """Get all unsettled transactions for a specific person"""
         session = self.db_manager.get_session()
         try:
@@ -273,19 +270,19 @@ class DatabaseLoader:
                 .join(TransactionSplit, Transaction.id == TransactionSplit.transaction_id)
                 .filter(
                     TransactionSplit.person_name == person_name.lower().strip(),
-                    TransactionSplit.is_settled == False,
+                    TransactionSplit.is_settled.is_(False),
                 )
                 .order_by(Transaction.transaction_date.desc())
             )
 
             results = query.all()
-            return [(txn, split) for txn, split in results]
+            return list(results)
 
         finally:
             session.close()
 
     def get_person_transactions(
-        self, person_name: str, start_date=None, end_date=None, test_mode=False
+        self, person_name: str, start_date=None, end_date=None, _test_mode=False
     ):
         """Get all transactions involving a specific person"""
         session = self.db_manager.get_session()
@@ -305,7 +302,7 @@ class DatabaseLoader:
                 query = query.filter(Transaction.transaction_date <= end_date)
 
             results = query.all()
-            return [(txn, split) for txn, split in results]
+            return list(results)
 
         finally:
             session.close()
@@ -314,8 +311,6 @@ class DatabaseLoader:
         """Get total amount paid for a specific person"""
         session = self.db_manager.get_session()
         try:
-            from sqlalchemy import func
-
             Transaction = self.models["Transaction"]
             TransactionSplit = self.models["TransactionSplit"]
 
@@ -413,7 +408,7 @@ class DatabaseLoader:
         finally:
             session.close()
 
-    def check_skipped_transaction_exists(self, transaction_hash: str) -> bool:
+    def check_skipped_exists(self, transaction_hash: str) -> bool:
         """Check if transaction was already skipped"""
         session = self.db_manager.get_session()
         try:

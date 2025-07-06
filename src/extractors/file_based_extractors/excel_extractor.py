@@ -2,11 +2,16 @@
 Generic Excel Extractor - Handles basic Excel file operations
 """
 
+import os
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from src.utils.security import sanitize_filename
+__all__ = ["ExcelExtractor"]  # pylint: disable=unused-variable
+
+
+class ExcelExtractionError(Exception):
+    """Custom exception for Excel extraction errors."""
 
 
 class ExcelExtractor:
@@ -46,8 +51,8 @@ class ExcelExtractor:
 
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
-        except Exception as e:
-            raise Exception(f"Error reading Excel file: {e}")
+        except Exception as exception:
+            raise ExcelExtractionError(f"Error reading Excel file: {exception}") from exception
 
     def detect_header_row(
         self, df: pd.DataFrame, required_columns: List[str], max_search_rows: int = 20
@@ -104,8 +109,6 @@ class ExcelExtractor:
 
     def get_file_info(self, file_path: str) -> Dict[str, Any]:
         """Get basic file information, robustly checking for read permissions"""
-        import os
-
         # Path traversal prevention - same as read_excel_file
         if not file_path:
             raise ValueError("File path cannot be empty")
@@ -138,8 +141,8 @@ class ExcelExtractor:
             raise PermissionError(f"File is not readable: {file_path}")
 
         # Attempt to open the file for reading to trigger permission errors
-        with open(file_path, "rb") as f:
-            f.read(1)  # Read a single byte (or nothing, just to check permissions)
+        with open(file_path, "rb") as file_handle:
+            file_handle.read(1)  # Read a single byte (or nothing, just to check permissions)
 
         return {
             "file_path": file_path,

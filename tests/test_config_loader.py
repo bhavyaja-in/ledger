@@ -5,6 +5,9 @@ Tests every method, branch condition, exception path, and edge case
 to ensure enterprise-grade quality and complete code coverage.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import os
 import tempfile
 from pathlib import Path
@@ -96,11 +99,11 @@ class TestConfigLoader:
         }
 
         config_file = temp_config_dir / "config.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             yaml.dump(config_data, f)
 
         categories_file = temp_config_dir / "categories.yaml"
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": [{"name": "test"}]}, f)
 
         loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
@@ -117,11 +120,11 @@ class TestConfigLoader:
     def test_load_config_empty_yaml(self, temp_config_dir):
         """Test _load_config handles empty YAML file"""
         config_file = temp_config_dir / "config.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write("")  # Empty file
 
         categories_file = temp_config_dir / "categories.yaml"
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": []}, f)
 
         loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
@@ -138,7 +141,7 @@ class TestConfigLoader:
         # Create categories file
         categories_file = temp_config_dir / "categories.yaml"
         template_categories = [{"name": "food"}, {"name": "transport"}]
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": template_categories}, f)
 
         # Mock database categories
@@ -169,7 +172,7 @@ class TestConfigLoader:
         """Test _load_categories when no new database categories found"""
         categories_file = temp_config_dir / "categories.yaml"
         template_categories = [{"name": "food"}, {"name": "transport"}]
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": template_categories}, f)
 
         loader = ConfigLoader(categories_path=str(categories_file))
@@ -193,7 +196,7 @@ class TestConfigLoader:
         categories_data = {"categories": [{"name": "food"}, {"name": "transport"}]}
         categories_file = temp_config_dir / "categories.yaml"
 
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump(categories_data, f)
 
         loader = ConfigLoader(categories_path=str(categories_file))
@@ -206,7 +209,7 @@ class TestConfigLoader:
     def test_load_template_categories_empty_file(self, temp_config_dir):
         """Test _load_template_categories handles empty categories file"""
         categories_file = temp_config_dir / "categories.yaml"
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({}, f)  # Empty categories
 
         loader = ConfigLoader(categories_path=str(categories_file))
@@ -373,7 +376,7 @@ class TestConfigLoader:
             assert categories_file.exists()
 
             # Verify content
-            with open(categories_file, "r") as f:
+            with open(categories_file, "r", encoding="utf-8") as f:
                 saved_data = yaml.safe_load(f)
 
             assert saved_data["categories"] == categories
@@ -417,7 +420,7 @@ class TestConfigLoader:
         categories_file = temp_config_dir / "categories.yaml"
         existing_categories = [{"name": "food"}, {"name": "transport"}]
 
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": existing_categories}, f)
 
         loader = ConfigLoader(categories_path=str(categories_file))
@@ -532,7 +535,7 @@ class TestConfigLoader:
         loader.save_categories(categories)
 
         # Verify YAML structure
-        with open(categories_file, "r") as f:
+        with open(categories_file, "r", encoding="utf-8") as f:
             saved_data = yaml.safe_load(f)
 
         assert "categories" in saved_data
@@ -576,11 +579,11 @@ class TestConfigLoader:
     def test_edge_case_none_yaml_load(self, temp_config_dir):
         """Test edge case: yaml.safe_load returns None"""
         config_file = temp_config_dir / "config.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write("null")  # YAML null
 
         categories_file = temp_config_dir / "categories.yaml"
-        with open(categories_file, "w") as f:
+        with open(categories_file, "w", encoding="utf-8") as f:
             f.write("")
 
         loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))

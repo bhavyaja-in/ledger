@@ -10,6 +10,9 @@ This suite tests critical security aspects:
 - Memory security and data clearing
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import base64
 import gc
 import hashlib
@@ -113,9 +116,9 @@ class TestInputValidationSecurity:
                     assert "DELETE FROM" not in description
                     assert "UNION SELECT" not in description
 
-            except (ValueError, TypeError, AttributeError) as e:
+            except (ValueError, TypeError, AttributeError) as exception:
                 # Acceptable - system properly rejected malicious input
-                assert malicious_input not in str(e).upper()
+                assert malicious_input not in str(exception).upper()
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -203,7 +206,7 @@ class TestInputValidationSecurity:
                     # If successful, ensure reasonable limits are enforced
                     if result and "description" in result:
                         assert len(result["description"]) < 50000  # Reasonable limit
-                except (MemoryError, ValueError, OverflowError):
+                except (MemoryError, ValueError, OverflowError):  # pylint: disable=unused-variable
                     # Acceptable - system properly rejected oversized input
                     pass
 
@@ -328,7 +331,9 @@ class TestSensitiveDataProtection:
 
         # Create transaction hash
         with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
-            transaction_hash = transformer._create_transaction_hash(sensitive_data)
+            _ = transformer._create_transaction_hash(
+                sensitive_data
+            )  # pylint: disable=unused-variable
 
         # Force garbage collection
         sensitive_data = None
@@ -360,8 +365,8 @@ class TestSensitiveDataProtection:
             try:
                 config_loader = ConfigLoader(config_path="nonexistent_config.yaml")
                 config_loader.get_config()
-            except Exception as e:
-                error_message = str(e)
+            except Exception as exception:  # pylint: disable=unused-variable
+                error_message = str(exception)
                 # Error messages should not contain sensitive information
                 sensitive_keywords = ["password", "secret", "key", "token", "api"]
                 for keyword in sensitive_keywords:
@@ -382,6 +387,12 @@ class TestSensitiveDataProtection:
             # Mock engine that might leak connection info
             mock_engine = Mock()
             mock_engine.url = "sqlite:///sensitive_database.db?password=secret123"
+
+            # Mock the connect method to return a context manager
+            mock_connection = Mock()
+            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
+
             mock_create_engine.return_value = mock_engine
 
             db_manager = DatabaseManager(config, test_mode=True)
@@ -539,7 +550,7 @@ class TestDatabaseSecurity:
                 # and not cause any SQL injection
                 assert mock_join.filter.called
 
-        except Exception:
+        except Exception as exception:
             # Acceptable if system properly rejects malicious input
             pass
 
@@ -556,6 +567,12 @@ class TestDatabaseSecurity:
             patch("src.models.database.sessionmaker"),
         ):
             mock_engine = Mock()
+
+            # Mock the connect method to return a context manager
+            mock_connection = Mock()
+            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
+
             mock_create_engine.return_value = mock_engine
 
             db_manager = DatabaseManager(config, test_mode=True)
@@ -605,7 +622,7 @@ class TestCryptographicSecurity:
                 try:
                     decoded = base64.b64decode(encrypted_data)
                     assert decoded == test_data  # Should decode back to original
-                except Exception:
+                except Exception as exception:
                     pytest.fail("Encryption should produce valid base64 output")
 
     @pytest.mark.unit
@@ -739,8 +756,8 @@ class TestSystemBoundarySecurity:
         try:
             config_loader = ConfigLoader(config_path="/nonexistent/sensitive/path/config.yaml")
             config_loader.get_config()
-        except Exception as e:
-            error_message = str(e)
+        except Exception as exception:
+            error_message = str(exception)
 
             # Exception should not reveal full system paths
             assert "/nonexistent/sensitive/path" not in error_message
@@ -845,7 +862,7 @@ class TestSystemBoundarySecurity:
         from src.loaders.database_loader import DatabaseLoader
 
         mock_db_manager = Mock()
-        loader = DatabaseLoader(mock_db_manager)
+        _ = DatabaseLoader(mock_db_manager)  # pylint: disable=unused-variable
 
         # Basic security validation - system can handle security events
         assert len(security_events) > 0
@@ -879,7 +896,7 @@ class TestSystemBoundarySecurity:
 
             try:
                 loader.create_transaction(transaction_data)
-            except Exception:
+            except Exception:  # pylint: disable=unused-variable
                 # Acceptable if mocked components cause issues
                 pass
 

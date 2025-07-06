@@ -46,7 +46,3 @@ jobs:
     - name: Run performance tests
       run: |
         pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v
-
-    - name: Check execution time
-      run: |
-        time pytest -m performance --maxfail=1 --tb=short -q --disable-warnings -v

@@ -5,6 +5,9 @@ Tests all IciciBankExtractor methods including transaction extraction, filtering
 validation, error scenarios, and ICICI Bank specific business logic to ensure enterprise-grade quality.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import os
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch

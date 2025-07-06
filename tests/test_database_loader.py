@@ -5,6 +5,9 @@ Tests all DatabaseLoader methods including CRUD operations, split handling,
 aggregation queries, error scenarios, and edge cases to ensure enterprise-grade quality.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import os
 from datetime import date, datetime
 from typing import Any, Dict
@@ -63,7 +66,12 @@ class TestDatabaseLoader:
     @pytest.mark.database
     def test_get_or_create_institution_existing(self, loader):
         """Test get_or_create_institution when institution already exists"""
-        loader_instance, mock_manager, mock_session, mock_models = loader
+        (
+            loader_instance,
+            mock_manager,
+            mock_session,
+            mock_models,
+        ) = loader  # pylint: disable=unused-variable
 
         # Mock existing institution
         mock_institution = Mock()
@@ -575,8 +583,8 @@ class TestDatabaseLoader:
 
     @pytest.mark.unit
     @pytest.mark.database
-    def test_get_person_unsettled_transactions(self, loader):
-        """Test get_person_unsettled_transactions"""
+    def test_get_unsettled_transactions(self, loader):
+        """Test get_unsettled_transactions"""
         loader_instance, mock_manager, mock_session, mock_models = loader
 
         # Mock query results
@@ -589,7 +597,7 @@ class TestDatabaseLoader:
         mock_filter = mock_join.filter.return_value
         mock_filter.order_by.return_value.all.return_value = mock_results
 
-        result = loader_instance.get_person_unsettled_transactions(" John ")
+        result = loader_instance.get_unsettled_transactions(" John ")
 
         # Verify correct query was built with joins and filters
         mock_session.query.assert_called_once()
@@ -671,8 +679,8 @@ class TestDatabaseLoader:
         mock_join = mock_query.join.return_value
         mock_join.filter.return_value.all.return_value = mock_results
 
-        # Test that test_mode parameter doesn't affect the method behavior
-        result = loader_instance.get_person_transactions("John", test_mode=True)
+        # Test that _test_mode parameter doesn't affect the method behavior
+        result = loader_instance.get_person_transactions("John", _test_mode=True)
 
         assert result == []
         mock_session.close.assert_called_once()
@@ -878,8 +886,8 @@ class TestDatabaseLoader:
 
     @pytest.mark.unit
     @pytest.mark.database
-    def test_check_skipped_transaction_exists_true(self, loader):
-        """Test check_skipped_transaction_exists returns True when skipped transaction exists"""
+    def test_check_skipped_exists_true(self, loader):
+        """Test check_skipped_exists returns True when skipped transaction exists"""
         loader_instance, mock_manager, mock_session, mock_models = loader
 
         # Mock existing skipped transaction
@@ -887,7 +895,7 @@ class TestDatabaseLoader:
         mock_query = mock_session.query.return_value
         mock_query.filter_by.return_value.first.return_value = mock_skipped
 
-        result = loader_instance.check_skipped_transaction_exists("hash123")
+        result = loader_instance.check_skipped_exists("hash123")
 
         # Verify query was made
         mock_session.query.assert_called_once_with(mock_models["SkippedTransaction"])
@@ -898,15 +906,15 @@ class TestDatabaseLoader:
 
     @pytest.mark.unit
     @pytest.mark.database
-    def test_check_skipped_transaction_exists_false(self, loader):
-        """Test check_skipped_transaction_exists returns False when skipped transaction doesn't exist"""
+    def test_check_skipped_exists_false(self, loader):
+        """Test check_skipped_exists returns False when skipped transaction doesn't exist"""
         loader_instance, mock_manager, mock_session, mock_models = loader
 
         # Mock no existing skipped transaction
         mock_query = mock_session.query.return_value
         mock_query.filter_by.return_value.first.return_value = None
 
-        result = loader_instance.check_skipped_transaction_exists("nonexistent_hash")
+        result = loader_instance.check_skipped_exists("nonexistent_hash")
 
         assert result is False
         mock_session.close.assert_called_once()
@@ -923,11 +931,11 @@ class TestDatabaseLoader:
             ("create_or_update_enum", ("enum", ["pattern"], "category", "type")),
             ("update_split_settlement_status", (1, True)),
             ("get_unsettled_amounts_by_person", ()),
-            ("get_person_unsettled_transactions", ("john",)),
+            ("get_unsettled_transactions", ("john",)),
             ("get_person_transactions", ("john",)),
             ("get_person_total_amount", ("john",)),
             ("check_transaction_exists", ("hash",)),
-            ("check_skipped_transaction_exists", ("hash",)),
+            ("check_skipped_exists", ("hash",)),
         ]
 
         for method_name, args in methods_to_test:

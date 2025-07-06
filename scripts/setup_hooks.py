@@ -10,7 +10,6 @@ Usage:
 """
 
 import argparse
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -26,12 +25,11 @@ def run_command(command, description):
             if result.stdout.strip():
                 print(f"   Output: {result.stdout.strip()}")
             return True
-        else:
             print(f"❌ {description} failed")
             print(f"   Error: {result.stderr.strip()}")
             return False
-    except Exception as e:
-        print(f"❌ {description} failed with exception: {e}")
+    except (OSError, IOError, subprocess.SubprocessError) as exception:
+        print(f"❌ {description} failed with exception: {exception}")
         return False
 
 
@@ -41,11 +39,10 @@ def check_python_version():
     if version.major == 3 and version.minor >= 8:
         print(f"✅ Python version {version.major}.{version.minor}.{version.micro} is compatible")
         return True
-    else:
-        msg = f"❌ Python version {version.major}.{version.minor}.{version.micro} is not compatible"
-        print(msg)
-        print("   Requires Python 3.8 or higher")
-        return False
+    msg = f"❌ Python version {version.major}.{version.minor}.{version.micro} is not compatible"
+    print(msg)
+    print("   Requires Python 3.8 or higher")
+    return False
 
 
 def check_git_repository():
@@ -53,7 +50,6 @@ def check_git_repository():
     if Path(".git").exists() or run_command("git rev-parse --git-dir", "Checking git repository"):
         print("✅ Git repository detected")
         return True
-    else:
         print("❌ Not in a git repository")
         return False
 
@@ -86,7 +82,7 @@ def install_dependencies():
 
     success = True
     for dep in dependencies:
-        if not run_command(f"pip install '{dep}'", f"Installing {dep.split('>=')[0]}"):
+        if not run_command(f"pip install '{dep}'", f"Installing {dep.split('>=', maxsplit=1)[0]}"):
             success = False
 
     return success

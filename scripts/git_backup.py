@@ -10,7 +10,6 @@ import shutil
 import sqlite3
 import subprocess
 from datetime import datetime
-from pathlib import Path
 
 import yaml
 
@@ -42,19 +41,18 @@ class GitDatabaseBackup:
         """Load backup configuration from YAML file"""
         if os.path.exists(config_path):
             try:
-                with open(config_path, "r") as file:
+                with open(config_path, "r", encoding="utf-8") as file:
                     config = yaml.safe_load(file) or {}
                 print(f"📋 Loaded backup configuration from {config_path}")
                 return config
-            except Exception as e:
-                print(f"⚠️  Warning: Could not load config from {config_path}: {e}")
+            except (OSError, IOError, yaml.YAMLError) as exception:
+                print(f"⚠️  Warning: Could not load config from {config_path}: {exception}")
                 print("   Using default configuration")
                 return {}
-        else:
-            print(f"⚠️  Config file not found: {config_path}")
-            print("   Copy config/backup.yaml.example to config/backup.yaml")
-            print("   Using default configuration")
-            return {}
+        print(f"⚠️  Config file not found: {config_path}")
+        print("   Copy config/backup.yaml.example to config/backup.yaml")
+        print("   Using default configuration")
+        return {}
 
     def setup_backup_repo(self):
         """Initialize or clone the backup repository"""
@@ -71,21 +69,20 @@ class GitDatabaseBackup:
                 )
                 print(f"✅ Cloned backup repository: {self.repo_url}")
                 return True
-            except subprocess.CalledProcessError as e:
-                print(f"❌ Failed to clone repository: {e}")
+            except subprocess.CalledProcessError as exception:
+                print(f"❌ Failed to clone repository: {exception}")
                 return False
-        else:
-            # Create new repository
-            try:
-                os.makedirs(self.backup_repo_path, exist_ok=True)
-                os.chdir(self.backup_repo_path)
+        # Create new repository
+        try:
+            os.makedirs(self.backup_repo_path, exist_ok=True)
+            os.chdir(self.backup_repo_path)
 
-                subprocess.run(["git", "init"], check=True, capture_output=True)
+            subprocess.run(["git", "init"], check=True, capture_output=True)
 
-                # Create README
-                with open("README.md", "w") as f:
-                    f.write(
-                        """# Financial Database Backups
+            # Create README
+            with open("README.md", "w", encoding="utf-8") as readme_file:
+                readme_file.write(
+                    """# Financial Database Backups
 
 This private repository contains encrypted backups of financial database.
 
@@ -99,28 +96,26 @@ Database backups are stored securely. Only authorized users should have access.
 ## Restore
 Use the git_backup.py script to restore from backups.
 """
-                    )
-
-                subprocess.run(["git", "add", "README.md"], check=True)
-                subprocess.run(
-                    ["git", "commit", "-m", "Initial commit: Setup backup repository"],
-                    check=True,
-                    capture_output=True,
                 )
 
-                os.chdir("..")  # Go back to original directory
-                print(f"✅ Created new backup repository: {self.backup_repo_path}")
-                print(f"💡 Create a private GitHub repo and add remote:")
-                print(f"   cd {self.backup_repo_path}")
-                print(
-                    f"   git remote add origin https://github.com/YOUR_USERNAME/ledger-backups.git"
-                )
-                print(f"   git push -u origin main")
-                return True
+            subprocess.run(["git", "add", "README.md"], check=True)
+            subprocess.run(
+                ["git", "commit", "-m", "Initial commit: Setup backup repository"],
+                check=True,
+                capture_output=True,
+            )
 
-            except subprocess.CalledProcessError as e:
-                print(f"❌ Failed to create repository: {e}")
-                return False
+            os.chdir("..")  # Go back to original directory
+            print(f"✅ Created new backup repository: {self.backup_repo_path}")
+            print("💡 Create a private GitHub repo and add remote:")
+            print(f"   cd {self.backup_repo_path}")
+            print("   git remote add origin https://github.com/YOUR_USERNAME/ledger-backups.git")
+            print("   git push -u origin main")
+            return True
+
+        except (OSError, IOError, subprocess.CalledProcessError) as exception:
+            print(f"❌ Failed to create repository: {exception}")
+            return False
 
     def _preserve_previous_backup(self):
         """Preserve existing backup with timestamp before creating new one"""
@@ -137,12 +132,12 @@ Use the git_backup.py script to restore from backups.
         timestamped_filename = f"{base_name}_{timestamp}{extension}"
         timestamped_path = os.path.join(self.backup_repo_path, timestamped_filename)
 
+        original_dir = os.getcwd()
         try:
             # Move current backup to timestamped version
             shutil.move(backup_path, timestamped_path)
 
             # Commit the timestamped backup to git
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             subprocess.run(["git", "add", timestamped_filename], check=True, capture_output=True)
@@ -154,13 +149,15 @@ Use the git_backup.py script to restore from backups.
             # Update backup log to note the archiving
             log_path = os.path.join(self.backup_repo_path, "backup_log.txt")
             timestamp_log = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(log_path, "a") as f:
-                f.write(f"{timestamp_log} - Previous backup archived as {timestamped_filename}\n")
+            with open(log_path, "a", encoding="utf-8") as log_file:
+                log_file.write(
+                    f"{timestamp_log} - Previous backup archived as {timestamped_filename}\n"
+                )
 
-        except subprocess.CalledProcessError as e:
-            print(f"⚠️  Warning: Could not archive previous backup: {e}")
-        except Exception as e:
-            print(f"⚠️  Warning: Error archiving previous backup: {e}")
+        except subprocess.CalledProcessError as exception:
+            print(f"⚠️  Warning: Could not archive previous backup: {exception}")
+        except (OSError, IOError, shutil.Error) as exception:
+            print(f"⚠️  Warning: Error archiving previous backup: {exception}")
         finally:
             if "original_dir" in locals():
                 os.chdir(original_dir)
@@ -205,8 +202,8 @@ Use the git_backup.py script to restore from backups.
             # Commit to git
             return self._commit_backup()
 
-        except Exception as e:
-            print(f"❌ Backup failed: {e}")
+        except (OSError, IOError, sqlite3.Error, shutil.Error) as exception:
+            print(f"❌ Backup failed: {exception}")
             if os.path.exists(temp_backup):
                 os.remove(temp_backup)
             return False
@@ -227,37 +224,37 @@ Use the git_backup.py script to restore from backups.
 
     def _simple_encrypt(self, input_file, output_file):
         """Simple base64 encoding (not strong encryption, but obfuscates data)"""
-        with open(input_file, "rb") as f:
-            data = f.read()
+        with open(input_file, "rb") as input_f:
+            data = input_f.read()
 
         # Simple obfuscation (for stronger encryption, use cryptography library)
         encoded = base64.b64encode(data)
 
-        with open(output_file, "wb") as f:
-            f.write(encoded)
+        with open(output_file, "wb") as output_f:
+            output_f.write(encoded)
 
     def _simple_decrypt(self, input_file, output_file):
         """Decode the simple base64 encoding"""
-        with open(input_file, "rb") as f:
-            encoded_data = f.read()
+        with open(input_file, "rb") as input_f:
+            encoded_data = input_f.read()
 
         decoded = base64.b64decode(encoded_data)
 
-        with open(output_file, "wb") as f:
-            f.write(decoded)
+        with open(output_file, "wb") as output_f:
+            output_f.write(decoded)
 
     def _update_backup_log(self):
         """Update backup log with timestamp"""
         log_path = os.path.join(self.backup_repo_path, "backup_log.txt")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        with open(log_path, "a") as f:
-            f.write(f"{timestamp} - Database backup created\n")
+        with open(log_path, "a", encoding="utf-8") as log_file:
+            log_file.write(f"{timestamp} - Database backup created\n")
 
     def _commit_backup(self):
         """Commit backup to git repository"""
+        original_dir = os.getcwd()
         try:
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             # Add files
@@ -280,12 +277,12 @@ Use the git_backup.py script to restore from backups.
                 print("✅ Backup committed and pushed to remote repository")
             except subprocess.CalledProcessError:
                 print("✅ Backup committed locally (no remote configured)")
-                print("💡 To push to remote: cd {} && git push".format(self.backup_repo_path))
+                print(f"💡 To push to remote: cd {self.backup_repo_path} && git push")
 
             return True
 
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Git commit failed: {e}")
+        except subprocess.CalledProcessError as exception:
+            print(f"❌ Git commit failed: {exception}")
             return False
         finally:
             os.chdir(original_dir)
@@ -320,8 +317,8 @@ Use the git_backup.py script to restore from backups.
 
             return True
 
-        except Exception as e:
-            print(f"❌ Restore failed: {e}")
+        except Exception as exception:  # pylint: disable=broad-except
+            print(f"❌ Restore failed: {exception}")
             return False
 
     def restore_from_timestamped_backup(self, backup_filename, decrypt=None):
@@ -354,8 +351,8 @@ Use the git_backup.py script to restore from backups.
 
             return True
 
-        except Exception as e:
-            print(f"❌ Restore failed: {e}")
+        except Exception as exception:  # pylint: disable=broad-except
+            print(f"❌ Restore failed: {exception}")
             return False
 
     def sync_from_remote(self):
@@ -364,16 +361,16 @@ Use the git_backup.py script to restore from backups.
             print("❌ Backup repository not found locally")
             return False
 
+        original_dir = os.getcwd()
         try:
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             subprocess.run(["git", "pull"], check=True, capture_output=True)
             print("✅ Synced latest backups from remote")
             return True
 
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Sync failed: {e}")
+        except subprocess.CalledProcessError as exception:
+            print(f"❌ Sync failed: {exception}")
             return False
         finally:
             os.chdir(original_dir)
@@ -384,6 +381,7 @@ Use the git_backup.py script to restore from backups.
             print("❌ Backup repository not found")
             return
 
+        original_dir = os.getcwd()
         try:
             # Show backup files
             print("📁 Available backup files:")
@@ -407,7 +405,6 @@ Use the git_backup.py script to restore from backups.
             print()
 
             # Show git commit history
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             result = subprocess.run(
@@ -420,13 +417,14 @@ Use the git_backup.py script to restore from backups.
             print("📚 Recent git commit history:")
             print(result.stdout)
 
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to show history: {e}")
+        except subprocess.CalledProcessError as exception:
+            print(f"❌ Failed to show history: {exception}")
         finally:
             os.chdir(original_dir)
 
 
 def main():
+    """Main entry point for Git Database Backup Manager CLI"""
     parser = argparse.ArgumentParser(description="Git Database Backup Manager")
     parser.add_argument("--backup", action="store_true", help="Create backup")
     parser.add_argument("--restore", action="store_true", help="Restore from latest backup")

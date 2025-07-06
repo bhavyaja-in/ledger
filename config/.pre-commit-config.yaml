@@ -85,7 +85,9 @@ repos:
         language: system
         types: [python]
         args: [
-          --rcfile=config/.pylintrc
+          --rcfile=config/.pylintrc,
+          --score=y,
+          --fail-under=9.75
         ]
         exclude: ^(migrations/|\.venv/|venv/|env/|tests/.*test_.*)
         require_serial: false

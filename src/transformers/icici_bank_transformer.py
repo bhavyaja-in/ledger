@@ -14,9 +14,13 @@ import pandas as pd
 # Add path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.loaders.database_loader import DatabaseLoader
-from src.utils.currency_detector import CurrencyDetector
-from src.utils.security import sanitize_text_input, validate_amount
+# Local imports after path setup
+from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
+from src.utils.currency_detector import CurrencyDetector  # pylint: disable=wrong-import-position
+from src.utils.security import (  # pylint: disable=wrong-import-position
+    sanitize_text_input,
+    validate_amount,
+)
 
 
 class IciciBankTransformer:
@@ -49,7 +53,7 @@ class IciciBankTransformer:
         # Set up signal handler for graceful interrupt
         signal.signal(signal.SIGINT, self._signal_handler)
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, frame):  # pylint: disable=unused-argument
         """Handle Ctrl+C signal"""
         print("\n\n🛑 Processing interrupted by user (Ctrl+C)")
         print("🔄 Cleaning up and exiting...")
@@ -122,7 +126,7 @@ class IciciBankTransformer:
 
                     # Use the same transaction hash for checking skipped transactions
                     # This ensures consistency across different processing sessions
-                    if self.db_loader.check_skipped_transaction_exists(transaction_hash):
+                    if self.db_loader.check_skipped_exists(transaction_hash):
                         if not reprocess_skipped:
                             print(
                                 "⚠️  Transaction previously skipped - auto-skipping (set reprocess_skipped_transactions=true to change)"
@@ -131,10 +135,9 @@ class IciciBankTransformer:
                                 cast(int, results["auto_skipped_transactions"]) + 1
                             )
                             continue
-                        else:
-                            print(
-                                "⚠️  Transaction previously skipped - reprocessing due to config setting"
-                            )
+                        print(
+                            "⚠️  Transaction previously skipped - reprocessing due to config setting"
+                        )
 
                     # Step 4: Display transaction details
                     self._display_transaction(transformed)
@@ -184,8 +187,14 @@ class IciciBankTransformer:
                     )
                     print("✅ Transaction saved successfully")
 
-                except Exception as e:
-                    print(f"❌ Error processing transaction: {e}")
+                except (
+                    ValueError,
+                    TypeError,
+                    AttributeError,
+                    OSError,
+                    IOError,
+                ) as exception:
+                    print(f"\u274c Error processing transaction: {exception}")
                     results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
 
             # Determine final status
@@ -198,8 +207,14 @@ class IciciBankTransformer:
             else:
                 results["status"] = "partially_completed"
 
-        except Exception as e:
-            print(f"\n❌ Error during processing: {e}")
+        except (
+            ValueError,
+            TypeError,
+            AttributeError,
+            OSError,
+            IOError,
+        ) as exception:
+            print(f"\n\u274c Error during processing: {exception}")
             results["status"] = "error"
 
         return results
@@ -256,8 +271,14 @@ class IciciBankTransformer:
 
             return transaction
 
-        except Exception as e:
-            print(f"Error transforming transaction: {e}")
+        except (
+            ValueError,
+            TypeError,
+            AttributeError,
+            OSError,
+            IOError,
+        ) as exception:
+            print(f"Error transforming transaction: {exception}")
             return None
 
     def _parse_amount(self, amount_str) -> Optional[float]:
@@ -385,7 +406,7 @@ class IciciBankTransformer:
                 "action": "skip",
                 "reason": "User chose to skip - existing pattern found but not used",
             }
-        elif transaction_category_result["action"] == "create_new":
+        if transaction_category_result["action"] == "create_new":
             return self._full_interactive_flow(description)
 
         transaction_category = transaction_category_result["category"]
@@ -406,13 +427,12 @@ class IciciBankTransformer:
                 break
 
             # Provide default if user just presses enter
-            elif not user_input:
+            if not user_input:
                 reason = f"Transaction: {existing_enum['enum_name']}"
                 print(f"ℹ️  Using default reason: {reason}")
                 break
 
-            else:
-                print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
+            print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
 
         # Step 3: Ask for splits
         splits = self._ask_for_splits()
@@ -523,19 +543,17 @@ class IciciBankTransformer:
                 return suggested_pattern
 
             # Option 2: User typed "2" - skip transaction
-            elif user_input == "2":
+            if user_input == "2":
                 print("⏭️  Skipping transaction...")
                 return None
 
             # Option 3: User typed custom pattern
-            elif len(user_input) >= 2:
+            if len(user_input) >= 2:
                 print(f"✅ Using custom pattern: {user_input}")
                 return user_input
-
-            else:
-                print(
-                    "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
-                )
+            print(
+                "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
+            )
 
     def _get_pattern_suggestions(self, description: str) -> List[str]:
         """Generate intelligent pattern suggestions from description"""
@@ -572,7 +590,7 @@ class IciciBankTransformer:
         """Ask user for enum name with intelligent suggestion"""
         suggested_name = f"{pattern_word}_transaction"
 
-        print(f"\n🤔  What should this enum be called?")
+        print("\n🤔  What should this enum be called?")
         print(f"💡 Suggestion: {suggested_name}")
 
         while True:
@@ -613,7 +631,7 @@ class IciciBankTransformer:
         # Enum doesn't exist - ask for category (with KeyboardInterrupt handling)
         try:
             category = self._ask_for_category()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pylint: disable=try-except-raise
             # If user interrupts during category selection, bubble it up
             raise
 
@@ -644,7 +662,7 @@ class IciciBankTransformer:
             if self._interrupted:
                 return "other"  # Return default if interrupted
 
-            choice = input(f"\n🔢 Enum Category: ").strip()
+            choice = input("\n🔢 Enum Category: ").strip()
 
             # Check if user entered a number
             if choice.isdigit():
@@ -653,14 +671,13 @@ class IciciBankTransformer:
                     selected_category = categories[idx]
                     print(f"✅ Selected enum category: {selected_category.title()}")
                     return selected_category
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)} or type a category name."
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)} or type a category name."
+                )
+                continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -668,8 +685,8 @@ class IciciBankTransformer:
                     try:
                         self.config_loader.add_category(category_name)
                         print(f"✅ Created and saved new enum category: {category_name.title()}")
-                    except Exception as e:
-                        print(f"⚠️  Enum category created but couldn't save: {e}")
+                    except (OSError, IOError, PermissionError) as exception:
+                        print(f"⚠️  Enum category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -684,9 +701,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing enum category: {category_name.title()}")
 
                 return category_name
-
-            else:
-                print("❌ Please enter a number or category name (at least 2 characters)")
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_transaction_category(self, enum_category: str) -> str:
         """Ask user to select transaction category with auto-suggestion from enum category"""
@@ -715,20 +730,19 @@ class IciciBankTransformer:
                 return enum_category
 
             # Check if user entered a number
-            elif choice.isdigit():
+            if choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
                     print(f"✅ Selected transaction category: {selected_category.title()}")
                     return selected_category
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name."
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name."
+                )
+                continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -738,8 +752,8 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as e:
-                        print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    except (OSError, IOError, PermissionError) as exception:
+                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -754,11 +768,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing transaction category: {category_name.title()}")
 
                 return category_name
-
-            else:
-                print(
-                    f"❌ Please enter a number, press Enter for '{enum_category.title()}', or type a category name (at least 2 characters)"
-                )
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_transaction_category_with_options(self, enum_category: str) -> Dict[str, Any]:
         """Ask user to select transaction category with skip and create new pattern options"""
@@ -789,29 +799,28 @@ class IciciBankTransformer:
                 return {"action": "skip"}
 
             # Special option 3: Create new pattern
-            elif choice == "3":
+            if choice == "3":
                 return {"action": "create_new"}
 
             # User pressed Enter - use enum category
-            elif not choice:
+            if not choice:
                 print(f"✅ Using enum category: {enum_category.title()}")
                 return {"action": "process", "category": enum_category}
 
             # Check if user entered a number
-            elif choice.isdigit():
+            if choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
                     print(f"✅ Selected transaction category: {selected_category.title()}")
                     return {"action": "process", "category": selected_category}
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)"
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)"
+                )
+                continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -821,8 +830,8 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as e:
-                        print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    except (OSError, IOError, PermissionError) as exception:
+                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -837,11 +846,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing transaction category: {category_name.title()}")
 
                 return {"action": "process", "category": category_name}
-
-            else:
-                print(
-                    f"❌ Please enter a number, press Enter for '{enum_category.title()}', type a category name (at least 2 characters), or use special options (2=skip, 3=new pattern)"
-                )
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_reason(self) -> str:
         """Ask user for transaction reason with suggestions"""
@@ -904,7 +909,7 @@ class IciciBankTransformer:
             if total_percentage > 100.0:
                 print(f"❌ Total percentage ({total_percentage}%) exceeds 100%")
                 continue
-            elif splits:
+            if splits:
                 remaining = 100.0 - total_percentage
                 if remaining > 0.0:
                     print(f"ℹ️  Your share: {remaining}%")
@@ -939,8 +944,8 @@ class IciciBankTransformer:
 
             self.db_loader.create_skipped_transaction(skipped_record)
 
-        except Exception as e:
-            print(f"❌ Error saving skipped transaction: {e}")
+        except (OSError, IOError, ValueError, KeyError, AttributeError) as exception:
+            print(f"❌ Error saving skipped transaction: {exception}")
 
     def _create_transaction_hash(self, transaction_data: Dict[str, Any]) -> str:
         """Create unique hash for transaction deduplication"""

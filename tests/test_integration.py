@@ -27,6 +27,9 @@ Safety Guarantees:
 - Complete test environment isolation
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import json
 import os
 import shutil
@@ -515,16 +518,16 @@ class TestErrorHandlingIntegration:
         try:
             extractor = ExcelExtractor(dummy_config)
             extractor.read_excel_file(corrupted_file)
-        except Exception as e:
-            assert isinstance(e, Exception)
+        except Exception as exception:
+            assert isinstance(exception, Exception)
 
         # Test empty file
         empty_file = realistic_transaction_files["empty_file"]
         try:
             extractor = ExcelExtractor(dummy_config)
             extractor.read_excel_file(empty_file)
-        except Exception as e:
-            assert isinstance(e, Exception)
+        except Exception as exception:
+            assert isinstance(exception, Exception)
 
         print("✅ File error scenarios integration complete")
 
@@ -544,10 +547,10 @@ class TestErrorHandlingIntegration:
         try:
             db_manager = DatabaseManager(invalid_config, test_mode=True)
             # If it doesn't raise exception, that's also acceptable
-        except Exception as e:
+        except Exception as exception:
             # Should be a database-related error
             assert any(
-                keyword in str(e).lower()
+                keyword in str(exception).lower()
                 for keyword in ["database", "connection", "url", "invalid"]
             )
 

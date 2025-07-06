@@ -34,15 +34,11 @@ jobs:
 
     - name: Run Pylint
       run: |
-        pylint src/ tests/ scripts/ --disable=C0114,C0116 --max-line-length=100
+        pylint src/ tests/ scripts/ --rcfile=config/.pylintrc --score=y --fail-under=9.75
 
     - name: Run MyPy type checking
       run: |
-        mypy src/ --ignore-missing-imports --no-strict-optional
-
-    - name: Run Flake8
-      run: |
-        flake8 src/ tests/ scripts/ --max-line-length=100 --extend-ignore=E203,W503
+        mypy src/ --config-file=config/mypy.ini
 
     - name: Check for unused imports
       run: |

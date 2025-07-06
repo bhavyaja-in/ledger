@@ -663,6 +663,6 @@ class TestExcelExtractor:
                     result = extractor.read_excel_file(legitimate_path)
                     mock_read.assert_called_once_with(legitimate_path, sheet_name=0)
                     pd.testing.assert_frame_equal(result, sample_dataframe)
-                except ValueError as e:
+                except ValueError as exception:
                     # If it's blocked, it should be for a good reason
-                    assert "system directory" in str(e) or "traversal" in str(e)
+                    assert "system directory" in str(exception) or "traversal" in str(exception)
