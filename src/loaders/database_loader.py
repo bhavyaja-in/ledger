@@ -246,7 +246,7 @@ class DatabaseLoader:
                 TransactionSplit.person_name,
                 func.sum(TransactionSplit.amount).label("unsettled_amount"),
                 func.count(TransactionSplit.id).label("unsettled_count"),
-            ).filter(TransactionSplit.is_settled == False)
+            ).filter(TransactionSplit.is_settled.is_(False))
 
             if person_name:
                 query = query.filter(TransactionSplit.person_name == person_name.lower().strip())
@@ -269,13 +269,13 @@ class DatabaseLoader:
                 .join(TransactionSplit, Transaction.id == TransactionSplit.transaction_id)
                 .filter(
                     TransactionSplit.person_name == person_name.lower().strip(),
-                    TransactionSplit.is_settled == False,
+                    TransactionSplit.is_settled.is_(False),
                 )
                 .order_by(Transaction.transaction_date.desc())
             )
 
             results = query.all()
-            return [(txn, split) for txn, split in results]
+            return list(results)
 
         finally:
             session.close()
@@ -301,7 +301,7 @@ class DatabaseLoader:
                 query = query.filter(Transaction.transaction_date <= end_date)
 
             results = query.all()
-            return [(txn, split) for txn, split in results]
+            return list(results)
 
         finally:
             session.close()

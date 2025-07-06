@@ -87,7 +87,7 @@ class CurrencyDetector:
         Returns:
             Selected currency code
         """
-        print(f"\n💱 Could not detect currency. Please select for:")
+        print("\n💱 Could not detect currency. Please select for:")
         print(f"📝 Transaction: {description[:60]}{'...' if len(description) > 60 else ''}")
         print("\n📋 Available currencies:")
 

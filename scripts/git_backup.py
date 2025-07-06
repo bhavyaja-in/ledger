@@ -277,7 +277,7 @@ Use the git_backup.py script to restore from backups.
                 print("✅ Backup committed and pushed to remote repository")
             except subprocess.CalledProcessError:
                 print("✅ Backup committed locally (no remote configured)")
-                print("💡 To push to remote: cd {} && git push".format(self.backup_repo_path))
+                print(f"💡 To push to remote: cd {self.backup_repo_path} && git push")
 
             return True
 
@@ -317,7 +317,7 @@ Use the git_backup.py script to restore from backups.
 
             return True
 
-        except Exception as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             print(f"❌ Restore failed: {exception}")
             return False
 
@@ -351,7 +351,7 @@ Use the git_backup.py script to restore from backups.
 
             return True
 
-        except Exception as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             print(f"❌ Restore failed: {exception}")
             return False
 

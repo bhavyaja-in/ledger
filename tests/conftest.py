@@ -60,7 +60,7 @@ def integration_test_environment():  # pylint: disable=unused-variable
     # Cleanup
     try:
         shutil.rmtree(test_dir)
-    except:
+    except Exception:  # pylint: disable=broad-except
         pass  # Best effort cleanup
 
 

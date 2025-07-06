@@ -541,7 +541,7 @@ Examples:
             if "handler" in locals():
                 print("🔄 Creating emergency backup...")
                 handler.backup_manager.create_backup("interruption")
-        except:
+        except Exception:  # pylint: disable=broad-except
             pass  # Don't fail if backup fails
         sys.exit(1)
 
