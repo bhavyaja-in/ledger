@@ -41,7 +41,7 @@ class GitDatabaseBackup:
         """Load backup configuration from YAML file"""
         if os.path.exists(config_path):
             try:
-                with open(config_path, "r") as file:
+                with open(config_path, "r", encoding="utf-8") as file:
                     config = yaml.safe_load(file) or {}
                 print(f"📋 Loaded backup configuration from {config_path}")
                 return config
@@ -80,7 +80,7 @@ class GitDatabaseBackup:
             subprocess.run(["git", "init"], check=True, capture_output=True)
 
             # Create README
-            with open("README.md", "w") as readme_file:
+            with open("README.md", "w", encoding="utf-8") as readme_file:
                 readme_file.write(
                     """# Financial Database Backups
 
@@ -107,10 +107,10 @@ Use the git_backup.py script to restore from backups.
 
             os.chdir("..")  # Go back to original directory
             print(f"✅ Created new backup repository: {self.backup_repo_path}")
-            print(f"💡 Create a private GitHub repo and add remote:")
+            print("💡 Create a private GitHub repo and add remote:")
             print(f"   cd {self.backup_repo_path}")
-            print(f"   git remote add origin https://github.com/YOUR_USERNAME/ledger-backups.git")
-            print(f"   git push -u origin main")
+            print("   git remote add origin https://github.com/YOUR_USERNAME/ledger-backups.git")
+            print("   git push -u origin main")
             return True
 
         except (OSError, IOError, subprocess.CalledProcessError) as exception:
@@ -149,7 +149,7 @@ Use the git_backup.py script to restore from backups.
             # Update backup log to note the archiving
             log_path = os.path.join(self.backup_repo_path, "backup_log.txt")
             timestamp_log = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(log_path, "a") as log_file:
+            with open(log_path, "a", encoding="utf-8") as log_file:
                 log_file.write(
                     f"{timestamp_log} - Previous backup archived as {timestamped_filename}\n"
                 )
@@ -248,7 +248,7 @@ Use the git_backup.py script to restore from backups.
         log_path = os.path.join(self.backup_repo_path, "backup_log.txt")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        with open(log_path, "a") as log_file:
+        with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write(f"{timestamp} - Database backup created\n")
 
     def _commit_backup(self):

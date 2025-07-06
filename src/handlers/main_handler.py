@@ -166,7 +166,7 @@ class MainHandler:
             ValueError,
             KeyError,
             AttributeError,
-            Exception,
+            Exception,  # Catch all non-system exceptions to prevent CLI crash; KeyboardInterrupt/SystemExit will propagate
         ) as exception:  # pylint: disable=broad-except
             print(f"💥 Error in main processing: {exception}")
             # Create backup even on error
@@ -534,14 +534,16 @@ Examples:
         # Exit with appropriate code
         sys.exit(0 if result.get("status") == "success" else 1)
 
-    except Exception as exception:
+    except (
+        Exception
+    ) as exception:  # Catch all non-system exceptions to provide user-friendly CLI error; KeyboardInterrupt/SystemExit will propagate
         print(f"\n💥 Fatal error: {exception}")
         # Try to create emergency backup
         try:
             if "handler" in locals():
                 print("🔄 Creating emergency backup...")
                 handler.backup_manager.create_backup("interruption")
-        except Exception:  # pylint: disable=broad-except
+        except Exception:  # Catch all exceptions to avoid backup failure crashing CLI
             pass  # Don't fail if backup fails
         sys.exit(1)
 

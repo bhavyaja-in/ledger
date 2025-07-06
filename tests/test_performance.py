@@ -10,6 +10,9 @@ This suite tests performance across all major system components:
 - System resource utilization
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import gc
 import json
 import os
@@ -669,7 +672,7 @@ class TestSystemPerformance:
             }
 
         # Generate benchmark report
-        print(f"\n🏆 Performance Benchmark Results:")
+        print("\n🏆 Performance Benchmark Results:")
         print(f"{'Operation':<20} {'Duration (s)':<12} {'Memory (MB)':<12}")
         print("-" * 45)
 
@@ -682,7 +685,7 @@ class TestSystemPerformance:
         # Save benchmark results for trend analysis
         benchmark_file = Path("config/performance_benchmark.json")
         if benchmark_file.exists():
-            with open(benchmark_file, "r") as f:
+            with open(benchmark_file, "r", encoding="utf-8") as f:
                 historical_data = json.load(f)
         else:
             historical_data = []
@@ -691,7 +694,7 @@ class TestSystemPerformance:
             {"timestamp": datetime.now().isoformat(), "results": benchmark_results}
         )
 
-        with open(benchmark_file, "w") as f:
+        with open(benchmark_file, "w", encoding="utf-8") as f:
             json.dump(historical_data, f, indent=2)
 
         # Assert that all benchmarks are within reasonable bounds

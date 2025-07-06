@@ -257,7 +257,7 @@ class DatabaseLoader:
         finally:
             session.close()
 
-    def get_person_unsettled_transactions(self, person_name: str):
+    def get_unsettled_transactions(self, person_name: str):
         """Get all unsettled transactions for a specific person"""
         session = self.db_manager.get_session()
         try:
@@ -409,7 +409,7 @@ class DatabaseLoader:
         finally:
             session.close()
 
-    def check_skipped_transaction_exists(self, transaction_hash: str) -> bool:
+    def check_skipped_exists(self, transaction_hash: str) -> bool:
         """Check if transaction was already skipped"""
         session = self.db_manager.get_session()
         try:

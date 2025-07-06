@@ -559,14 +559,14 @@ def test_smoke_environment_setup():  # pylint: disable=unused-variable
 
 
 @pytest.mark.smoke
-def test_smoke_configuration_loading():  # pylint: disable=unused-variable
+def test_smoke_config_loading():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for configuration loading"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_configuration_loading(), "Configuration loading failed"
 
 
 @pytest.mark.smoke
-def test_smoke_database_connectivity():  # pylint: disable=unused-variable
+def test_smoke_db_connectivity():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for database connectivity"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_database_connectivity(), "Database connectivity failed"
@@ -580,7 +580,7 @@ def test_smoke_critical_modules():  # pylint: disable=unused-variable
 
 
 @pytest.mark.smoke
-def test_smoke_file_processing_pipeline():  # pylint: disable=unused-variable
+def test_smoke_file_pipeline():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for file processing pipeline"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_file_processing_pipeline(), "File processing pipeline failed"
@@ -594,7 +594,7 @@ def test_smoke_security_boundaries():  # pylint: disable=unused-variable
 
 
 @pytest.mark.smoke
-def test_smoke_performance_baselines():  # pylint: disable=unused-variable
+def test_smoke_performance():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for performance baselines"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_performance_baselines(), "Performance baselines test failed"

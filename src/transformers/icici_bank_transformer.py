@@ -128,7 +128,7 @@ class IciciBankTransformer:
 
                     # Use the same transaction hash for checking skipped transactions
                     # This ensures consistency across different processing sessions
-                    if self.db_loader.check_skipped_transaction_exists(transaction_hash):
+                    if self.db_loader.check_skipped_exists(transaction_hash):
                         if not reprocess_skipped:
                             print(
                                 "⚠️  Transaction previously skipped - auto-skipping (set reprocess_skipped_transactions=true to change)"
@@ -196,7 +196,7 @@ class IciciBankTransformer:
                     AttributeError,
                     OSError,
                     IOError,
-                    Exception,
+                    Exception,  # Catch all non-system exceptions to prevent CLI crash; KeyboardInterrupt/SystemExit will propagate
                 ) as exception:  # pylint: disable=broad-except
                     print(f"\u274c Error processing transaction: {exception}")
                     results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
@@ -217,9 +217,9 @@ class IciciBankTransformer:
             AttributeError,
             OSError,
             IOError,
-            Exception,
+            Exception,  # Catch all non-system exceptions to prevent CLI crash; KeyboardInterrupt/SystemExit will propagate
         ) as exception:  # pylint: disable=broad-except
-            print(f"\n❌ Error during processing: {exception}")
+            print(f"\n\u274c Error during processing: {exception}")
             results["status"] = "error"
 
         return results
@@ -282,8 +282,7 @@ class IciciBankTransformer:
             AttributeError,
             OSError,
             IOError,
-            Exception,
-        ) as exception:  # pylint: disable=broad-except
+        ) as exception:
             print(f"Error transforming transaction: {exception}")
             return None
 
@@ -598,7 +597,7 @@ class IciciBankTransformer:
         """Ask user for enum name with intelligent suggestion"""
         suggested_name = f"{pattern_word}_transaction"
 
-        print(f"\n🤔  What should this enum be called?")
+        print("\n🤔  What should this enum be called?")
         print(f"💡 Suggestion: {suggested_name}")
 
         while True:
@@ -670,7 +669,7 @@ class IciciBankTransformer:
             if self._interrupted:
                 return "other"  # Return default if interrupted
 
-            choice = input(f"\n🔢 Enum Category: ").strip()
+            choice = input("\n🔢 Enum Category: ").strip()
 
             # Check if user entered a number
             if choice.isdigit():
@@ -693,12 +692,7 @@ class IciciBankTransformer:
                     try:
                         self.config_loader.add_category(category_name)
                         print(f"✅ Created and saved new enum category: {category_name.title()}")
-                    except (
-                        OSError,
-                        IOError,
-                        PermissionError,
-                        Exception,
-                    ) as exception:  # pylint: disable=broad-except
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Enum category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
@@ -765,12 +759,7 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except (
-                        OSError,
-                        IOError,
-                        PermissionError,
-                        Exception,
-                    ) as exception:  # pylint: disable=broad-except
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
@@ -848,12 +837,7 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except (
-                        OSError,
-                        IOError,
-                        PermissionError,
-                        Exception,
-                    ) as exception:  # pylint: disable=broad-except
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available

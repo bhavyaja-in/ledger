@@ -35,7 +35,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             config_filename = os.path.basename(self.config_path)
             raise FileNotFoundError(f"Config file not found: {config_filename}")
 
-        with open(self.config_path, "r") as file:
+        with open(self.config_path, "r", encoding="utf-8") as file:
             self._config = yaml.safe_load(file) or {}
 
         # Load categories from separate file
@@ -65,7 +65,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
         """Load template categories from YAML file or defaults"""
         if os.path.exists(self.categories_path):
             # Load from separate categories file
-            with open(self.categories_path, "r") as file:
+            with open(self.categories_path, "r", encoding="utf-8") as file:
                 categories_config = yaml.safe_load(file) or {}
                 return categories_config.get("categories", [])
         # Return default template categories
@@ -145,7 +145,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             # Ensure config directory exists
             os.makedirs(os.path.dirname(self.categories_path), exist_ok=True)
 
-            with open(self.categories_path, "w") as file:
+            with open(self.categories_path, "w", encoding="utf-8") as file:
                 yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
 
             print(
@@ -194,7 +194,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
         # Ensure config directory exists
         os.makedirs(os.path.dirname(self.categories_path), exist_ok=True)
 
-        with open(self.categories_path, "w") as file:
+        with open(self.categories_path, "w", encoding="utf-8") as file:
             yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
 
         # Update in-memory config directly (YAML file is now the source of truth)

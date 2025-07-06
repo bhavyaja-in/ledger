@@ -3,6 +3,9 @@ Minimal but comprehensive unit tests for icici_bank_transformer.py.
 All interactive methods are properly mocked to prevent hanging.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import signal
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
@@ -491,11 +494,7 @@ class TestIciciBankTransformer:
             patch.object(transformer, "_transform_transaction", return_value=complete_transaction),
             patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
             patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
-            patch.object(
-                transformer.db_loader,
-                "check_skipped_transaction_exists",
-                return_value=False,
-            ),
+            patch.object(transformer.db_loader, "check_skipped_exists", return_value=False),
             patch.object(transformer, "_display_transaction"),
             patch.object(
                 transformer,
@@ -730,7 +729,7 @@ class TestIciciBankTransformer:
 
     def test_ask_for_category_config_loader_exception(self, transformer):
         """Test category creation with config loader exception"""
-        transformer.config_loader.add_category.side_effect = Exception("Save failed")
+        transformer.config_loader.add_category.side_effect = OSError("Save failed")
 
         with (
             patch("builtins.input", return_value="problem_cat"),
@@ -759,7 +758,7 @@ class TestIciciBankTransformer:
 
     def test_ask_for_transaction_category_config_loader_exception(self, transformer):
         """Test transaction category creation with config loader exception"""
-        transformer.config_loader.add_category.side_effect = Exception("Save failed")
+        transformer.config_loader.add_category.side_effect = OSError("Save failed")
 
         with (
             patch("builtins.input", return_value="problem_trans_cat"),
@@ -860,7 +859,7 @@ class TestIciciBankTransformer:
         """Test transaction transformation with exception"""
         # Mock row_data that will cause an exception
         row_data = Mock()
-        row_data.get.side_effect = Exception("Mock exception")
+        row_data.get.side_effect = ValueError("Mock exception")
 
         with patch("builtins.print") as mock_print:
             result = transformer._transform_transaction(row_data)
@@ -956,9 +955,7 @@ class TestIciciBankTransformer:
             ),
             patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
             patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
-            patch.object(
-                transformer.db_loader, "check_skipped_transaction_exists", return_value=True
-            ),
+            patch.object(transformer.db_loader, "check_skipped_exists", return_value=True),
             patch("builtins.print") as mock_print,
         ):
             result = transformer.process_transactions(extracted_data, Mock(id=1), Mock(id=1))
@@ -992,9 +989,7 @@ class TestIciciBankTransformer:
             ),
             patch.object(transformer, "_create_transaction_hash", return_value="hash123"),
             patch.object(transformer.db_loader, "check_transaction_exists", return_value=False),
-            patch.object(
-                transformer.db_loader, "check_skipped_transaction_exists", return_value=True
-            ),
+            patch.object(transformer.db_loader, "check_skipped_exists", return_value=True),
             patch.object(transformer, "_display_transaction"),
             patch.object(
                 transformer,

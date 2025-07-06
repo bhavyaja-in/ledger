@@ -65,9 +65,10 @@ def integration_test_environment():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def test_configurations(integration_test_environment):  # noqa: W0621
+def test_configurations(integration_test_environment):  # pylint: disable=redefined-outer-name
     """Create test configuration files"""
-    config_dir = integration_test_environment["config_dir"]
+    test_env = integration_test_environment
+    config_dir = test_env["config_dir"]
 
     # Test config.yaml
     integration_test_config = {
@@ -80,7 +81,7 @@ def test_configurations(integration_test_environment):  # noqa: W0621
     }
 
     config_file = config_dir / "config.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(integration_test_config, f)
 
     # Test categories.yaml
@@ -97,21 +98,24 @@ def test_configurations(integration_test_environment):  # noqa: W0621
     }
 
     categories_file = config_dir / "categories.yaml"
-    with open(categories_file, "w") as f:
+    with open(categories_file, "w", encoding="utf-8") as f:
         yaml.dump(test_categories, f)
 
-    integration_test_environment["config_files"] = {
+    test_env["config_files"] = {
         "config": str(config_file),
         "categories": str(categories_file),
     }
 
-    return integration_test_environment["config_files"]
+    return test_env["config_files"]
 
 
 @pytest.fixture
-def realistic_transaction_files(integration_test_environment):  # noqa: W0621
+def realistic_transaction_files(
+    integration_test_environment,
+):  # pylint: disable=redefined-outer-name
     """Create realistic bank statement files for testing"""
-    icici_dir = integration_test_environment["data_dir"] / "icici_bank"
+    test_env = integration_test_environment
+    icici_dir = test_env["data_dir"] / "icici_bank"
 
     # Create realistic ICICI Bank statement data
     realistic_test_files = {}
@@ -218,7 +222,7 @@ def realistic_transaction_files(integration_test_environment):  # noqa: W0621
 
     # File 4: Corrupted/malformed file for error testing
     corrupted_file = icici_dir / "corrupted_statement.xlsx"
-    with open(corrupted_file, "w") as f:
+    with open(corrupted_file, "w", encoding="utf-8") as f:
         f.write("This is not a valid Excel file")
     realistic_test_files["corrupted_file"] = str(corrupted_file)
 
@@ -228,7 +232,7 @@ def realistic_transaction_files(integration_test_environment):  # noqa: W0621
     empty_dataframe.to_excel(empty_file, index=False)
     realistic_test_files["empty_file"] = str(empty_file)
 
-    integration_test_environment["test_files"] = realistic_test_files
+    test_env["test_files"] = realistic_test_files
     return realistic_test_files
 
 
@@ -241,24 +245,26 @@ def temp_dir():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def temp_config_dir(temp_dir):  # noqa: W0621
+def temp_config_dir(temp_dir):  # pylint: disable=redefined-outer-name
     """Create temporary config directory"""
-    config_dir = temp_dir / "config"
+    base_dir = temp_dir
+    config_dir = base_dir / "config"
     config_dir.mkdir()
     return config_dir
 
 
 @pytest.fixture
-def temp_data_dir(temp_dir):  # noqa: W0621
+def temp_data_dir(temp_dir):  # pylint: disable=redefined-outer-name
     """Create temporary data directory"""
-    data_dir = temp_dir / "data"
+    base_dir = temp_dir
+    data_dir = base_dir / "data"
     data_dir.mkdir()
     return data_dir
 
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(temp_config_dir):
+def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name
     """Create test configuration"""
     test_config_data = {
         "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
@@ -267,15 +273,16 @@ def test_config(temp_config_dir):
     }
 
     config_file = temp_config_dir / "config.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(test_config_data, f)
 
     return test_config_data
 
 
 @pytest.fixture
-def test_categories_config(temp_config_dir):  # noqa: W0621
+def test_categories_config(temp_config_dir):  # pylint: disable=redefined-outer-name
     """Create test categories configuration"""
+    base_config_dir = temp_config_dir
     test_categories_data = {
         "categories": [
             {"name": "income"},
@@ -289,8 +296,8 @@ def test_categories_config(temp_config_dir):  # noqa: W0621
         ]
     }
 
-    categories_file = temp_config_dir / "categories.yaml"
-    with open(categories_file, "w") as f:
+    categories_file = base_config_dir / "categories.yaml"
+    with open(categories_file, "w", encoding="utf-8") as f:
         yaml.dump(test_categories_data, f)
 
     return test_categories_data
@@ -355,16 +362,21 @@ def sample_transaction_data():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def sample_dataframe(sample_transaction_data):  # noqa: W0621
+def sample_dataframe(sample_transaction_data):  # pylint: disable=redefined-outer-name
     """Sample pandas DataFrame for testing"""
-    return pd.DataFrame(sample_transaction_data)
+    transaction_data = sample_transaction_data
+    return pd.DataFrame(transaction_data)
 
 
 @pytest.fixture
-def sample_excel_file(temp_data_dir, sample_transaction_data):  # noqa: W0621
+def sample_excel_file(
+    temp_data_dir, sample_transaction_data
+):  # pylint: disable=redefined-outer-name
     """Create sample Excel file for testing"""
-    sample_df = pd.DataFrame(sample_transaction_data)
-    excel_file = temp_data_dir / "sample_transactions.xlsx"
+    base_data_dir = temp_data_dir
+    transaction_data = sample_transaction_data
+    sample_df = pd.DataFrame(transaction_data)
+    excel_file = base_data_dir / "sample_transactions.xlsx"
     sample_df.to_excel(excel_file, index=False)
     return str(excel_file)
 

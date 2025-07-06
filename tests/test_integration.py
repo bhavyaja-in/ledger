@@ -27,6 +27,9 @@ Safety Guarantees:
 - Complete test environment isolation
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import json
 import os
 import shutil

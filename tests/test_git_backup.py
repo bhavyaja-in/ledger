@@ -5,6 +5,9 @@ Tests every method, branch condition, exception path, and edge case
 to ensure enterprise-grade quality and complete code coverage.
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import base64
 import os
 import shutil
@@ -78,7 +81,7 @@ class TestGitDatabaseBackup:
         }
 
         config_file = temp_config_dir / "backup.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             yaml.dump(config_data, f)
 
         backup = GitDatabaseBackup(config_path=str(config_file))
@@ -104,7 +107,7 @@ class TestGitDatabaseBackup:
     def test_load_config_yaml_error(self, temp_config_dir, capsys):
         """Test _load_config handles YAML parsing errors"""
         config_file = temp_config_dir / "backup.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write("invalid: yaml: content: [")
 
         backup = GitDatabaseBackup(config_path=str(config_file))
@@ -118,7 +121,7 @@ class TestGitDatabaseBackup:
     def test_load_config_empty_file(self, temp_config_dir):
         """Test _load_config handles empty YAML file"""
         config_file = temp_config_dir / "backup.yaml"
-        with open(config_file, "w") as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             f.write("")
 
         backup = GitDatabaseBackup(config_path=str(config_file))

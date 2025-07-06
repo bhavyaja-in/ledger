@@ -10,6 +10,9 @@ This suite tests critical security aspects:
 - Memory security and data clearing
 """
 
+# pylint: disable=unused-variable
+# Test fixtures often unpack variables that may not all be used in every test
+
 import base64
 import gc
 import hashlib
@@ -203,7 +206,7 @@ class TestInputValidationSecurity:
                     # If successful, ensure reasonable limits are enforced
                     if result and "description" in result:
                         assert len(result["description"]) < 50000  # Reasonable limit
-                except (MemoryError, ValueError, OverflowError) as exception:
+                except (MemoryError, ValueError, OverflowError):  # pylint: disable=unused-variable
                     # Acceptable - system properly rejected oversized input
                     pass
 
@@ -328,7 +331,9 @@ class TestSensitiveDataProtection:
 
         # Create transaction hash
         with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
-            transaction_hash = transformer._create_transaction_hash(sensitive_data)
+            _ = transformer._create_transaction_hash(
+                sensitive_data
+            )  # pylint: disable=unused-variable
 
         # Force garbage collection
         sensitive_data = None
@@ -360,7 +365,7 @@ class TestSensitiveDataProtection:
             try:
                 config_loader = ConfigLoader(config_path="nonexistent_config.yaml")
                 config_loader.get_config()
-            except Exception as exception:
+            except Exception as exception:  # pylint: disable=unused-variable
                 error_message = str(exception)
                 # Error messages should not contain sensitive information
                 sensitive_keywords = ["password", "secret", "key", "token", "api"]
@@ -857,7 +862,7 @@ class TestSystemBoundarySecurity:
         from src.loaders.database_loader import DatabaseLoader
 
         mock_db_manager = Mock()
-        loader = DatabaseLoader(mock_db_manager)
+        _ = DatabaseLoader(mock_db_manager)  # pylint: disable=unused-variable
 
         # Basic security validation - system can handle security events
         assert len(security_events) > 0
@@ -891,7 +896,7 @@ class TestSystemBoundarySecurity:
 
             try:
                 loader.create_transaction(transaction_data)
-            except Exception as exception:
+            except Exception:  # pylint: disable=unused-variable
                 # Acceptable if mocked components cause issues
                 pass
 
