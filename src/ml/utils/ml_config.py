@@ -12,30 +12,30 @@ class MLConfig:
     MIN_PATTERN_LENGTH = 3
     MAX_PATTERN_LENGTH = 50
     MIN_DESCRIPTION_LENGTH = 5
-    
+
     # Similarity Thresholds
     FUZZY_MATCH_THRESHOLD = 0.8
     COSINE_SIMILARITY_THRESHOLD = 0.7
-    
+
     # Learning Parameters
     CONFIDENCE_THRESHOLD = 0.6
     FEEDBACK_WEIGHT = 1.5
     DECAY_FACTOR = 0.95
-    
+
     # TF-IDF Parameters
     MAX_FEATURES = 1000
     MIN_DF = 2
     MAX_DF = 0.8
     NGRAM_RANGE = (1, 2)
-    
+
     # Model Settings
     NAIVE_BAYES_ALPHA = 1.0
     MAX_SUGGESTIONS = 5
-    
+
     # Temporal Settings
     SHORT_TERM_DAYS = 30
     SEASONAL_PATTERN_MONTHS = 12
-    
+
     @classmethod
     def get_default_config(cls) -> Dict[str, Any]:
         """Get default ML configuration."""
