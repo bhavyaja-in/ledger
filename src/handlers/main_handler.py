@@ -160,7 +160,14 @@ class MainHandler:
             self.backup_manager.create_backup("interruption")
             print("👋 Goodbye!")
             sys.exit(0)
-        except (OSError, IOError, ValueError, KeyError, AttributeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            AttributeError,
+            Exception,
+        ) as exception:  # pylint: disable=broad-except
             print(f"💥 Error in main processing: {exception}")
             # Create backup even on error
             print("\n🔄 Creating backup before exit...")
