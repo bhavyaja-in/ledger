@@ -199,7 +199,10 @@ class SmokeTestSuite:
             duration = time.time() - start_time
             self.performance_metrics["config_load_time"] = duration
 
-            success = len(missing_sections) == 0 and len(categories) >= 0
+            # Success only if all required sections are present and categories is a non-empty list
+            success = (
+                len(missing_sections) == 0 and isinstance(categories, list) and len(categories) > 0
+            )
 
             self.record_result(
                 "Configuration Loading",
@@ -370,6 +373,8 @@ class SmokeTestSuite:
             duration = time.time() - start_time
             success = len(security_checks) == 0
 
+            self.security_checks = security_checks  # Ensure attribute is set for generate_report
+
             self.record_result(
                 "Security Boundaries",
                 success,
@@ -516,7 +521,6 @@ def main():
     parser = argparse.ArgumentParser(description="Enterprise Smoke Test Suite")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--json", "-j", action="store_true", help="JSON output")
-    parser.add_argument("--timeout", "-t", type=int, default=60, help="Test timeout in seconds")
 
     args = parser.parse_args()
 
