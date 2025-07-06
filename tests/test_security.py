@@ -109,7 +109,11 @@ class TestInputValidationSecurity:
                 loader.create_transaction(transaction_data)
 
                 # If no exception, verify the data was sanitized
-                call_args = mock_session.add.call_args[0][0] if mock_session.add.called else None
+                call_args = (
+                    mock_session.add.call_args[0][0]
+                    if mock_session.add.called
+                    else None
+                )
                 if call_args:
                     description = getattr(call_args, "description", "")
                     assert "DROP TABLE" not in description
@@ -147,7 +151,9 @@ class TestInputValidationSecurity:
                 "S No.": "TEST001",
             }
 
-            with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
+            with patch.object(
+                transformer, "_determine_transaction_currency", return_value="INR"
+            ):
                 result = transformer._transform_transaction(transaction_data)
 
                 # Ensure script tags and javascript are not preserved as-is
@@ -169,7 +175,9 @@ class TestInputValidationSecurity:
         path_traversals = malicious_inputs["path_traversal"]
 
         for malicious_path in path_traversals:
-            with pytest.raises((FileNotFoundError, PermissionError, ValueError, OSError)):
+            with pytest.raises(
+                (FileNotFoundError, PermissionError, ValueError, OSError)
+            ):
                 # Should fail safely without exposing system files
                 extractor.read_excel_file(malicious_path)
 
@@ -200,13 +208,19 @@ class TestInputValidationSecurity:
                 "S No.": "TEST001",
             }
 
-            with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
+            with patch.object(
+                transformer, "_determine_transaction_currency", return_value="INR"
+            ):
                 try:
                     result = transformer._transform_transaction(transaction_data)
                     # If successful, ensure reasonable limits are enforced
                     if result and "description" in result:
                         assert len(result["description"]) < 50000  # Reasonable limit
-                except (MemoryError, ValueError, OverflowError):  # pylint: disable=unused-variable
+                except (
+                    MemoryError,
+                    ValueError,
+                    OverflowError,
+                ):  # pylint: disable=unused-variable
                     # Acceptable - system properly rejected oversized input
                     pass
 
@@ -246,7 +260,9 @@ class TestSensitiveDataProtection:
                     import re
 
                     if re.search(pattern.lower(), log_content):
-                        violations.append(f"Potential sensitive data pattern found: {pattern}")
+                        violations.append(
+                            f"Potential sensitive data pattern found: {pattern}"
+                        )
 
                 return violations
 
@@ -287,7 +303,9 @@ class TestSensitiveDataProtection:
             }
 
             with (
-                patch.object(transformer, "_determine_transaction_currency", return_value="INR"),
+                patch.object(
+                    transformer, "_determine_transaction_currency", return_value="INR"
+                ),
                 patch("builtins.print"),
                 patch("logging.Logger.info"),
                 patch("logging.Logger.debug"),
@@ -330,7 +348,9 @@ class TestSensitiveDataProtection:
         }
 
         # Create transaction hash
-        with patch.object(transformer, "_determine_transaction_currency", return_value="INR"):
+        with patch.object(
+            transformer, "_determine_transaction_currency", return_value="INR"
+        ):
             _ = transformer._create_transaction_hash(
                 sensitive_data
             )  # pylint: disable=unused-variable
@@ -352,7 +372,9 @@ class TestSensitiveDataProtection:
                 for sensitive_string in sensitive_strings:
                     # Allow for the data to exist in test context but not in production-like scenarios
                     if sensitive_string in obj and "test" not in obj.lower():
-                        pytest.fail(f"Sensitive data found in memory: {sensitive_string}")
+                        pytest.fail(
+                            f"Sensitive data found in memory: {sensitive_string}"
+                        )
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -361,7 +383,9 @@ class TestSensitiveDataProtection:
         from src.utils.config_loader import ConfigLoader
 
         # Test that config loader doesn't expose sensitive data in error messages
-        with patch("builtins.open", side_effect=FileNotFoundError("Config file not found")):
+        with patch(
+            "builtins.open", side_effect=FileNotFoundError("Config file not found")
+        ):
             try:
                 config_loader = ConfigLoader(config_path="nonexistent_config.yaml")
                 config_loader.get_config()
@@ -378,7 +402,9 @@ class TestSensitiveDataProtection:
         """Test that database connection strings don't leak sensitive information"""
         from src.models.database import DatabaseManager
 
-        config = {"database": {"url": "sqlite:///sensitive_database.db?password=secret123"}}
+        config = {
+            "database": {"url": "sqlite:///sensitive_database.db?password=secret123"}
+        }
 
         with (
             patch("src.models.database.create_engine") as mock_create_engine,
@@ -390,7 +416,9 @@ class TestSensitiveDataProtection:
 
             # Mock the connect method to return a context manager
             mock_connection = Mock()
-            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__enter__ = Mock(
+                return_value=mock_connection
+            )
             mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
 
             mock_create_engine.return_value = mock_engine
@@ -487,7 +515,9 @@ class TestFileAccessSecurity:
 
         for traversal_path in traversal_paths:
             # Should not access files outside intended directory
-            with pytest.raises((FileNotFoundError, PermissionError, OSError, ValueError)):
+            with pytest.raises(
+                (FileNotFoundError, PermissionError, OSError, ValueError)
+            ):
                 extractor.get_file_info(traversal_path)
 
 
@@ -570,7 +600,9 @@ class TestDatabaseSecurity:
 
             # Mock the connect method to return a context manager
             mock_connection = Mock()
-            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__enter__ = Mock(
+                return_value=mock_connection
+            )
             mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
 
             mock_create_engine.return_value = mock_engine
@@ -754,7 +786,9 @@ class TestSystemBoundarySecurity:
 
         # Test that exceptions don't leak file paths or sensitive data
         try:
-            config_loader = ConfigLoader(config_path="/nonexistent/sensitive/path/config.yaml")
+            config_loader = ConfigLoader(
+                config_path="/nonexistent/sensitive/path/config.yaml"
+            )
             config_loader.get_config()
         except Exception as exception:
             error_message = str(exception)
@@ -792,7 +826,9 @@ class TestSystemBoundarySecurity:
             "  level: INFO\n"
         )
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as temp_config:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".yaml", delete=False
+        ) as temp_config:
             temp_config.write(test_config_content)
             temp_config_path = temp_config.name
 
@@ -803,8 +839,13 @@ class TestSystemBoundarySecurity:
                 patch(
                     "yaml.safe_load",
                     return_value={
-                        "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-                        "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
+                        "database": {
+                            "url": "sqlite:///:memory:",
+                            "test_prefix": "test_",
+                        },
+                        "processors": {
+                            "icici_bank": {"enabled": True, "currency": "INR"}
+                        },
                         "logging": {"level": "INFO"},
                     },
                 ),
@@ -1149,4 +1190,6 @@ class TestSecurityIntegration:
             # Check that path traversal sequences are removed
             assert ".." not in sanitized
             assert "etc" not in sanitized or sanitized == "etc_passwd"
-            assert "windows" not in sanitized or "windows_system32_config_sam" in sanitized
+            assert (
+                "windows" not in sanitized or "windows_system32_config_sam" in sanitized
+            )

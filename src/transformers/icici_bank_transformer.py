@@ -15,8 +15,12 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Local imports after path setup
-from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
-from src.utils.currency_detector import CurrencyDetector  # pylint: disable=wrong-import-position
+from src.loaders.database_loader import (
+    DatabaseLoader,
+)  # pylint: disable=wrong-import-position
+from src.utils.currency_detector import (
+    CurrencyDetector,
+)  # pylint: disable=wrong-import-position
 from src.utils.security import (  # pylint: disable=wrong-import-position
     sanitize_text_input,
     validate_amount,
@@ -39,7 +43,9 @@ class IciciBankTransformer:
 
         # Get processor currencies with proper validation
         processor_currencies = (
-            self.config.get("processors", {}).get(self.processor_type, {}).get("currency", ["INR"])
+            self.config.get("processors", {})
+            .get(self.processor_type, {})
+            .get("currency", ["INR"])
         )
 
         # Use the currency detector's normalize_currency_list method for validation
@@ -86,7 +92,9 @@ class IciciBankTransformer:
                 if self._interrupted:
                     break
 
-                print(f"\n{'🔄' if i <= 5 else '⚡'} Transaction {i} of {len(transactions)}")
+                print(
+                    f"\n{'🔄' if i <= 5 else '⚡'} Transaction {i} of {len(transactions)}"
+                )
                 print("-" * 50)
 
                 try:
@@ -143,7 +151,9 @@ class IciciBankTransformer:
                     self._display_transaction(transformed)
 
                     # Step 5: Interactive processing with skip option during enum check
-                    processing_result = self._process_transaction_interactive(transformed)
+                    processing_result = self._process_transaction_interactive(
+                        transformed
+                    )
 
                     if processing_result["action"] == "skip":
                         self._handle_skipped_transaction(
@@ -175,7 +185,9 @@ class IciciBankTransformer:
                         "currency": transformed["currency"],
                         "enum_id": processing_result.get("enum_id"),
                         "category": processing_result.get("category"),
-                        "transaction_category": processing_result.get("transaction_category"),
+                        "transaction_category": processing_result.get(
+                            "transaction_category"
+                        ),
                         "reason": processing_result.get("reason"),
                         "splits": processing_result.get("splits"),
                         "is_settled": False,
@@ -195,7 +207,9 @@ class IciciBankTransformer:
                     IOError,
                 ) as exception:
                     print(f"\u274c Error processing transaction: {exception}")
-                    results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
+                    results["skipped_transactions"] = (
+                        cast(int, results["skipped_transactions"]) + 1
+                    )
 
             # Determine final status
             proc_trans = cast(int, results["processed_transactions"])
@@ -219,7 +233,9 @@ class IciciBankTransformer:
 
         return results
 
-    def _transform_transaction(self, row_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _transform_transaction(
+        self, row_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Transform raw transaction data"""
         try:
             # Extract and parse date
@@ -244,7 +260,9 @@ class IciciBankTransformer:
             description = sanitize_text_input(raw_description, max_length=1000)
 
             # Extract amounts using correct column names and validate them
-            withdrawal = validate_amount(str(row_data.get("Withdrawal Amount (INR )", "")))
+            withdrawal = validate_amount(
+                str(row_data.get("Withdrawal Amount (INR )", ""))
+            )
             deposit = validate_amount(str(row_data.get("Deposit Amount (INR )", "")))
             balance = validate_amount(str(row_data.get("Balance (INR )", "")))
 
@@ -345,7 +363,9 @@ class IciciBankTransformer:
 
         # Fallback to default currency if detection and user input both fail
         if not currency:
-            print(f"⚠️ Currency detection failed. Using default: {self.processor_currencies[0]}")
+            print(
+                f"⚠️ Currency detection failed. Using default: {self.processor_currencies[0]}"
+            )
             return self.processor_currencies[0]
 
         return currency
@@ -376,7 +396,9 @@ class IciciBankTransformer:
 
         print(f"💱 Currency: {currency}")
 
-    def _process_transaction_interactive(self, transaction: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_transaction_interactive(
+        self, transaction: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Interactive transaction processing with skip option during enum check"""
         description = transaction["description"]
 
@@ -413,7 +435,9 @@ class IciciBankTransformer:
 
         # Step 2: Ask for reason
         print("\n📋 What's the reason for this transaction?")
-        print("💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'")
+        print(
+            "💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'"
+        )
 
         while True:
             if self._interrupted:
@@ -432,7 +456,9 @@ class IciciBankTransformer:
                 print(f"ℹ️  Using default reason: {reason}")
                 break
 
-            print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
+            print(
+                "❌ Please enter a reason (at least 3 characters) or press Enter for default"
+            )
 
         # Step 3: Ask for splits
         splits = self._ask_for_splits()
@@ -525,7 +551,9 @@ class IciciBankTransformer:
         suggested_pattern = suggestions[0] if suggestions else "transaction"
 
         print(f"\n💡 Suggested pattern: {suggested_pattern}")
-        print("📝 Enter a custom pattern word, press Enter to use suggestion, or type '2' to skip")
+        print(
+            "📝 Enter a custom pattern word, press Enter to use suggestion, or type '2' to skip"
+        )
 
         while True:
             if self._interrupted:
@@ -597,7 +625,9 @@ class IciciBankTransformer:
             if self._interrupted:
                 return suggested_name  # Return default if interrupted
 
-            enum_name = input(f"\n📛 Enum name [press Enter for '{suggested_name}']: ").strip()
+            enum_name = input(
+                f"\n📛 Enum name [press Enter for '{suggested_name}']: "
+            ).strip()
 
             if not enum_name:
                 enum_name = suggested_name
@@ -684,9 +714,13 @@ class IciciBankTransformer:
                 if self.config_loader:
                     try:
                         self.config_loader.add_category(category_name)
-                        print(f"✅ Created and saved new enum category: {category_name.title()}")
+                        print(
+                            f"✅ Created and saved new enum category: {category_name.title()}"
+                        )
                     except (OSError, IOError, PermissionError) as exception:
-                        print(f"⚠️  Enum category created but couldn't save: {exception}")
+                        print(
+                            f"⚠️  Enum category created but couldn't save: {exception}"
+                        )
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -698,7 +732,9 @@ class IciciBankTransformer:
                         self.config["categories"].append({"name": category_name})
                         print(f"✅ Created new enum category: {category_name.title()}")
                     else:
-                        print(f"✅ Selected existing enum category: {category_name.title()}")
+                        print(
+                            f"✅ Selected existing enum category: {category_name.title()}"
+                        )
 
                 return category_name
             print("❌ Category name must be at least 2 characters long")
@@ -734,7 +770,9 @@ class IciciBankTransformer:
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
-                    print(f"✅ Selected transaction category: {selected_category.title()}")
+                    print(
+                        f"✅ Selected transaction category: {selected_category.title()}"
+                    )
                     return selected_category
                 print(
                     f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name."
@@ -753,7 +791,9 @@ class IciciBankTransformer:
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
                     except (OSError, IOError, PermissionError) as exception:
-                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
+                        print(
+                            f"⚠️  Transaction category created but couldn't save: {exception}"
+                        )
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -763,14 +803,20 @@ class IciciBankTransformer:
                         if "categories" not in self.config:
                             self.config["categories"] = []
                         self.config["categories"].append({"name": category_name})
-                        print(f"✅ Created new transaction category: {category_name.title()}")
+                        print(
+                            f"✅ Created new transaction category: {category_name.title()}"
+                        )
                     else:
-                        print(f"✅ Selected existing transaction category: {category_name.title()}")
+                        print(
+                            f"✅ Selected existing transaction category: {category_name.title()}"
+                        )
 
                 return category_name
             print("❌ Category name must be at least 2 characters long")
 
-    def _ask_for_transaction_category_with_options(self, enum_category: str) -> Dict[str, Any]:
+    def _ask_for_transaction_category_with_options(
+        self, enum_category: str
+    ) -> Dict[str, Any]:
         """Ask user to select transaction category with skip and create new pattern options"""
         categories = [cat["name"] for cat in self.config.get("categories", [])]
 
@@ -812,7 +858,9 @@ class IciciBankTransformer:
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
-                    print(f"✅ Selected transaction category: {selected_category.title()}")
+                    print(
+                        f"✅ Selected transaction category: {selected_category.title()}"
+                    )
                     return {"action": "process", "category": selected_category}
                 print(
                     f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)"
@@ -831,7 +879,9 @@ class IciciBankTransformer:
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
                     except (OSError, IOError, PermissionError) as exception:
-                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
+                        print(
+                            f"⚠️  Transaction category created but couldn't save: {exception}"
+                        )
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -841,9 +891,13 @@ class IciciBankTransformer:
                         if "categories" not in self.config:
                             self.config["categories"] = []
                         self.config["categories"].append({"name": category_name})
-                        print(f"✅ Created new transaction category: {category_name.title()}")
+                        print(
+                            f"✅ Created new transaction category: {category_name.title()}"
+                        )
                     else:
-                        print(f"✅ Selected existing transaction category: {category_name.title()}")
+                        print(
+                            f"✅ Selected existing transaction category: {category_name.title()}"
+                        )
 
                 return {"action": "process", "category": category_name}
             print("❌ Category name must be at least 2 characters long")
@@ -851,7 +905,9 @@ class IciciBankTransformer:
     def _ask_for_reason(self) -> str:
         """Ask user for transaction reason with suggestions"""
         print("\n📋 What's the reason for this transaction?")
-        print("💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'")
+        print(
+            "💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'"
+        )
 
         while True:
             if self._interrupted:
@@ -868,7 +924,9 @@ class IciciBankTransformer:
                 print(f"ℹ️  Using default reason: {default_reason}")
                 return default_reason
 
-            print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
+            print(
+                "❌ Please enter a reason (at least 3 characters) or press Enter for default"
+            )
 
     def _ask_for_splits(self) -> Optional[List[Dict[str, Any]]]:
         """Ask user for transaction splits with better guidance"""
@@ -992,8 +1050,6 @@ class IciciBankTransformer:
             transaction_data.get("S No.", "")
         )
 
-        hash_string = (
-            f"{date_str}_{description}_{debit_amount}_{credit_amount}_{reference}".lower().strip()
-        )
+        hash_string = f"{date_str}_{description}_{debit_amount}_{credit_amount}_{reference}".lower().strip()
 
         return hashlib.sha256(hash_string.encode()).hexdigest()

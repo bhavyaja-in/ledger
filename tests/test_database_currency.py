@@ -436,9 +436,15 @@ class TestDatabaseCurrency:
         session.commit()
 
         # Query transactions by currency
-        usd_transactions = session.query(Transaction).filter(Transaction.currency == "USD").all()
-        eur_transactions = session.query(Transaction).filter(Transaction.currency == "EUR").all()
-        inr_transactions = session.query(Transaction).filter(Transaction.currency == "INR").all()
+        usd_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "USD").all()
+        )
+        eur_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "EUR").all()
+        )
+        inr_transactions = (
+            session.query(Transaction).filter(Transaction.currency == "INR").all()
+        )
 
         # Verify query results
         assert len(usd_transactions) == 2
@@ -529,10 +535,14 @@ class TestDatabaseCurrency:
 
         # Query splits by currency
         usd_splits = (
-            session.query(TransactionSplit).filter(TransactionSplit.currency == "USD").all()
+            session.query(TransactionSplit)
+            .filter(TransactionSplit.currency == "USD")
+            .all()
         )
         eur_splits = (
-            session.query(TransactionSplit).filter(TransactionSplit.currency == "EUR").all()
+            session.query(TransactionSplit)
+            .filter(TransactionSplit.currency == "EUR")
+            .all()
         )
 
         # Verify query results

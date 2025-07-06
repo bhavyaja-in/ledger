@@ -40,7 +40,9 @@ def create_models_with_prefix(prefix=""):
             "name": Column(String(100), nullable=False),
             "institution_type": Column(String(50), nullable=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -59,7 +61,9 @@ def create_models_with_prefix(prefix=""):
             "processor_type": Column(String(50), nullable=False),
             "processing_status": Column(String(20), default="processing"),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
         },
     )
@@ -76,7 +80,9 @@ def create_models_with_prefix(prefix=""):
             "processor_type": Column(String(50), nullable=False),
             "is_active": Column(Boolean, default=True),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -95,7 +101,9 @@ def create_models_with_prefix(prefix=""):
             "currency": Column(String(3), nullable=False, default="INR"),
             "is_settled": Column(Boolean, default=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
         },
     )
 
@@ -128,16 +136,22 @@ def create_models_with_prefix(prefix=""):
             "has_splits": Column(Boolean, default=False),
             "is_settled": Column(Boolean, default=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
             "processed_file": relationship(ProcessedFile),
             "enum": relationship(TransactionEnum),
-            "transaction_splits": relationship(TransactionSplit, back_populates="transaction"),
+            "transaction_splits": relationship(
+                TransactionSplit, back_populates="transaction"
+            ),
         },
     )
 
     # Add back reference to TransactionSplit
-    TransactionSplit.transaction = relationship(Transaction, back_populates="transaction_splits")
+    TransactionSplit.transaction = relationship(
+        Transaction, back_populates="transaction_splits"
+    )
 
     SkippedTransaction = type(
         f"SkippedTransaction{class_suffix}",
@@ -156,7 +170,9 @@ def create_models_with_prefix(prefix=""):
             "row_number": Column(Integer),
             "skip_reason": Column(Text, nullable=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
-            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+            "updated_at": Column(
+                DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+            ),
             "institution": relationship(Institution),
             "processed_file": relationship(ProcessedFile),
         },
@@ -248,14 +264,18 @@ class DatabaseManager:  # pylint: disable=unused-variable
                 db_url = safe_config["database"]["url"]
                 if "?" in db_url:
                     # Remove query parameters (passwords, etc.)
-                    safe_config["database"]["url"] = db_url.split("?", maxsplit=1)[0] + "?***"
+                    safe_config["database"]["url"] = (
+                        db_url.split("?", maxsplit=1)[0] + "?***"
+                    )
                 elif "@" in db_url and "://" in db_url:
                     # Hide credentials in connection string
                     parts = db_url.split("@")
                     if len(parts) > 1:
                         protocol_parts = parts[0].split("://")
                         if len(protocol_parts) > 1:
-                            safe_config["database"]["url"] = f"{protocol_parts[0]}://***@{parts[1]}"
+                            safe_config["database"][
+                                "url"
+                            ] = f"{protocol_parts[0]}://***@{parts[1]}"
 
             safe_dict["config"] = safe_config
 
@@ -286,7 +306,9 @@ class DatabaseManager:  # pylint: disable=unused-variable
         try:
             # First check if the table exists
             result = conn.execute(
-                text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"),
+                text(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"
+                ),
                 {"table_name": test_table_name},
             )
             table_exists = result.fetchone() is not None
@@ -309,7 +331,9 @@ class DatabaseManager:  # pylint: disable=unused-variable
         try:
             # Use raw SQL with table name substitution for schema queries
             # nosec B608 - This is a schema query with controlled table name
-            conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))  # nosec B608
+            conn.execute(
+                text(f"SELECT currency FROM {test_table_name} LIMIT 1")
+            )  # nosec B608
             # If we get here, currency column exists, just create any missing tables
             self.base.metadata.create_all(self.engine)
         except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718

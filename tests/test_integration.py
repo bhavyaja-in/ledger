@@ -89,7 +89,9 @@ class TestIntegrationSafety:
         # Use test configuration instead of production config
         test_config = {
             "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
-            "processors": {"icici_bank": {"enabled": True, "data_path": "data/icici_bank"}},
+            "processors": {
+                "icici_bank": {"enabled": True, "data_path": "data/icici_bank"}
+            },
             "logging": {"level": "DEBUG"},
         }
 
@@ -119,7 +121,9 @@ class TestIntegrationSafety:
             "✅ Production isolation verified - using test configuration, production files may exist but are not accessed"
         )
 
-        print("✅ Production isolation verified - safe to proceed with integration tests")
+        print(
+            "✅ Production isolation verified - safe to proceed with integration tests"
+        )
 
 
 @pytest.mark.integration
@@ -172,7 +176,9 @@ class TestEndToEndWorkflowRealistic:
         """Test complete workflow simulation without actual file processing"""
 
         # Setup test environment
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         # Import components
@@ -303,10 +309,14 @@ class TestDatabaseIntegrationRealistic:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_database_operations_complete(self, integration_test_environment, test_configurations):
+    def test_database_operations_complete(
+        self, integration_test_environment, test_configurations
+    ):
         """Test complete database operations with proper error handling"""
 
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         from src.loaders.database_loader import DatabaseLoader
@@ -335,7 +345,9 @@ class TestDatabaseIntegrationRealistic:
         assert Institution is not None
 
         # Test basic CRUD operations
-        test_institution = db_loader.get_or_create_institution("Integration Test Bank", "test")
+        test_institution = db_loader.get_or_create_institution(
+            "Integration Test Bank", "test"
+        )
         assert test_institution.name == "Integration Test Bank"
 
         # Verify transaction creation and retrieval
@@ -407,7 +419,9 @@ class TestDatabaseIntegrationRealistic:
         # Re-query the transaction to ensure it's attached to the session
         session = db_manager.get_session()
         Transaction = db_manager.models["Transaction"]
-        transaction = session.query(Transaction).filter_by(transaction_hash=unique_hash).first()
+        transaction = (
+            session.query(Transaction).filter_by(transaction_hash=unique_hash).first()
+        )
         assert transaction is not None
         session.close()
 
@@ -425,7 +439,9 @@ class TestConfigurationIntegration:
     ):
         """Test complete configuration loading with all components"""
 
-        os.environ["LEDGER_CONFIG_DIR"] = str(integration_test_environment["config_dir"])
+        os.environ["LEDGER_CONFIG_DIR"] = str(
+            integration_test_environment["config_dir"]
+        )
         os.environ["LEDGER_TEST_MODE"] = "true"
 
         from src.utils.config_loader import ConfigLoader
@@ -454,7 +470,9 @@ class TestConfigurationIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_test_mode_isolation_complete(self, integration_test_environment, test_configurations):
+    def test_test_mode_isolation_complete(
+        self, integration_test_environment, test_configurations
+    ):
         """Test complete test mode isolation"""
 
         # Verify test mode environment variables
@@ -503,7 +521,9 @@ class TestErrorHandlingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_file_error_scenarios(self, integration_test_environment, realistic_transaction_files):
+    def test_file_error_scenarios(
+        self, integration_test_environment, realistic_transaction_files
+    ):
         """Test file error handling scenarios"""
 
         os.environ["LEDGER_TEST_MODE"] = "true"
@@ -563,7 +583,9 @@ class TestSecurityIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_production_data_isolation(self, integration_test_environment, test_configurations):
+    def test_production_data_isolation(
+        self, integration_test_environment, test_configurations
+    ):
         """Test that integration tests cannot access production data"""
 
         # Verify test mode is active
@@ -590,7 +612,9 @@ class TestSecurityIntegration:
             from sqlalchemy import text
 
             # This should work with test tables
-            result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+            result = session.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table'")
+            )
             tables = [row[0] for row in result.fetchall()]
 
             # All tables should have test prefix or be test-related
@@ -607,7 +631,9 @@ class TestSecurityIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_configuration_security(self, integration_test_environment, test_configurations):
+    def test_configuration_security(
+        self, integration_test_environment, test_configurations
+    ):
         """Test configuration security in integration environment"""
 
         # Verify test configurations don't expose sensitive data
@@ -638,7 +664,9 @@ class TestPerformanceIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_large_dataset_simulation(self, integration_test_environment, test_configurations):
+    def test_large_dataset_simulation(
+        self, integration_test_environment, test_configurations
+    ):
         """Test performance with simulated large datasets"""
 
         os.environ["LEDGER_TEST_MODE"] = "true"
@@ -658,7 +686,9 @@ class TestPerformanceIntegration:
         db_loader = DatabaseLoader(db_manager)
 
         # Create test institution
-        institution = db_loader.get_or_create_institution("Performance Test Bank", "test")
+        institution = db_loader.get_or_create_institution(
+            "Performance Test Bank", "test"
+        )
 
         # Test batch transaction creation performance
         start_time = time.time()
@@ -691,7 +721,9 @@ class TestPerformanceIntegration:
 
     @pytest.mark.integration
     @pytest.mark.unit
-    def test_memory_usage_integration(self, integration_test_environment, test_configurations):
+    def test_memory_usage_integration(
+        self, integration_test_environment, test_configurations
+    ):
         """Test memory usage patterns in integration scenarios"""
 
         import gc
@@ -729,6 +761,8 @@ class TestPerformanceIntegration:
         memory_increase = final_memory - initial_memory
 
         # Memory increase should be reasonable (less than 100MB)
-        assert memory_increase < 100, f"Memory usage increased by {memory_increase:.2f}MB"
+        assert (
+            memory_increase < 100
+        ), f"Memory usage increased by {memory_increase:.2f}MB"
 
         print(f"✅ Memory usage integration complete: {memory_increase:.2f}MB increase")

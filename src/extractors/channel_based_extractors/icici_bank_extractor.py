@@ -46,7 +46,9 @@ class IciciBankExtractor:
 
             # Normalize columns for comparison
             df_columns_normalized = [str(col).strip().lower() for col in df.columns]
-            required_columns_normalized = [col.strip().lower() for col in self.required_columns]
+            required_columns_normalized = [
+                col.strip().lower() for col in self.required_columns
+            ]
 
             # Step 2: Detect header row
             # If columns match required columns, treat as header_row=0
@@ -56,7 +58,9 @@ class IciciBankExtractor:
             ):
                 header_row = 0
             else:
-                header_row = self.excel_extractor.detect_header_row(df, self.required_columns)
+                header_row = self.excel_extractor.detect_header_row(
+                    df, self.required_columns
+                )
                 if header_row is None:
                     header_row = 0
 
@@ -82,7 +86,9 @@ class IciciBankExtractor:
                 f"Error extracting ICICI Bank data: {exception}"
             ) from exception
 
-    def _filter_valid_transactions(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _filter_valid_transactions(
+        self, raw_data: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Filter valid transactions specific to ICICI Bank format"""
         valid_transactions = []
 

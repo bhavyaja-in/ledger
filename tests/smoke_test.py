@@ -116,7 +116,9 @@ class SmokeTestSuite:
 
         # Log result
         status_emoji = "✅" if passed else "❌"
-        self.logger.info("%s %s: %s (%.3fs)", status_emoji, test_name, result["status"], duration)
+        self.logger.info(
+            "%s %s: %s (%.3fs)", status_emoji, test_name, result["status"], duration
+        )
 
         if not passed:
             self.logger.error("FAILURE DETAILS: %s", message)
@@ -201,7 +203,9 @@ class SmokeTestSuite:
 
             # Success only if all required sections are present and categories is a non-empty list
             success = (
-                len(missing_sections) == 0 and isinstance(categories, list) and len(categories) > 0
+                len(missing_sections) == 0
+                and isinstance(categories, list)
+                and len(categories) > 0
             )
 
             self.record_result(
@@ -209,12 +213,22 @@ class SmokeTestSuite:
                 success,
                 duration,
                 f"Config loaded with {len(missing_sections)} missing sections, {len(categories)} categories",
-                {"missing_sections": missing_sections, "category_count": len(categories)},
+                {
+                    "missing_sections": missing_sections,
+                    "category_count": len(categories),
+                },
             )
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Configuration Loading",
@@ -262,14 +276,24 @@ class SmokeTestSuite:
 
             return True
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Database Connectivity",
                 False,
                 duration,
                 f"Database connectivity failed: {exception}",
-                {"exception_type": type(exception).__name__, "error_details": str(exception)},
+                {
+                    "exception_type": type(exception).__name__,
+                    "error_details": str(exception),
+                },
             )
             return False
 
@@ -306,7 +330,14 @@ class SmokeTestSuite:
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Critical Modules",
@@ -334,7 +365,14 @@ class SmokeTestSuite:
 
             return True
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "File Processing Pipeline",
@@ -361,19 +399,25 @@ class SmokeTestSuite:
             production_indicators = ["production", "prod", "live", "main_db"]
             for indicator in production_indicators:
                 if indicator in current_dir:
-                    security_checks.append(f"Running in production-like directory: {current_dir}")
+                    security_checks.append(
+                        f"Running in production-like directory: {current_dir}"
+                    )
 
             # Check for production database files
             prod_db_files = ["financial_data.db", "production.db", "main.db"]
             for db_file in prod_db_files:
                 if os.path.exists(db_file):
                     if os.access(db_file, os.W_OK):
-                        security_checks.append(f"Production database {db_file} is writable")
+                        security_checks.append(
+                            f"Production database {db_file} is writable"
+                        )
 
             duration = time.time() - start_time
             success = len(security_checks) == 0
 
-            self.security_checks = security_checks  # Ensure attribute is set for generate_report
+            self.security_checks = (
+                security_checks  # Ensure attribute is set for generate_report
+            )
 
             self.record_result(
                 "Security Boundaries",
@@ -385,7 +429,14 @@ class SmokeTestSuite:
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Security Boundaries",
@@ -420,12 +471,22 @@ class SmokeTestSuite:
                 success,
                 duration,
                 f"Performance {'within' if success else 'exceeds'} thresholds",
-                {"performance_issues": performance_issues, "metrics": self.performance_metrics},
+                {
+                    "performance_issues": performance_issues,
+                    "metrics": self.performance_metrics,
+                },
             )
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Performance Baselines",
@@ -479,7 +540,9 @@ class SmokeTestSuite:
                 "total_tests": total_tests,
                 "passed_tests": passed_tests,
                 "failed_tests": total_tests - passed_tests,
-                "success_rate": (passed_tests / total_tests * 100) if total_tests > 0 else 0,
+                "success_rate": (
+                    (passed_tests / total_tests * 100) if total_tests > 0 else 0
+                ),
                 "total_duration": total_duration,
                 "timestamp": datetime.utcnow().isoformat(),
             },

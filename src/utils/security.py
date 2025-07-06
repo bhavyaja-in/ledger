@@ -83,7 +83,9 @@ def sanitize_text_input(
     return text
 
 
-def sanitize_filename(filename: Optional[str]) -> str:  # pylint: disable=unused-variable
+def sanitize_filename(
+    filename: Optional[str],
+) -> str:  # pylint: disable=unused-variable
     """
     Sanitize filename to prevent path traversal attacks.
 
@@ -180,7 +182,9 @@ def validate_amount(amount_str: Optional[str]) -> Optional[float]:
         return None
 
 
-def sanitize_sql_like_pattern(pattern: Optional[str]) -> str:  # pylint: disable=unused-variable
+def sanitize_sql_like_pattern(
+    pattern: Optional[str],
+) -> str:  # pylint: disable=unused-variable
     """
     Sanitize SQL LIKE patterns to prevent injection.
 

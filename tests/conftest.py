@@ -267,7 +267,9 @@ def temp_data_dir(temp_dir):  # pylint: disable=redefined-outer-name,unused-vari
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name,unused-variable
+def test_config(
+    temp_config_dir,
+):  # pylint: disable=redefined-outer-name,unused-variable
     """Create test configuration"""
     test_config_data = {
         "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
@@ -283,7 +285,9 @@ def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name,unused
 
 
 @pytest.fixture
-def test_categories_config(temp_config_dir):  # pylint: disable=redefined-outer-name,unused-variable
+def test_categories_config(
+    temp_config_dir,
+):  # pylint: disable=redefined-outer-name,unused-variable
     """Create test categories configuration"""
     base_config_dir = temp_config_dir
     test_categories_data = {

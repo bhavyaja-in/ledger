@@ -40,7 +40,9 @@ class CurrencyDetector:
     def __init__(self):
         self._interrupted = False
 
-    def detect_currency(self, description: str, available_currencies: List[str]) -> Optional[str]:
+    def detect_currency(
+        self, description: str, available_currencies: List[str]
+    ) -> Optional[str]:
         """
         Detect currency from transaction description
 
@@ -76,7 +78,9 @@ class CurrencyDetector:
         """Get display symbol for currency"""
         return self.CURRENCY_SYMBOLS.get(currency_code, currency_code)
 
-    def ask_user_for_currency(self, available_currencies: List[str], description: str) -> str:
+    def ask_user_for_currency(
+        self, available_currencies: List[str], description: str
+    ) -> str:
         """
         Interactive currency selection when detection fails
 
@@ -88,7 +92,9 @@ class CurrencyDetector:
             Selected currency code
         """
         print("\n💱 Could not detect currency. Please select for:")
-        print(f"📝 Transaction: {description[:60]}{'...' if len(description) > 60 else ''}")
+        print(
+            f"📝 Transaction: {description[:60]}{'...' if len(description) > 60 else ''}"
+        )
         print("\n📋 Available currencies:")
 
         for i, currency in enumerate(available_currencies, 1):
@@ -100,7 +106,9 @@ class CurrencyDetector:
                 return available_currencies[0]  # Return first currency if interrupted
 
             try:
-                choice = input(f"\n💱 Select currency (1-{len(available_currencies)}): ").strip()
+                choice = input(
+                    f"\n💱 Select currency (1-{len(available_currencies)}): "
+                ).strip()
 
                 if choice.isdigit():
                     idx = int(choice) - 1
@@ -109,7 +117,9 @@ class CurrencyDetector:
                         print(f"✅ Selected currency: {selected}")
                         return selected
 
-                print(f"❌ Please enter a number between 1 and {len(available_currencies)}")
+                print(
+                    f"❌ Please enter a number between 1 and {len(available_currencies)}"
+                )
 
             except (ValueError, KeyboardInterrupt):
                 print(f"\n⚠️  Using default currency: {available_currencies[0]}")
@@ -117,7 +127,9 @@ class CurrencyDetector:
 
     def is_valid_currency_code(self, currency_code: str) -> bool:
         """Check if currency code is valid (3 letters)"""
-        return bool(currency_code and len(currency_code) == 3 and currency_code.isalpha())
+        return bool(
+            currency_code and len(currency_code) == 3 and currency_code.isalpha()
+        )
 
     def normalize_currency_list(self, currencies: Union[str, List[str]]) -> List[str]:
         """

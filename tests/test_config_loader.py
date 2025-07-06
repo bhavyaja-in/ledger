@@ -106,9 +106,13 @@ class TestConfigLoader:
         with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": [{"name": "test"}]}, f)
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
-        with patch("src.utils.config_loader.ConfigLoader._load_categories") as mock_load_cat:
+        with patch(
+            "src.utils.config_loader.ConfigLoader._load_categories"
+        ) as mock_load_cat:
             loader._load_config()
 
             assert loader._config["database"] == config_data["database"]
@@ -127,7 +131,9 @@ class TestConfigLoader:
         with open(categories_file, "w", encoding="utf-8") as f:
             yaml.dump({"categories": []}, f)
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
         with patch("src.utils.config_loader.ConfigLoader._load_categories"):
             loader._load_config()
@@ -151,8 +157,12 @@ class TestConfigLoader:
         loader._config = {}
 
         with (
-            patch.object(loader, "_load_template_categories", return_value=template_categories),
-            patch.object(loader, "_extract_database_categories", return_value=db_categories),
+            patch.object(
+                loader, "_load_template_categories", return_value=template_categories
+            ),
+            patch.object(
+                loader, "_extract_database_categories", return_value=db_categories
+            ),
             patch.object(
                 loader,
                 "_merge_categories",
@@ -179,7 +189,9 @@ class TestConfigLoader:
         loader._config = {}
 
         with (
-            patch.object(loader, "_load_template_categories", return_value=template_categories),
+            patch.object(
+                loader, "_load_template_categories", return_value=template_categories
+            ),
             patch.object(loader, "_extract_database_categories", return_value=[]),
             patch.object(loader, "_merge_categories", return_value=template_categories),
             patch.object(loader, "_update_categories_file") as mock_update,
@@ -411,7 +423,10 @@ class TestConfigLoader:
             loader._update_categories_file(categories)
 
             mock_print.assert_called_once()
-            assert "Warning: Could not update categories file" in mock_print.call_args[0][0]
+            assert (
+                "Warning: Could not update categories file"
+                in mock_print.call_args[0][0]
+            )
 
     @pytest.mark.unit
     @pytest.mark.config
@@ -427,7 +442,9 @@ class TestConfigLoader:
         loader._config = {"categories": existing_categories.copy()}
 
         with (
-            patch.object(loader, "_load_template_categories", return_value=existing_categories),
+            patch.object(
+                loader, "_load_template_categories", return_value=existing_categories
+            ),
             patch.object(loader, "save_categories") as mock_save,
         ):
             loader.add_category("medical")
@@ -460,7 +477,9 @@ class TestConfigLoader:
         loader._config = {"categories": existing_categories.copy()}
 
         with (
-            patch.object(loader, "_load_template_categories", return_value=existing_categories),
+            patch.object(
+                loader, "_load_template_categories", return_value=existing_categories
+            ),
             patch.object(loader, "save_categories") as mock_save,
         ):
             loader.add_category("  medical  ")
@@ -480,7 +499,9 @@ class TestConfigLoader:
         loader._config = {"categories": current_categories}
 
         with (
-            patch.object(loader, "_load_template_categories", return_value=template_categories),
+            patch.object(
+                loader, "_load_template_categories", return_value=template_categories
+            ),
             patch.object(loader, "save_categories") as mock_save,
         ):
             loader.add_category("medical")
@@ -586,7 +607,9 @@ class TestConfigLoader:
         with open(categories_file, "w", encoding="utf-8") as f:
             f.write("")
 
-        loader = ConfigLoader(config_path=str(config_file), categories_path=str(categories_file))
+        loader = ConfigLoader(
+            config_path=str(config_file), categories_path=str(categories_file)
+        )
 
         with patch("src.utils.config_loader.ConfigLoader._load_categories"):
             loader._load_config()
@@ -611,7 +634,9 @@ class TestConfigLoader:
             [],
         ]
 
-        loader = ConfigLoader(categories_path=str(categories_file), db_manager=mock_db_manager)
+        loader = ConfigLoader(
+            categories_path=str(categories_file), db_manager=mock_db_manager
+        )
 
         # This should trigger the "Discovered new categories" print
         loader._load_categories()
