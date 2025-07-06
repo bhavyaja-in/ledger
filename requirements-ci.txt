@@ -36,7 +36,7 @@ mypy>=0.991,<2.0.0
 # Type stubs for third-party libraries
 types-PyYAML>=6.0.0,<7.0.0
 types-requests>=2.28.0,<3.0.0
-types-setuptools>=65.0.0,<70.0.0
+types-setuptools>=65.0.0,<81.0.0
 
 # Pre-commit hooks and code quality
 pre-commit>=3.0.0,<4.0.0
