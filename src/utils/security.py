@@ -12,7 +12,7 @@ from typing import Optional
 __all__ = [
     "sanitize_text_input",
     "validate_amount",
-]
+]  # pylint: disable=unused-variable
 
 
 def sanitize_text_input(

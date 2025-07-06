@@ -14,7 +14,7 @@ from src.extractors.file_based_extractors.excel_extractor import (
     ExcelExtractor,  # pylint: disable=wrong-import-position
 )
 
-__all__ = ["IciciBankExtractor"]
+__all__ = ["IciciBankExtractor"]  # pylint: disable=unused-variable
 
 
 class IciciBankExtractionError(Exception):

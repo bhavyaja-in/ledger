@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-__all__ = ["ExcelExtractor"]
+__all__ = ["ExcelExtractor"]  # pylint: disable=unused-variable
 
 
 class ExcelExtractionError(Exception):

@@ -66,7 +66,9 @@ def integration_test_environment():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def test_configurations(integration_test_environment):  # pylint: disable=redefined-outer-name
+def test_configurations(
+    integration_test_environment,
+):  # pylint: disable=redefined-outer-name,unused-variable
     """Create test configuration files"""
     test_env = integration_test_environment
     config_dir = test_env["config_dir"]
@@ -113,7 +115,7 @@ def test_configurations(integration_test_environment):  # pylint: disable=redefi
 @pytest.fixture
 def realistic_transaction_files(
     integration_test_environment,
-):  # pylint: disable=redefined-outer-name
+):  # pylint: disable=redefined-outer-name,unused-variable
     """Create realistic bank statement files for testing"""
     test_env = integration_test_environment
     icici_dir = test_env["data_dir"] / "icici_bank"
@@ -246,7 +248,7 @@ def temp_dir():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def temp_config_dir(temp_dir):  # pylint: disable=redefined-outer-name
+def temp_config_dir(temp_dir):  # pylint: disable=redefined-outer-name,unused-variable
     """Create temporary config directory"""
     base_dir = temp_dir
     config_dir = base_dir / "config"
@@ -255,7 +257,7 @@ def temp_config_dir(temp_dir):  # pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
-def temp_data_dir(temp_dir):  # pylint: disable=redefined-outer-name
+def temp_data_dir(temp_dir):  # pylint: disable=redefined-outer-name,unused-variable
     """Create temporary data directory"""
     base_dir = temp_dir
     data_dir = base_dir / "data"
@@ -265,7 +267,7 @@ def temp_data_dir(temp_dir):  # pylint: disable=redefined-outer-name
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name
+def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name,unused-variable
     """Create test configuration"""
     test_config_data = {
         "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
@@ -281,7 +283,7 @@ def test_config(temp_config_dir):  # pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
-def test_categories_config(temp_config_dir):  # pylint: disable=redefined-outer-name
+def test_categories_config(temp_config_dir):  # pylint: disable=redefined-outer-name,unused-variable
     """Create test categories configuration"""
     base_config_dir = temp_config_dir
     test_categories_data = {
@@ -363,8 +365,10 @@ def sample_transaction_data():  # pylint: disable=unused-variable
 
 
 @pytest.fixture
-def sample_dataframe(sample_transaction_data):  # pylint: disable=redefined-outer-name
-    """Sample pandas DataFrame for testing"""
+def sample_dataframe(
+    sample_transaction_data,
+):  # pylint: disable=redefined-outer-name,unused-variable
+    """Create sample DataFrame for testing"""
     transaction_data = sample_transaction_data
     return pd.DataFrame(transaction_data)
 
@@ -372,7 +376,7 @@ def sample_dataframe(sample_transaction_data):  # pylint: disable=redefined-oute
 @pytest.fixture
 def sample_excel_file(
     temp_data_dir, sample_transaction_data
-):  # pylint: disable=redefined-outer-name
+):  # pylint: disable=redefined-outer-name,unused-variable
     """Create sample Excel file for testing"""
     base_data_dir = temp_data_dir
     transaction_data = sample_transaction_data

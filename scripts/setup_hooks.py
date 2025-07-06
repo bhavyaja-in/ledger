@@ -25,9 +25,9 @@ def run_command(command, description):
             if result.stdout.strip():
                 print(f"   Output: {result.stdout.strip()}")
             return True
-        print(f"❌ {description} failed")
-        print(f"   Error: {result.stderr.strip()}")
-        return False
+            print(f"❌ {description} failed")
+            print(f"   Error: {result.stderr.strip()}")
+            return False
     except (OSError, IOError, subprocess.SubprocessError) as exception:
         print(f"❌ {description} failed with exception: {exception}")
         return False
@@ -50,8 +50,8 @@ def check_git_repository():
     if Path(".git").exists() or run_command("git rev-parse --git-dir", "Checking git repository"):
         print("✅ Git repository detected")
         return True
-    print("❌ Not in a git repository")
-    return False
+        print("❌ Not in a git repository")
+        return False
 
 
 def install_dependencies():

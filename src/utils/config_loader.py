@@ -53,10 +53,10 @@ class ConfigLoader:  # pylint: disable=unused-variable
         merged_categories = self._merge_categories(existing_categories, database_categories)
 
         # Update YAML file only if new categories were discovered
-        if len(merged_categories) > len(existing_categories):
+        if len(merged_categories or []) > len(existing_categories or []):
             self._update_categories_file(merged_categories)
             print(
-                f"📂 Discovered {len(merged_categories) - len(existing_categories)} new categories from database"
+                f"📂 Discovered {len(merged_categories or []) - len(existing_categories or [])} new categories from database"
             )
 
         self._config["categories"] = merged_categories
@@ -165,7 +165,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             return  # Category already exists
 
         # Reload template categories to ensure we have the base list
-        template_categories = self._load_template_categories()
+        template_categories = self._load_template_categories() or []
         template_names = [cat["name"].lower() for cat in template_categories]
 
         # Build new categories list: template first, then existing custom, then new custom

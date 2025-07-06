@@ -5,7 +5,7 @@ Currency detection and management utilities
 import re
 from typing import List, Optional, Union  # pylint: disable=unused-variable
 
-__all__ = ["CurrencyDetector"]
+__all__ = ["CurrencyDetector"]  # pylint: disable=unused-variable
 
 
 class CurrencyDetector:
@@ -133,7 +133,7 @@ class CurrencyDetector:
         if isinstance(currencies, str):
             if self.is_valid_currency_code(currencies):
                 return [currencies.upper()]
-            return ["INR"]
+                return ["INR"]
 
         # Handle multiple currencies as list
         if isinstance(currencies, list):

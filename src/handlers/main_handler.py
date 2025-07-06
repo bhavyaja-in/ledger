@@ -21,7 +21,7 @@ from src.utils.config_loader import ConfigLoader  # pylint: disable=wrong-import
 
 def _import_git_backup():
     try:
-        from scripts.git_backup import GitDatabaseBackup
+        from scripts.git_backup import GitDatabaseBackup  # pylint: disable=import-outside-toplevel
 
         return GitDatabaseBackup
     except ImportError:
@@ -56,12 +56,12 @@ class BackupManager:
             return False
 
         try:
-            GitDatabaseBackup = _import_git_backup()
-            if GitDatabaseBackup is None:
+            git_database_backup = _import_git_backup()
+            if git_database_backup is None:
                 print("⚠️  Backup system not available (import failed)")
                 return False
             # Create backup manager
-            git_backup = GitDatabaseBackup(config_path=self.backup_config_path)
+            git_backup = git_database_backup(config_path=self.backup_config_path)
 
             # Create backup
             backup_type_emoji = {
@@ -209,7 +209,7 @@ class MainHandler:
                 print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 # Signal handler will take care of this
                 raise
 
@@ -291,7 +291,7 @@ class MainHandler:
                 print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 # Signal handler will take care of this
                 raise
 
@@ -308,7 +308,7 @@ class MainHandler:
                 if retry != "y":
                     print("🔙 Returning to file selection...")
                     return self._select_processor()
-            except KeyboardInterrupt:
+            except KeyboardInterrupt:  # pylint: disable=try-except-raise
                 raise
 
     def _process_file(self, processor_type: str, file_path: str) -> Dict[str, Any]:

@@ -5,13 +5,10 @@ Handles all database operations including transactions, institutions,
 processed files, and processing logs with comprehensive error handling.
 """
 
-import hashlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func
-
-from src.models.database import DatabaseManager
 
 
 class DatabaseLoader:

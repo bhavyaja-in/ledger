@@ -551,7 +551,6 @@ class IciciBankTransformer:
             if len(user_input) >= 2:
                 print(f"✅ Using custom pattern: {user_input}")
                 return user_input
-
             print(
                 "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
             )
@@ -632,7 +631,7 @@ class IciciBankTransformer:
         # Enum doesn't exist - ask for category (with KeyboardInterrupt handling)
         try:
             category = self._ask_for_category()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pylint: disable=try-except-raise
             # If user interrupts during category selection, bubble it up
             raise
 

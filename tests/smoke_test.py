@@ -35,11 +35,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "src"))
 
-from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
-from src.handlers.main_handler import MainHandler
-from src.loaders.database_loader import DatabaseLoader
 from src.models.database import DatabaseManager
-from src.transformers.icici_bank_transformer import IciciBankTransformer
 from src.utils.config_loader import ConfigLoader
 
 
