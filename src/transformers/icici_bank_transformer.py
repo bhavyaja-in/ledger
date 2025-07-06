@@ -493,13 +493,9 @@ class IciciBankTransformer:
             session.close()
 
     def _full_interactive_flow(self, description: str) -> Dict[str, Any]:
-        """Full interactive flow for new transactions with ML-powered suggestions"""
+        """Full interactive flow for new transactions with contextual ML-powered suggestions"""
         try:
-            # Display ML suggestions if available
-            if self.ml_service and self.ml_service.ml_enabled:
-                self._display_ml_suggestions(description)
-
-            # Step 3.1: Ask for pattern word
+            # Step 3.1: Ask for pattern word with regex pattern suggestions
             pattern_word = self._ask_for_pattern_word(description)
             if not pattern_word:
                 return {
@@ -510,14 +506,16 @@ class IciciBankTransformer:
             # Step 3.2: Ask for enum name
             enum_name = self._ask_for_enum_name(pattern_word)
 
-            # Step 3.3: Handle enum and category
-            enum_obj = self._handle_enum_and_category(enum_name, [pattern_word])
+            # Step 3.3: Handle enum and category with ML enum category suggestions
+            enum_obj = self._handle_enum_and_category(enum_name, [pattern_word], description)
 
-            # Step 3.4: Ask for transaction category
-            transaction_category = self._ask_for_transaction_category(enum_obj.category)
+            # Step 3.4: Ask for transaction category with ML suggestions
+            transaction_category = self._ask_for_transaction_category_with_ml(
+                enum_obj.category, description
+            )
 
-            # Step 3.5: Ask for reason
-            reason = self._ask_for_reason()
+            # Step 3.5: Ask for reason with ML suggestions
+            reason = self._ask_for_reason_with_ml(description, transaction_category)
 
             # Step 3.6: Ask for splits
             splits = self._ask_for_splits()
@@ -542,7 +540,20 @@ class IciciBankTransformer:
         """Ask user for the pattern word with intelligent suggestions"""
         print(f"\n📝 Transaction: {description[:80]}...")
 
-        # Get the best suggestion
+        # Show ML regex pattern suggestion if available
+        if self.ml_service and self.ml_service.ml_enabled:
+            try:
+                pattern_suggestion = self.ml_service.suggest_regex_pattern(description)
+                if pattern_suggestion and pattern_suggestion["confidence"] > 0.5:
+                    confidence_percent = int(pattern_suggestion["confidence"] * 100)
+                    print(f"\n🤖 ML Regex Pattern Suggestion ({confidence_percent}%):")
+                    print(f"  {pattern_suggestion['pattern']}")
+                    print(f"  Reason: {pattern_suggestion['reasoning']}")
+            except Exception:
+                # ML suggestions failed, continue without them
+                pass
+
+        # Get the best manual suggestion
         suggestions = self._get_pattern_suggestions(description)
         suggested_pattern = suggestions[0] if suggestions else "transaction"
 
@@ -602,7 +613,7 @@ class IciciBankTransformer:
 
         # Common patterns to look for
         for word in words:
-            # Skip very common words
+            # Skip very common words (but keep financial transaction keywords)
             if word in [
                 "to",
                 "from",
@@ -614,9 +625,7 @@ class IciciBankTransformer:
                 "at",
                 "by",
                 "for",
-                "upi",
-                "payment",
-                "transfer",
+                "transfer",  # Keep "upi" and "payment" as they're important financial keywords
             ]:
                 continue
 
@@ -629,50 +638,6 @@ class IciciBankTransformer:
 
         return suggestions[:5] if suggestions else ["transaction"]  # Return top 5 suggestions
 
-    def _display_ml_suggestions(self, description: str):
-        """Display ML-powered suggestions for the transaction"""
-        try:
-            # Create a mock transaction with available information
-            mock_transaction = {
-                "description": description,
-                "debit_amount": 0,  # We don't have amount context here
-                "transaction_date": "2024-01-01",  # Default date
-            }
-
-            summary = self.ml_service.get_suggestion_summary(mock_transaction)
-
-            if summary["confidence_overall"] > 0.3:  # Only show if reasonably confident
-                print("\n🤖 ML-Powered Suggestions:")
-                print("=" * 50)
-
-                # Category suggestions
-                if summary["suggestions"]["category"]:
-                    print("📂 Suggested Categories:")
-                    for suggestion in summary["suggestions"]["category"][:3]:
-                        confidence_percent = int(suggestion["confidence"] * 100)
-                        print(f"  • {suggestion['category'].title()} ({confidence_percent}%)")
-                        print(f"    Reason: {suggestion['reasoning']}")
-
-                # Enum category suggestions
-                if summary["suggestions"]["enum_category"]:
-                    print("\n🏷️  Suggested Enum Categories:")
-                    for suggestion in summary["suggestions"]["enum_category"][:2]:
-                        confidence_percent = int(suggestion["confidence"] * 100)
-                        print(f"  • {suggestion['category'].title()} ({confidence_percent}%)")
-
-                # Regex pattern suggestion
-                if summary["suggestions"]["regex_pattern"]:
-                    pattern_info = summary["suggestions"]["regex_pattern"]
-                    confidence_percent = int(pattern_info["confidence"] * 100)
-                    print(f"\n🔍 Suggested Regex Pattern ({confidence_percent}%):")
-                    print(f"  {pattern_info['pattern']}")
-
-                print("=" * 50)
-                print("💡 These are AI suggestions - you can accept, modify, or ignore them")
-
-        except Exception as e:
-            # Don't fail the transaction if ML suggestions fail
-            print(f"\n⚠️  ML suggestions unavailable: {e}")
 
     def _ask_for_enum_name(self, pattern_word: str) -> str:
         """Ask user for enum name with intelligent suggestion"""
@@ -695,7 +660,7 @@ class IciciBankTransformer:
 
             print("❌ Please enter a valid enum name (at least 3 characters)")
 
-    def _handle_enum_and_category(self, enum_name: str, patterns: List[str]):
+    def _handle_enum_and_category(self, enum_name: str, patterns: List[str], description: str = ""):
         """Handle enum creation and category assignment with custom category support"""
         # Check if enum already exists
         session = self.db_manager.get_session()
@@ -718,7 +683,7 @@ class IciciBankTransformer:
 
         # Enum doesn't exist - ask for category (with KeyboardInterrupt handling)
         try:
-            category = self._ask_for_category()
+            category = self._ask_for_category_with_ml(description)
         except KeyboardInterrupt:  # pylint: disable=try-except-raise
             # If user interrupts during category selection, bubble it up
             raise
@@ -734,11 +699,27 @@ class IciciBankTransformer:
         print(f"✅ Created enum '{enum_name}' with category '{category}'")
         return enum_obj
 
-    def _ask_for_category(self) -> str:
-        """Ask user to select category with option to add custom category by typing directly"""
+    def _ask_for_category_with_ml(self, description: str = "") -> str:
+        """Ask user to select category with ML enum category suggestions"""
         categories = [cat["name"] for cat in self.config.get("categories", [])]
 
         print("\n📂 Select enum category:")
+        
+        # Show ML enum category suggestions if available
+        if self.ml_service and self.ml_service.ml_enabled and description:
+            try:
+                ml_suggestions = self.ml_service.suggest_enum_category(description)
+                if ml_suggestions:
+                    print("\n🤖 ML Enum Category Suggestions:")
+                    for suggestion in ml_suggestions[:3]:
+                        confidence_percent = int(suggestion["confidence"] * 100)
+                        print(f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)")
+                        print(f"    Reason: {suggestion['reasoning']}")
+                    print()
+            except Exception:
+                # ML suggestions failed, continue without them
+                pass
+
         for i, category in enumerate(categories, 1):
             print(f"  {i}. {category.title()}")
 
@@ -791,26 +772,30 @@ class IciciBankTransformer:
                 return category_name
             print("❌ Category name must be at least 2 characters long")
 
-    def _ask_for_transaction_category(self, enum_category: str) -> str:
-        """Ask user to select transaction category with auto-suggestion from enum category"""
+    def _ask_for_transaction_category_with_ml(self, enum_category: str, description: str) -> str:
+        """Ask user to select transaction category with ML suggestions"""
         categories = [cat["name"] for cat in self.config.get("categories", [])]
 
         print(f"\n🏷️  Transaction Category (Enum category: {enum_category.title()})")
 
-        # Show ML suggestions if available
+        # Show ML transaction category suggestions if available
         if self.ml_service and self.ml_service.ml_enabled:
             try:
-                # Create a mock transaction for ML suggestions (we don't have full transaction context here)
-                mock_transaction = {"description": f"sample {enum_category} transaction"}
+                # Create a mock transaction for ML suggestions
+                mock_transaction = {
+                    "description": description,
+                    "debit_amount": 0,
+                    "transaction_date": "2024-01-01",
+                }
                 ml_suggestions = self.ml_service.suggest_transaction_category(mock_transaction)
 
                 if ml_suggestions:
-                    print("\n🤖 ML Suggestions:")
-                    for i, suggestion in enumerate(ml_suggestions[:3], 1):
+                    print("\n🤖 ML Transaction Category Suggestions:")
+                    for suggestion in ml_suggestions[:3]:
                         confidence_percent = int(suggestion["confidence"] * 100)
-                        print(
-                            f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)"
-                        )
+                        print(f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)")
+                        print(f"    Reason: {suggestion['reasoning']}")
+                    print()
             except Exception:
                 # ML suggestions failed, continue without them
                 pass
@@ -955,9 +940,32 @@ class IciciBankTransformer:
                 return {"action": "process", "category": category_name}
             print("❌ Category name must be at least 2 characters long")
 
-    def _ask_for_reason(self) -> str:
-        """Ask user for transaction reason with suggestions"""
+    def _ask_for_reason_with_ml(self, description: str, category: str) -> str:
+        """Ask user for transaction reason with ML suggestions"""
         print("\n📋 What's the reason for this transaction?")
+        
+        # Show ML reason suggestions if available
+        if self.ml_service and self.ml_service.ml_enabled:
+            try:
+                # Create a mock transaction for ML suggestions
+                mock_transaction = {
+                    "description": description,
+                    "debit_amount": 0,
+                    "transaction_date": "2024-01-01",
+                }
+                ml_suggestions = self.ml_service.suggest_transaction_reason(mock_transaction, category)
+
+                if ml_suggestions:
+                    print("\n🤖 ML Reason Suggestions:")
+                    for suggestion in ml_suggestions[:3]:
+                        confidence_percent = int(suggestion["confidence"] * 100)
+                        print(f"  🎯 {suggestion['reason']} ({confidence_percent}% confidence)")
+                        print(f"    Reason: {suggestion['reasoning']}")
+                    print()
+            except Exception:
+                # ML suggestions failed, continue without them
+                pass
+
         print("💡 Examples: 'Food delivery', 'Salary credit', 'Bill payment', 'Personal transfer'")
 
         while True:
