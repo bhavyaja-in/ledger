@@ -40,7 +40,7 @@ types-setuptools>=65.0.0,<70.0.0
 
 # Pre-commit hooks and code quality
 pre-commit>=3.0.0,<4.0.0
-isort>=5.13.0,<6.0.0
+isort>=5.13.0,<7.0.0
 pylint>=3.0.0,<4.0.0
 bandit>=1.7.5,<2.0.0
 
