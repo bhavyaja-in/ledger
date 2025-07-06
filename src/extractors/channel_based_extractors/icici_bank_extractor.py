@@ -9,7 +9,10 @@ from typing import Any, Dict, List
 # Add path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
-from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+# Local imports after path setup
+from src.extractors.file_based_extractors.excel_extractor import (
+    ExcelExtractor,  # pylint: disable=wrong-import-position
+)
 
 __all__ = ["IciciBankExtractor"]
 

@@ -13,9 +13,10 @@ from typing import Any, Dict, List
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.loaders.database_loader import DatabaseLoader
-from src.models.database import DatabaseManager
-from src.utils.config_loader import ConfigLoader
+# Local imports after path setup
+from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
+from src.models.database import DatabaseManager  # pylint: disable=wrong-import-position
+from src.utils.config_loader import ConfigLoader  # pylint: disable=wrong-import-position
 
 
 class BackupManager:
@@ -38,7 +39,7 @@ class BackupManager:
             from scripts.git_backup import GitDatabaseBackup
 
             return True
-        except Exception:
+        except (ImportError, OSError, AttributeError):
             return False
 
     def create_backup(self, backup_type="automatic") -> bool:
@@ -74,7 +75,7 @@ class BackupManager:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ImportError, AttributeError) as exception:
             print(f"⚠️  Backup error: {exception}")
             return False
 
@@ -159,7 +160,7 @@ class MainHandler:
             self.backup_manager.create_backup("interruption")
             print("👋 Goodbye!")
             sys.exit(0)
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, AttributeError) as exception:
             print(f"💥 Error in main processing: {exception}")
             # Create backup even on error
             print("\n🔄 Creating backup before exit...")

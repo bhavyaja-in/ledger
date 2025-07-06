@@ -27,6 +27,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
+import pytest
+
 # Add src to path for imports (we're now in tests/ directory)
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -142,7 +144,7 @@ class SmokeTestSuite:
             try:
                 with tempfile.NamedTemporaryFile(dir=current_project_root, delete=True):
                     pass
-            except Exception as exception:
+            except (OSError, IOError, PermissionError) as exception:
                 issues.append(f"No write permission in project root: {exception}")
 
             # Check required environment variables
@@ -163,7 +165,7 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Environment Setup",
@@ -207,7 +209,7 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Configuration Loading",
@@ -260,7 +262,7 @@ class SmokeTestSuite:
 
             return True
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Database Connectivity",
@@ -304,7 +306,7 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Critical Modules",
@@ -343,13 +345,13 @@ class SmokeTestSuite:
 
             return True
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "File Processing Pipeline",
                 False,
                 duration,
-                f"Pipeline component test failed: {exception}",
+                f"File processing pipeline test failed: {exception}",
                 {"exception_type": type(exception).__name__},
             )
             return False
@@ -392,13 +394,13 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Security Boundaries",
                 False,
                 duration,
-                f"Security boundary test failed: {exception}",
+                f"Security boundaries test failed: {exception}",
                 {"exception_type": type(exception).__name__},
             )
             return False
@@ -432,7 +434,7 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Performance Baselines",
@@ -547,10 +549,6 @@ def main():
         print(json.dumps(report, indent=2))
 
     sys.exit(0 if success else 1)
-
-
-# Pytest-compatible test functions
-import pytest
 
 
 @pytest.mark.smoke

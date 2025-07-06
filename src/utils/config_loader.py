@@ -110,7 +110,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             # Convert to list of dictionaries (preserve discovery order, no sorting)
             return [{"name": category} for category in categories]
 
-        except Exception as exception:
+        except (OSError, IOError, ImportError, AttributeError, TypeError) as exception:
             print(f"⚠️  Warning: Could not extract categories from database: {exception}")
             return []
         finally:
@@ -152,7 +152,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
                 f"📂 Updated categories file with {len(categories)} categories (including database categories)"
             )
 
-        except Exception as exception:
+        except (OSError, IOError, PermissionError) as exception:
             print(f"⚠️  Warning: Could not update categories file: {exception}")
 
     def add_category(self, category_name: str):

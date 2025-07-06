@@ -14,9 +14,13 @@ import pandas as pd
 # Add path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.loaders.database_loader import DatabaseLoader
-from src.utils.currency_detector import CurrencyDetector
-from src.utils.security import sanitize_text_input, validate_amount
+# Local imports after path setup
+from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
+from src.utils.currency_detector import CurrencyDetector  # pylint: disable=wrong-import-position
+from src.utils.security import (  # pylint: disable=wrong-import-position
+    sanitize_text_input,
+    validate_amount,
+)
 
 __all__ = ["IciciBankTransformer"]
 
@@ -186,7 +190,7 @@ class IciciBankTransformer:
                     )
                     print("✅ Transaction saved successfully")
 
-                except Exception as exception:
+                except (ValueError, TypeError, AttributeError, OSError, IOError) as exception:
                     print(f"❌ Error processing transaction: {exception}")
                     results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
 
@@ -200,7 +204,7 @@ class IciciBankTransformer:
             else:
                 results["status"] = "partially_completed"
 
-        except Exception as exception:
+        except (ValueError, TypeError, AttributeError, OSError, IOError) as exception:
             print(f"\n❌ Error during processing: {exception}")
             results["status"] = "error"
 
@@ -258,7 +262,7 @@ class IciciBankTransformer:
 
             return transaction
 
-        except Exception as exception:
+        except (ValueError, TypeError, AttributeError, OSError, IOError) as exception:
             print(f"Error transforming transaction: {exception}")
             return None
 
@@ -668,7 +672,7 @@ class IciciBankTransformer:
                     try:
                         self.config_loader.add_category(category_name)
                         print(f"✅ Created and saved new enum category: {category_name.title()}")
-                    except Exception as exception:
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Enum category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
@@ -735,7 +739,7 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as exception:
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
@@ -813,7 +817,7 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as exception:
+                    except (OSError, IOError, PermissionError) as exception:
                         print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available

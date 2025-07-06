@@ -28,7 +28,7 @@ def run_command(command, description):
         print(f"❌ {description} failed")
         print(f"   Error: {result.stderr.strip()}")
         return False
-    except Exception as exception:
+    except (OSError, IOError, subprocess.SubprocessError) as exception:
         print(f"❌ {description} failed with exception: {exception}")
         return False
 

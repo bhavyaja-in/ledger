@@ -45,7 +45,7 @@ class GitDatabaseBackup:
                     config = yaml.safe_load(file) or {}
                 print(f"📋 Loaded backup configuration from {config_path}")
                 return config
-            except Exception as exception:
+            except (OSError, IOError, yaml.YAMLError) as exception:
                 print(f"⚠️  Warning: Could not load config from {config_path}: {exception}")
                 print("   Using default configuration")
                 return {}
@@ -113,7 +113,7 @@ Use the git_backup.py script to restore from backups.
             print(f"   git push -u origin main")
             return True
 
-        except subprocess.CalledProcessError as exception:
+        except (OSError, IOError, subprocess.CalledProcessError) as exception:
             print(f"❌ Failed to create repository: {exception}")
             return False
 
@@ -156,7 +156,7 @@ Use the git_backup.py script to restore from backups.
 
         except subprocess.CalledProcessError as exception:
             print(f"⚠️  Warning: Could not archive previous backup: {exception}")
-        except Exception as exception:
+        except (OSError, IOError, shutil.Error) as exception:
             print(f"⚠️  Warning: Error archiving previous backup: {exception}")
         finally:
             if "original_dir" in locals():
@@ -202,7 +202,7 @@ Use the git_backup.py script to restore from backups.
             # Commit to git
             return self._commit_backup()
 
-        except Exception as exception:
+        except (OSError, IOError, sqlite3.Error, shutil.Error) as exception:
             print(f"❌ Backup failed: {exception}")
             if os.path.exists(temp_backup):
                 os.remove(temp_backup)

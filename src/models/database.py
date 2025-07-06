@@ -283,12 +283,12 @@ class DatabaseManager:  # pylint: disable=unused-variable
                     conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))
                     # If we get here, currency column exists, just create any missing tables
                     self.base.metadata.create_all(self.engine)
-                except Exception:
+                except (AttributeError, TypeError, OSError):
                     # Currency column doesn't exist, drop and recreate test tables
                     print("🔄 Updating test database schema...")
                     self.base.metadata.drop_all(self.engine)
                     self.base.metadata.create_all(self.engine)
                     print("✅ Test database schema updated")
-        except Exception:
+        except (OSError, IOError, ImportError):
             # If we can't check, just create tables (first time setup)
             self.base.metadata.create_all(self.engine)
