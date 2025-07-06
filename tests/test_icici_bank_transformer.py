@@ -878,7 +878,7 @@ class TestIciciBankTransformer:
 
     def test_handle_skipped_transaction_with_exception(self, transformer):
         """Test skipped transaction handling with database exception"""
-        transformer.db_loader.create_skipped_transaction.side_effect = Exception("DB Error")
+        transformer.db_loader.create_skipped_transaction.side_effect = OSError("DB Error")
 
         with patch("builtins.print") as mock_print:
             transformer._handle_skipped_transaction({}, 1, 2, "test reason")
@@ -902,7 +902,7 @@ class TestIciciBankTransformer:
             patch.object(
                 transformer,
                 "_transform_transaction",
-                side_effect=Exception("Processing error"),
+                side_effect=OSError("Processing error"),
             ),
             patch("builtins.print") as mock_print,
         ):

@@ -72,24 +72,20 @@ class TestBackupManager:
         """Test backup availability check when import fails"""
         with (
             patch("os.path.exists", return_value=True),
-            patch("builtins.__import__", side_effect=ImportError("Module not found")),
+            patch("src.handlers.main_handler._import_git_backup", return_value=None),
         ):
             result = backup_manager._check_backup_availability()
-
             assert result is False
 
     @pytest.mark.unit
     @pytest.mark.handler
     def test_check_backup_availability_success(self, backup_manager):
         """Test backup availability check when successful"""
-        mock_module = MagicMock()
-
         with (
             patch("os.path.exists", return_value=True),
-            patch("builtins.__import__", return_value=mock_module),
+            patch("src.handlers.main_handler._import_git_backup", return_value=Mock()),
         ):
             result = backup_manager._check_backup_availability()
-
             assert result is True
 
     # =====================
@@ -131,15 +127,15 @@ class TestBackupManager:
 
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = True
+        mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
-        with patch("builtins.__import__") as mock_import:
-            mock_module = Mock()
-            mock_module.GitDatabaseBackup.return_value = mock_git_backup
-            mock_import.return_value = mock_module
-
+        with patch(
+            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+        ):
             result = backup_manager.create_backup("automatic")
 
         assert result is True
+        mock_git_backup.create_backup.assert_called_once()
 
     @pytest.mark.unit
     @pytest.mark.handler
@@ -149,12 +145,11 @@ class TestBackupManager:
 
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = False
+        mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
-        with patch("builtins.__import__") as mock_import:
-            mock_module = Mock()
-            mock_module.GitDatabaseBackup.return_value = mock_git_backup
-            mock_import.return_value = mock_module
-
+        with patch(
+            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+        ):
             result = backup_manager.create_backup("completion")
 
         assert result is False
@@ -165,7 +160,11 @@ class TestBackupManager:
         """Test backup creation with exception"""
         backup_manager.backup_script_available = True
 
-        with patch("builtins.__import__", side_effect=Exception("Backup error")):
+        mock_git_backup_cls = Mock(side_effect=Exception("Backup error"))
+
+        with patch(
+            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+        ):
             result = backup_manager.create_backup("interruption")
 
         assert result is False
@@ -178,14 +177,13 @@ class TestBackupManager:
 
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = True
+        mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
         backup_types = ["startup", "completion", "interruption", "automatic", "unknown"]
 
-        with patch("builtins.__import__") as mock_import:
-            mock_module = Mock()
-            mock_module.GitDatabaseBackup.return_value = mock_git_backup
-            mock_import.return_value = mock_module
-
+        with patch(
+            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+        ):
             for backup_type in backup_types:
                 result = backup_manager.create_backup(backup_type)
                 assert result is True
@@ -361,7 +359,7 @@ class TestMainHandler:
 
         with (
             patch("os.path.exists", return_value=True),
-            patch.object(main_handler, "_process_file", side_effect=Exception(error_msg)),
+            patch.object(main_handler, "_process_file", side_effect=OSError(error_msg)),
             patch("builtins.print") as mock_print,
         ):
             result = main_handler.run(processor_type="icici_bank", file_path="/test/file.xlsx")
@@ -611,8 +609,8 @@ class TestMainHandler:
                 "_create_processed_file_record",
                 return_value=mock_processed_file,
             ),
-            patch.object(main_handler, "_extract_data", side_effect=Exception("Extract error")),
-            pytest.raises(Exception) as exc_info,
+            patch.object(main_handler, "_extract_data", side_effect=OSError("Extract error")),
+            pytest.raises(OSError) as exc_info,
         ):
             main_handler._process_file("icici_bank", "/test/file.xlsx")
 
@@ -972,7 +970,7 @@ class TestMainFunction:
             patch("sys.argv", test_args),
             patch(
                 "src.handlers.main_handler.MainHandler",
-                side_effect=Exception("Fatal error"),
+                side_effect=OSError("Fatal error"),
             ),
             patch("sys.exit") as mock_exit,
             patch("builtins.print") as mock_print,
@@ -989,7 +987,7 @@ class TestMainFunction:
         test_args = ["main_handler.py"]
 
         mock_handler = Mock()
-        mock_handler.run.side_effect = Exception("Fatal error")
+        mock_handler.run.side_effect = OSError("Fatal error")
 
         with (
             patch("sys.argv", test_args),

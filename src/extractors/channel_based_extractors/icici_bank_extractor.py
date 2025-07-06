@@ -17,6 +17,10 @@ from src.extractors.file_based_extractors.excel_extractor import (
 __all__ = ["IciciBankExtractor"]
 
 
+class IciciBankExtractionError(Exception):
+    """Custom exception for ICICI Bank extraction errors."""
+
+
 class IciciBankExtractor:
     """ICICI Bank specific extractor"""
 
@@ -74,7 +78,9 @@ class IciciBankExtractor:
             }
 
         except Exception as exception:
-            raise Exception(f"Error extracting ICICI Bank data: {exception}")
+            raise IciciBankExtractionError(
+                f"Error extracting ICICI Bank data: {exception}"
+            ) from exception
 
     def _filter_valid_transactions(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Filter valid transactions specific to ICICI Bank format"""

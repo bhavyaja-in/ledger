@@ -82,7 +82,7 @@ def install_dependencies():
 
     success = True
     for dep in dependencies:
-        if not run_command(f"pip install '{dep}'", f"Installing {dep.split('>=')[0]}"):
+        if not run_command(f"pip install '{dep}'", f"Installing {dep.split('>=', maxsplit=1)[0]}"):
             success = False
 
     return success

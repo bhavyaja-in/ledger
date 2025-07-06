@@ -28,11 +28,19 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import pytest
+from sqlalchemy import text
 
 # Add src to path for imports (we're now in tests/ directory)
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "src"))
+
+from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
+from src.handlers.main_handler import MainHandler
+from src.loaders.database_loader import DatabaseLoader
+from src.models.database import DatabaseManager
+from src.transformers.icici_bank_transformer import IciciBankTransformer
+from src.utils.config_loader import ConfigLoader
 
 
 class SmokeTestSuite:
@@ -181,8 +189,6 @@ class SmokeTestSuite:
         start_time = time.time()
 
         try:
-            from src.utils.config_loader import ConfigLoader
-
             # Test config loading
             config_loader = ConfigLoader()
             config = config_loader.get_config()
@@ -225,9 +231,6 @@ class SmokeTestSuite:
         start_time = time.time()
 
         try:
-            from src.models.database import DatabaseManager
-            from src.utils.config_loader import ConfigLoader
-
             # Create a test config with in-memory database to avoid writing to filesystem
             config_loader = ConfigLoader()
             config = config_loader.get_config()
@@ -244,8 +247,6 @@ class SmokeTestSuite:
             session = db_manager.get_session()
 
             # Just verify we can connect and get a session - no writes
-            from sqlalchemy import text
-
             session.execute(text("SELECT 1"))
             session.close()
 
@@ -322,17 +323,6 @@ class SmokeTestSuite:
         start_time = time.time()
 
         try:
-            # Test extractor availability
-            # Test transformer availability
-            import src.transformers.icici_bank_transformer
-            from src.extractors.file_based_extractors.excel_extractor import ExcelExtractor
-
-            # Test handler availability
-            from src.handlers.main_handler import MainHandler
-
-            # Test loader availability
-            from src.loaders.database_loader import DatabaseLoader
-
             duration = time.time() - start_time
 
             self.record_result(

@@ -55,7 +55,7 @@ class IciciBankTransformer:
         # Set up signal handler for graceful interrupt
         signal.signal(signal.SIGINT, self._signal_handler)
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, frame):  # pylint: disable=unused-argument
         """Handle Ctrl+C signal"""
         print("\n\n🛑 Processing interrupted by user (Ctrl+C)")
         print("🔄 Cleaning up and exiting...")
@@ -137,10 +137,9 @@ class IciciBankTransformer:
                                 cast(int, results["auto_skipped_transactions"]) + 1
                             )
                             continue
-                        else:
-                            print(
-                                "⚠️  Transaction previously skipped - reprocessing due to config setting"
-                            )
+                        print(
+                            "⚠️  Transaction previously skipped - reprocessing due to config setting"
+                        )
 
                     # Step 4: Display transaction details
                     self._display_transaction(transformed)
@@ -196,8 +195,7 @@ class IciciBankTransformer:
                     AttributeError,
                     OSError,
                     IOError,
-                    Exception,  # Catch all non-system exceptions to prevent CLI crash; KeyboardInterrupt/SystemExit will propagate
-                ) as exception:  # pylint: disable=broad-except
+                ) as exception:
                     print(f"\u274c Error processing transaction: {exception}")
                     results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
 
@@ -217,8 +215,7 @@ class IciciBankTransformer:
             AttributeError,
             OSError,
             IOError,
-            Exception,  # Catch all non-system exceptions to prevent CLI crash; KeyboardInterrupt/SystemExit will propagate
-        ) as exception:  # pylint: disable=broad-except
+        ) as exception:
             print(f"\n\u274c Error during processing: {exception}")
             results["status"] = "error"
 
@@ -437,8 +434,7 @@ class IciciBankTransformer:
                 print(f"ℹ️  Using default reason: {reason}")
                 break
 
-            else:
-                print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
+            print("❌ Please enter a reason (at least 3 characters) or press Enter for default")
 
         # Step 3: Ask for splits
         splits = self._ask_for_splits()
@@ -684,7 +680,7 @@ class IciciBankTransformer:
                 continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -749,7 +745,7 @@ class IciciBankTransformer:
                 continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -827,7 +823,7 @@ class IciciBankTransformer:
                 continue
 
             # User typed a category name - auto-add it
-            elif choice and len(choice) >= 2:
+            if choice and len(choice) >= 2:
                 category_name = choice.lower()
 
                 # Add new category using the proper method that maintains order
@@ -916,7 +912,7 @@ class IciciBankTransformer:
             if total_percentage > 100.0:
                 print(f"❌ Total percentage ({total_percentage}%) exceeds 100%")
                 continue
-            elif splits:
+            if splits:
                 remaining = 100.0 - total_percentage
                 if remaining > 0.0:
                     print(f"ℹ️  Your share: {remaining}%")
@@ -951,7 +947,7 @@ class IciciBankTransformer:
 
             self.db_loader.create_skipped_transaction(skipped_record)
 
-        except Exception as exception:
+        except (OSError, IOError, ValueError, KeyError, AttributeError) as exception:
             print(f"❌ Error saving skipped transaction: {exception}")
 
     def _create_transaction_hash(self, transaction_data: Dict[str, Any]) -> str:

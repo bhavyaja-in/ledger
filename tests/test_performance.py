@@ -54,12 +54,14 @@ class TestSystemPerformance:
                 self.metrics = {}
 
             def start(self):
+                """Start performance monitoring (records time and memory)."""
                 gc.collect()  # Clean up before measurement
                 self.start_time = time.perf_counter()
                 process = psutil.Process()
                 self.start_memory = process.memory_info().rss / 1024 / 1024  # MB
 
             def stop(self, operation_name):
+                """Stop monitoring and record metrics for the given operation."""
                 end_time = time.perf_counter()
                 process = psutil.Process()
                 end_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -76,6 +78,7 @@ class TestSystemPerformance:
                 return duration, memory_delta
 
             def assert_performance(self, operation_name, max_duration=None, max_memory=None):
+                """Assert that the operation's performance is within the given thresholds."""
                 if operation_name not in self.metrics:
                     pytest.fail(f"No metrics found for operation: {operation_name}")
 

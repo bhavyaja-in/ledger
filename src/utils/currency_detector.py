@@ -3,7 +3,7 @@ Currency detection and management utilities
 """
 
 import re
-from typing import List, Optional  # pylint: disable=unused-variable
+from typing import List, Optional, Union  # pylint: disable=unused-variable
 
 __all__ = ["CurrencyDetector"]
 
@@ -119,15 +119,15 @@ class CurrencyDetector:
         """Check if currency code is valid (3 letters)"""
         return bool(currency_code and len(currency_code) == 3 and currency_code.isalpha())
 
-    def normalize_currency_list(self, currencies) -> List[str]:
+    def normalize_currency_list(self, currencies: Union[str, List[str]]) -> List[str]:
         """
         Normalize currency configuration to list of valid currency codes
 
         Args:
-            currencies: String or list of currency codes
+            currencies (str or List[str]): String or list of currency codes
 
         Returns:
-            List of valid currency codes, defaults to ['INR'] if invalid
+            List[str]: List of valid currency codes, defaults to ['INR'] if invalid
         """
         # Handle single currency as string
         if isinstance(currencies, str):

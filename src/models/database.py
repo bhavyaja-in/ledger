@@ -248,7 +248,7 @@ class DatabaseManager:  # pylint: disable=unused-variable
                 db_url = safe_config["database"]["url"]
                 if "?" in db_url:
                     # Remove query parameters (passwords, etc.)
-                    safe_config["database"]["url"] = db_url.split("?")[0] + "?***"
+                    safe_config["database"]["url"] = db_url.split("?", maxsplit=1)[0] + "?***"
                 elif "@" in db_url and "://" in db_url:
                     # Hide credentials in connection string
                     parts = db_url.split("@")

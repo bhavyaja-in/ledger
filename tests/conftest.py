@@ -5,6 +5,7 @@ This module provides comprehensive test fixtures for isolated, secure testing
 of the financial data processing system.
 """
 
+import gc
 import os
 import shutil
 import sqlite3
@@ -434,12 +435,15 @@ def coverage_tracker():  # pylint: disable=unused-variable
             self.total_lines = set()
 
         def mark_line_covered(self, file_path, line_number):
+            """Mark a line as covered for coverage tracking."""
             self.covered_lines.add(f"{file_path}:{line_number}")
 
         def add_total_line(self, file_path, line_number):
+            """Add a line to the set of total lines for coverage tracking."""
             self.total_lines.add(f"{file_path}:{line_number}")
 
         def get_coverage_percentage(self):
+            """Calculate and return the coverage percentage."""
             if not self.total_lines:
                 return 100.0
             return (len(self.covered_lines) / len(self.total_lines)) * 100
@@ -453,6 +457,4 @@ def cleanup_after_test():  # pylint: disable=unused-variable
     """Automatic cleanup after each test"""
     yield
     # Clean up any test artifacts
-    import gc
-
     gc.collect()

@@ -132,12 +132,12 @@ Use the git_backup.py script to restore from backups.
         timestamped_filename = f"{base_name}_{timestamp}{extension}"
         timestamped_path = os.path.join(self.backup_repo_path, timestamped_filename)
 
+        original_dir = os.getcwd()
         try:
             # Move current backup to timestamped version
             shutil.move(backup_path, timestamped_path)
 
             # Commit the timestamped backup to git
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             subprocess.run(["git", "add", timestamped_filename], check=True, capture_output=True)
@@ -253,8 +253,8 @@ Use the git_backup.py script to restore from backups.
 
     def _commit_backup(self):
         """Commit backup to git repository"""
+        original_dir = os.getcwd()
         try:
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             # Add files
@@ -361,8 +361,8 @@ Use the git_backup.py script to restore from backups.
             print("❌ Backup repository not found locally")
             return False
 
+        original_dir = os.getcwd()
         try:
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             subprocess.run(["git", "pull"], check=True, capture_output=True)
@@ -381,6 +381,7 @@ Use the git_backup.py script to restore from backups.
             print("❌ Backup repository not found")
             return
 
+        original_dir = os.getcwd()
         try:
             # Show backup files
             print("📁 Available backup files:")
@@ -404,7 +405,6 @@ Use the git_backup.py script to restore from backups.
             print()
 
             # Show git commit history
-            original_dir = os.getcwd()
             os.chdir(self.backup_repo_path)
 
             result = subprocess.run(
@@ -424,6 +424,7 @@ Use the git_backup.py script to restore from backups.
 
 
 def main():
+    """Main entry point for Git Database Backup Manager CLI"""
     parser = argparse.ArgumentParser(description="Git Database Backup Manager")
     parser.add_argument("--backup", action="store_true", help="Create backup")
     parser.add_argument("--restore", action="store_true", help="Restore from latest backup")

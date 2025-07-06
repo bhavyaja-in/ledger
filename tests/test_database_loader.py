@@ -66,9 +66,12 @@ class TestDatabaseLoader:
     @pytest.mark.database
     def test_get_or_create_institution_existing(self, loader):
         """Test get_or_create_institution when institution already exists"""
-        loader_instance, mock_manager, mock_session, mock_models = (
-            loader  # pylint: disable=unused-variable
-        )
+        (
+            loader_instance,
+            mock_manager,
+            mock_session,
+            mock_models,
+        ) = loader  # pylint: disable=unused-variable
 
         # Mock existing institution
         mock_institution = Mock()
@@ -676,8 +679,8 @@ class TestDatabaseLoader:
         mock_join = mock_query.join.return_value
         mock_join.filter.return_value.all.return_value = mock_results
 
-        # Test that test_mode parameter doesn't affect the method behavior
-        result = loader_instance.get_person_transactions("John", test_mode=True)
+        # Test that _test_mode parameter doesn't affect the method behavior
+        result = loader_instance.get_person_transactions("John", _test_mode=True)
 
         assert result == []
         mock_session.close.assert_called_once()

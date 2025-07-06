@@ -846,7 +846,7 @@ class TestBackupManager:
 
         mock_exists.return_value = True
 
-        with patch("builtins.__import__", side_effect=ImportError("Module not found")):
+        with patch("src.handlers.main_handler._import_git_backup", return_value=None):
             manager = BackupManager()
             result = manager._check_backup_availability()
 
@@ -861,11 +861,10 @@ class TestBackupManager:
 
         mock_exists.return_value = True
 
-        # Mock successful import
-        with patch("sys.path"), patch("builtins.__import__"):
+        with patch("src.handlers.main_handler._import_git_backup", return_value=Mock()):
             manager = BackupManager()
-            # This test relies on actual import success, which may vary
-            # In a real environment, we'd mock the import more specifically
+            result = manager._check_backup_availability()
+            assert result is True
 
     @pytest.mark.unit
     @pytest.mark.backup
@@ -889,10 +888,11 @@ class TestBackupManager:
 
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = True
+        mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup),
+            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
         ):
             manager = BackupManager()
             result = manager.create_backup("completion")
@@ -911,10 +911,11 @@ class TestBackupManager:
 
         mock_git_backup = Mock()
         mock_git_backup.create_backup.return_value = False
+        mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("scripts.git_backup.GitDatabaseBackup", return_value=mock_git_backup),
+            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
         ):
             manager = BackupManager()
             result = manager.create_backup("automatic")
@@ -930,9 +931,11 @@ class TestBackupManager:
         """Test create_backup handles exceptions gracefully"""
         from src.handlers.main_handler import BackupManager
 
+        mock_git_backup_cls = Mock(side_effect=Exception("Test error"))
+
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("scripts.git_backup.GitDatabaseBackup", side_effect=Exception("Test error")),
+            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
         ):
             manager = BackupManager()
             result = manager.create_backup("interruption")

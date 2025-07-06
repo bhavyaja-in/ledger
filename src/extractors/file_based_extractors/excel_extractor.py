@@ -10,6 +10,10 @@ import pandas as pd
 __all__ = ["ExcelExtractor"]
 
 
+class ExcelExtractionError(Exception):
+    """Custom exception for Excel extraction errors."""
+
+
 class ExcelExtractor:
     """Generic Excel extractor for basic Excel operations"""
 
@@ -48,7 +52,7 @@ class ExcelExtractor:
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
         except Exception as exception:
-            raise Exception(f"Error reading Excel file: {exception}")
+            raise ExcelExtractionError(f"Error reading Excel file: {exception}") from exception
 
     def detect_header_row(
         self, df: pd.DataFrame, required_columns: List[str], max_search_rows: int = 20

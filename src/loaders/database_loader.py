@@ -1,9 +1,17 @@
 """
-Database Loader - Handles create and update operations
+Database loader for financial data processing.
+
+Handles all database operations including transactions, institutions,
+processed files, and processing logs with comprehensive error handling.
 """
 
+import hashlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from sqlalchemy import func
+
+from src.models.database import DatabaseManager
 
 __all__ = ["DatabaseLoader"]
 
@@ -238,8 +246,6 @@ class DatabaseLoader:
         """Get unsettled amounts by person"""
         session = self.db_manager.get_session()
         try:
-            from sqlalchemy import func
-
             TransactionSplit = self.models["TransactionSplit"]
 
             query = session.query(
@@ -281,7 +287,7 @@ class DatabaseLoader:
             session.close()
 
     def get_person_transactions(
-        self, person_name: str, start_date=None, end_date=None, test_mode=False
+        self, person_name: str, start_date=None, end_date=None, _test_mode=False
     ):
         """Get all transactions involving a specific person"""
         session = self.db_manager.get_session()
@@ -310,8 +316,6 @@ class DatabaseLoader:
         """Get total amount paid for a specific person"""
         session = self.db_manager.get_session()
         try:
-            from sqlalchemy import func
-
             Transaction = self.models["Transaction"]
             TransactionSplit = self.models["TransactionSplit"]
 
