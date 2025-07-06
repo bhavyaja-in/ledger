@@ -382,6 +382,12 @@ class TestSensitiveDataProtection:
             # Mock engine that might leak connection info
             mock_engine = Mock()
             mock_engine.url = "sqlite:///sensitive_database.db?password=secret123"
+
+            # Mock the connect method to return a context manager
+            mock_connection = Mock()
+            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
+
             mock_create_engine.return_value = mock_engine
 
             db_manager = DatabaseManager(config, test_mode=True)
@@ -556,6 +562,12 @@ class TestDatabaseSecurity:
             patch("src.models.database.sessionmaker"),
         ):
             mock_engine = Mock()
+
+            # Mock the connect method to return a context manager
+            mock_connection = Mock()
+            mock_engine.connect.return_value.__enter__ = Mock(return_value=mock_connection)
+            mock_engine.connect.return_value.__exit__ = Mock(return_value=None)
+
             mock_create_engine.return_value = mock_engine
 
             db_manager = DatabaseManager(config, test_mode=True)

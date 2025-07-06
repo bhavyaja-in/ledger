@@ -3,7 +3,6 @@ Database models and manager with test mode support
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import (
     JSON,
@@ -20,8 +19,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-
-__all__ = ["DatabaseManager", "Base"]
 
 
 def create_models_with_prefix(prefix=""):
@@ -277,18 +274,47 @@ class DatabaseManager:  # pylint: disable=unused-variable
         try:
             # Check if currency column exists in transactions table
             with self.engine.connect() as conn:
-                # Try to query the currency column
-                test_table_name = f"{self.test_prefix}transactions"
-                try:
-                    conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))
-                    # If we get here, currency column exists, just create any missing tables
-                    self.base.metadata.create_all(self.engine)
-                except (AttributeError, TypeError, OSError):
-                    # Currency column doesn't exist, drop and recreate test tables
-                    print("🔄 Updating test database schema...")
-                    self.base.metadata.drop_all(self.engine)
-                    self.base.metadata.create_all(self.engine)
-                    print("✅ Test database schema updated")
-        except (OSError, IOError, ImportError):
+                self._check_and_update_schema(conn)
+        except (OSError, IOError, ImportError, Exception):  # pylint: disable=W0718
             # If we can't check, just create tables (first time setup)
             self.base.metadata.create_all(self.engine)
+
+    def _check_and_update_schema(self, conn):
+        """Check schema and update if needed"""
+        test_table_name = f"{self.test_prefix}transactions"
+
+        try:
+            # First check if the table exists
+            result = conn.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"),
+                {"table_name": test_table_name},
+            )
+            table_exists = result.fetchone() is not None
+
+            if table_exists:
+                self._update_existing_schema(conn, test_table_name)
+            else:
+                # Table doesn't exist, create all tables
+                print("🔄 Creating test database schema...")
+                self.base.metadata.create_all(self.engine)
+                print("✅ Test database schema created")
+        except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+            # Error checking table existence, just create tables
+            print("🔄 Creating test database schema...")
+            self.base.metadata.create_all(self.engine)
+            print("✅ Test database schema created")
+
+    def _update_existing_schema(self, conn, test_table_name):
+        """Update existing schema if needed"""
+        try:
+            # Use raw SQL with table name substitution for schema queries
+            # nosec B608 - This is a schema query with controlled table name
+            conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))  # nosec B608
+            # If we get here, currency column exists, just create any missing tables
+            self.base.metadata.create_all(self.engine)
+        except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+            # Currency column doesn't exist, drop and recreate test tables
+            print("🔄 Updating test database schema...")
+            self.base.metadata.drop_all(self.engine)
+            self.base.metadata.create_all(self.engine)
+            print("✅ Test database schema updated")

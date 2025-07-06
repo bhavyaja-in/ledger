@@ -110,7 +110,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             # Convert to list of dictionaries (preserve discovery order, no sorting)
             return [{"name": category} for category in categories]
 
-        except (OSError, IOError, ImportError, AttributeError, TypeError) as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             print(f"⚠️  Warning: Could not extract categories from database: {exception}")
             return []
         finally:

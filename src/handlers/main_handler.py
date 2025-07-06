@@ -75,7 +75,7 @@ class BackupManager:
 
             return success
 
-        except (OSError, IOError, ImportError, AttributeError) as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             print(f"⚠️  Backup error: {exception}")
             return False
 
