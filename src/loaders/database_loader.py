@@ -13,8 +13,6 @@ from sqlalchemy import func
 
 from src.models.database import DatabaseManager
 
-__all__ = ["DatabaseLoader"]
-
 
 class DatabaseLoader:
     """Database loader for create and update operations"""

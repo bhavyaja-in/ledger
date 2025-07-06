@@ -22,8 +22,6 @@ from src.utils.security import (  # pylint: disable=wrong-import-position
     validate_amount,
 )
 
-__all__ = ["IciciBankTransformer"]
-
 
 class IciciBankTransformer:
     """ICICI Bank transformer with interactive processing"""
