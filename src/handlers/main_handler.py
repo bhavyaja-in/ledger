@@ -4,7 +4,6 @@ Handles processor selection and orchestrates the entire processing flow
 """
 
 import argparse
-import glob
 import os
 import sys
 import time

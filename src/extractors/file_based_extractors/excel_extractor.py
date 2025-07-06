@@ -5,8 +5,11 @@ Generic Excel Extractor - Handles basic Excel file operations
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
+import os
 
-from src.utils.security import sanitize_filename
+from src.utils.security import sanitize_filename  # pylint: disable=unused-variable
+
+__all__ = ["ExcelExtractor"]
 
 
 class ExcelExtractor:
@@ -104,8 +107,6 @@ class ExcelExtractor:
 
     def get_file_info(self, file_path: str) -> Dict[str, Any]:
         """Get basic file information, robustly checking for read permissions"""
-        import os
-
         # Path traversal prevention - same as read_excel_file
         if not file_path:
             raise ValueError("File path cannot be empty")

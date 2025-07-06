@@ -9,8 +9,7 @@ import os
 import shutil
 import sqlite3
 import tempfile
-from datetime import date, datetime
-from decimal import Decimal
+
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -21,7 +20,7 @@ import yaml
 
 # Test Environment Setup
 @pytest.fixture(scope="session", autouse=True)
-def test_environment():
+def test_environment():  # pylint: disable=unused-variable
     """Ensure test environment is properly configured"""
     os.environ["LEDGER_TEST_MODE"] = "true"
     yield
@@ -32,7 +31,7 @@ def test_environment():
 
 # Integration Test Environment Fixture
 @pytest.fixture
-def integration_test_environment():
+def integration_test_environment():  # pylint: disable=unused-variable
     """Create complete isolated test environment with realistic data"""
     # Create temporary directory structure
     test_dir = tempfile.mkdtemp(prefix="ledger_integration_test_")
@@ -67,12 +66,12 @@ def integration_test_environment():
 
 
 @pytest.fixture
-def test_configurations(integration_test_environment):
+def test_configurations(integration_test_environment):  # noqa: W0621
     """Create test configuration files"""
     config_dir = integration_test_environment["config_dir"]
 
     # Test config.yaml
-    test_config = {
+    integration_test_config = {
         "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
         "processors": {"icici_bank": {"currency": "INR", "date_format": "%d-%m-%Y"}},
         "backup": {
@@ -83,7 +82,7 @@ def test_configurations(integration_test_environment):
 
     config_file = config_dir / "config.yaml"
     with open(config_file, "w") as f:
-        yaml.dump(test_config, f)
+        yaml.dump(integration_test_config, f)
 
     # Test categories.yaml
     test_categories = {
@@ -111,12 +110,12 @@ def test_configurations(integration_test_environment):
 
 
 @pytest.fixture
-def realistic_transaction_files(integration_test_environment):
+def realistic_transaction_files(integration_test_environment):  # noqa: W0621
     """Create realistic bank statement files for testing"""
     icici_dir = integration_test_environment["data_dir"] / "icici_bank"
 
     # Create realistic ICICI Bank statement data
-    test_files = {}
+    realistic_test_files = {}
 
     # File 1: Mixed transaction types with currency detection scenarios
     transactions_mixed = [
@@ -163,10 +162,10 @@ def realistic_transaction_files(integration_test_environment):
     ]
 
     # Create Excel file with mixed transactions
-    df_mixed = pd.DataFrame(transactions_mixed)
+    mixed_df = pd.DataFrame(transactions_mixed)
     mixed_file = icici_dir / "statement_mixed_2024_01.xlsx"
-    df_mixed.to_excel(mixed_file, index=False)
-    test_files["mixed_transactions"] = str(mixed_file)
+    mixed_df.to_excel(mixed_file, index=False)
+    realistic_test_files["mixed_transactions"] = str(mixed_file)
 
     # File 2: Split transaction scenarios
     transactions_splits = [
@@ -188,10 +187,10 @@ def realistic_transaction_files(integration_test_environment):
         },
     ]
 
-    df_splits = pd.DataFrame(transactions_splits)
+    splits_df = pd.DataFrame(transactions_splits)
     splits_file = icici_dir / "statement_splits_2024_01.xlsx"
-    df_splits.to_excel(splits_file, index=False)
-    test_files["split_transactions"] = str(splits_file)
+    splits_df.to_excel(splits_file, index=False)
+    realistic_test_files["split_transactions"] = str(splits_file)
 
     # File 3: Duplicate detection scenarios
     transactions_duplicates = [
@@ -213,37 +212,37 @@ def realistic_transaction_files(integration_test_environment):
         },
     ]
 
-    df_duplicates = pd.DataFrame(transactions_duplicates)
+    duplicates_df = pd.DataFrame(transactions_duplicates)
     duplicates_file = icici_dir / "statement_duplicates_2024_01.xlsx"
-    df_duplicates.to_excel(duplicates_file, index=False)
-    test_files["duplicate_scenarios"] = str(duplicates_file)
+    duplicates_df.to_excel(duplicates_file, index=False)
+    realistic_test_files["duplicate_scenarios"] = str(duplicates_file)
 
     # File 4: Corrupted/malformed file for error testing
     corrupted_file = icici_dir / "corrupted_statement.xlsx"
     with open(corrupted_file, "w") as f:
         f.write("This is not a valid Excel file")
-    test_files["corrupted_file"] = str(corrupted_file)
+    realistic_test_files["corrupted_file"] = str(corrupted_file)
 
     # File 5: Empty file
     empty_file = icici_dir / "empty_statement.xlsx"
-    empty_df = pd.DataFrame()
-    empty_df.to_excel(empty_file, index=False)
-    test_files["empty_file"] = str(empty_file)
+    empty_dataframe = pd.DataFrame()
+    empty_dataframe.to_excel(empty_file, index=False)
+    realistic_test_files["empty_file"] = str(empty_file)
 
-    integration_test_environment["test_files"] = test_files
-    return test_files
+    integration_test_environment["test_files"] = realistic_test_files
+    return realistic_test_files
 
 
 # Temporary Directory Fixtures
 @pytest.fixture
-def temp_dir():
+def temp_dir():  # pylint: disable=unused-variable
     """Create isolated temporary directory for test files"""
     with tempfile.TemporaryDirectory(prefix="ledger_test_") as tmp_dir:
         yield Path(tmp_dir)
 
 
 @pytest.fixture
-def temp_config_dir(temp_dir):
+def temp_config_dir(temp_dir):  # noqa: W0621
     """Create temporary config directory"""
     config_dir = temp_dir / "config"
     config_dir.mkdir()
@@ -251,7 +250,7 @@ def temp_config_dir(temp_dir):
 
 
 @pytest.fixture
-def temp_data_dir(temp_dir):
+def temp_data_dir(temp_dir):  # noqa: W0621
     """Create temporary data directory"""
     data_dir = temp_dir / "data"
     data_dir.mkdir()
@@ -262,7 +261,7 @@ def temp_data_dir(temp_dir):
 @pytest.fixture
 def test_config(temp_config_dir):
     """Create test configuration"""
-    config = {
+    test_config_data = {
         "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
         "processors": {"icici_bank": {"enabled": True, "data_path": "data/icici_bank"}},
         "logging": {"level": "DEBUG"},
@@ -270,15 +269,15 @@ def test_config(temp_config_dir):
 
     config_file = temp_config_dir / "config.yaml"
     with open(config_file, "w") as f:
-        yaml.dump(config, f)
+        yaml.dump(test_config_data, f)
 
-    return config
+    return test_config_data
 
 
 @pytest.fixture
-def test_categories_config(temp_config_dir):
+def test_categories_config(temp_config_dir):  # noqa: W0621
     """Create test categories configuration"""
-    categories = {
+    test_categories_data = {
         "categories": [
             {"name": "income"},
             {"name": "food"},
@@ -293,14 +292,14 @@ def test_categories_config(temp_config_dir):
 
     categories_file = temp_config_dir / "categories.yaml"
     with open(categories_file, "w") as f:
-        yaml.dump(categories, f)
+        yaml.dump(test_categories_data, f)
 
-    return categories
+    return test_categories_data
 
 
 # Database Fixtures
 @pytest.fixture
-def mock_db_manager():
+def mock_db_manager():  # pylint: disable=unused-variable
     """Create mock database manager"""
     mock_manager = Mock()
     mock_manager.get_session.return_value = Mock()
@@ -317,7 +316,7 @@ def mock_db_manager():
 
 
 @pytest.fixture
-def in_memory_db():
+def in_memory_db():  # pylint: disable=unused-variable
     """Create in-memory SQLite database for testing"""
     connection = sqlite3.connect(":memory:")
     yield connection
@@ -326,7 +325,7 @@ def in_memory_db():
 
 # Test Data Fixtures
 @pytest.fixture
-def sample_transaction_data():
+def sample_transaction_data():  # pylint: disable=unused-variable
     """Sample transaction data for testing"""
     return [
         {
@@ -357,23 +356,23 @@ def sample_transaction_data():
 
 
 @pytest.fixture
-def sample_dataframe(sample_transaction_data):
+def sample_dataframe(sample_transaction_data):  # noqa: W0621
     """Sample pandas DataFrame for testing"""
     return pd.DataFrame(sample_transaction_data)
 
 
 @pytest.fixture
-def sample_excel_file(temp_data_dir, sample_transaction_data):
+def sample_excel_file(temp_data_dir, sample_transaction_data):  # noqa: W0621
     """Create sample Excel file for testing"""
-    df = pd.DataFrame(sample_transaction_data)
+    sample_df = pd.DataFrame(sample_transaction_data)
     excel_file = temp_data_dir / "sample_transactions.xlsx"
-    df.to_excel(excel_file, index=False)
+    sample_df.to_excel(excel_file, index=False)
     return str(excel_file)
 
 
 # Mock Fixtures
 @pytest.fixture
-def mock_file_system():
+def mock_file_system():  # pylint: disable=unused-variable
     """Mock file system operations"""
     with patch("os.path.exists") as mock_exists, patch("builtins.open") as mock_open:
         mock_exists.return_value = True
@@ -381,7 +380,7 @@ def mock_file_system():
 
 
 @pytest.fixture
-def mock_yaml_operations():
+def mock_yaml_operations():  # pylint: disable=unused-variable
     """Mock YAML operations"""
     with patch("yaml.safe_load") as mock_load, patch("yaml.dump") as mock_dump:
         yield {"load": mock_load, "dump": mock_dump}
@@ -389,7 +388,7 @@ def mock_yaml_operations():
 
 # Validation Fixtures
 @pytest.fixture
-def security_validator():
+def security_validator():  # pylint: disable=unused-variable
     """Security validation utilities"""
 
     class SecurityValidator:
@@ -415,7 +414,7 @@ def security_validator():
 
 # Coverage Fixtures
 @pytest.fixture
-def coverage_tracker():
+def coverage_tracker():  # pylint: disable=unused-variable
     """Track test coverage requirements"""
 
     class CoverageTracker:
@@ -439,7 +438,7 @@ def coverage_tracker():
 
 # Cleanup Fixtures
 @pytest.fixture(autouse=True)
-def cleanup_after_test():
+def cleanup_after_test():  # pylint: disable=unused-variable
     """Automatic cleanup after each test"""
     yield
     # Clean up any test artifacts

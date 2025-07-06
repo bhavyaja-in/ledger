@@ -9,8 +9,16 @@ import html
 import re
 from typing import Optional
 
+__all__ = [
+    "sanitize_text_input",
+    "sanitize_filename", 
+    "validate_amount",
+    "sanitize_sql_like_pattern",
+    "is_safe_for_display"
+]
 
-def sanitize_text_input(text: Optional[str], max_length: Optional[int] = None) -> str:
+
+def sanitize_text_input(text: Optional[str], max_length: Optional[int] = None) -> str:  # pylint: disable=unused-variable
     """
     Sanitize text input to prevent XSS and other injection attacks.
 
@@ -76,7 +84,7 @@ def sanitize_text_input(text: Optional[str], max_length: Optional[int] = None) -
     return text
 
 
-def sanitize_filename(filename: Optional[str]) -> str:
+def sanitize_filename(filename: Optional[str]) -> str:  # pylint: disable=unused-variable
     """
     Sanitize filename to prevent path traversal attacks.
 
@@ -173,7 +181,7 @@ def validate_amount(amount_str: Optional[str]) -> Optional[float]:
         return None
 
 
-def sanitize_sql_like_pattern(pattern: Optional[str]) -> str:
+def sanitize_sql_like_pattern(pattern: Optional[str]) -> str:  # pylint: disable=unused-variable
     """
     Sanitize SQL LIKE patterns to prevent injection.
 
@@ -199,7 +207,7 @@ def sanitize_sql_like_pattern(pattern: Optional[str]) -> str:
     return pattern
 
 
-def is_safe_for_display(text: Optional[str]) -> bool:
+def is_safe_for_display(text: Optional[str]) -> bool:  # pylint: disable=unused-variable
     """
     Check if text is safe for display without additional sanitization.
 

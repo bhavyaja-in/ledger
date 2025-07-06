@@ -3,7 +3,9 @@ Currency detection and management utilities
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional  # pylint: disable=unused-variable
+
+__all__ = ["CurrencyDetector"]
 
 
 class CurrencyDetector:

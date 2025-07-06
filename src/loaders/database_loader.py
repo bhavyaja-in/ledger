@@ -5,6 +5,8 @@ Database Loader - Handles create and update operations
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+__all__ = ["DatabaseLoader"]
+
 
 class DatabaseLoader:
     """Database loader for create and update operations"""
@@ -34,12 +36,6 @@ class DatabaseLoader:
                 session.refresh(institution)
 
             # Return detached instance
-            institution_data = {
-                "id": institution.id,
-                "name": institution.name,
-                "institution_type": institution.institution_type,
-            }
-
             session.expunge(institution)
             return institution
 

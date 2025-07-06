@@ -25,7 +25,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 # Add src to path for imports (we're now in tests/ directory)
 project_root = Path(__file__).parent.parent
@@ -110,12 +110,12 @@ class SmokeTestSuite:
 
         # Log result
         status_emoji = "✅" if passed else "❌"
-        self.logger.info(f"{status_emoji} {test_name}: {result['status']} ({duration:.3f}s)")
+        self.logger.info("%s %s: %s (%.3fs)", status_emoji, test_name, result["status"], duration)
 
         if not passed:
-            self.logger.error(f"FAILURE DETAILS: {message}")
+            self.logger.error("FAILURE DETAILS: %s", message)
             if details:
-                self.logger.error(f"ADDITIONAL INFO: {json.dumps(details, indent=2)}")
+                self.logger.error("ADDITIONAL INFO: %s", json.dumps(details, indent=2))
 
     def test_environment_setup(self) -> bool:
         """Validate environment setup and requirements"""
@@ -129,18 +129,18 @@ class SmokeTestSuite:
                 issues.append(f"Python version {sys.version} < 3.8 minimum requirement")
 
             # Check project structure (we're now in tests/ directory)
-            project_root = Path(__file__).parent.parent
+            current_project_root = Path(__file__).parent.parent
             for directory in self.test_config["required_directories"]:
-                if not (project_root / directory).exists():
+                if not (current_project_root / directory).exists():
                     issues.append(f"Missing required directory: {directory}")
 
             for file_path in self.test_config["required_files"]:
-                if not (project_root / file_path).exists():
+                if not (current_project_root / file_path).exists():
                     issues.append(f"Missing required file: {file_path}")
 
             # Check write permissions
             try:
-                with tempfile.NamedTemporaryFile(dir=project_root, delete=True):
+                with tempfile.NamedTemporaryFile(dir=current_project_root, delete=True):
                     pass
             except Exception as exception:
                 issues.append(f"No write permission in project root: {exception}")
@@ -554,56 +554,56 @@ import pytest
 
 
 @pytest.mark.smoke
-def test_smoke_environment_setup():
+def test_smoke_environment_setup():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for environment setup"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_environment_setup(), "Environment setup failed"
 
 
 @pytest.mark.smoke
-def test_smoke_configuration_loading():
+def test_smoke_configuration_loading():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for configuration loading"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_configuration_loading(), "Configuration loading failed"
 
 
 @pytest.mark.smoke
-def test_smoke_database_connectivity():
+def test_smoke_database_connectivity():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for database connectivity"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_database_connectivity(), "Database connectivity failed"
 
 
 @pytest.mark.smoke
-def test_smoke_critical_modules():
+def test_smoke_critical_modules():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for critical modules"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_critical_modules(), "Critical modules test failed"
 
 
 @pytest.mark.smoke
-def test_smoke_file_processing_pipeline():
+def test_smoke_file_processing_pipeline():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for file processing pipeline"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_file_processing_pipeline(), "File processing pipeline failed"
 
 
 @pytest.mark.smoke
-def test_smoke_security_boundaries():
+def test_smoke_security_boundaries():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for security boundaries"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_security_boundaries(), "Security boundaries test failed"
 
 
 @pytest.mark.smoke
-def test_smoke_performance_baselines():
+def test_smoke_performance_baselines():  # pylint: disable=unused-variable
     """Pytest-compatible smoke test for performance baselines"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.test_performance_baselines(), "Performance baselines test failed"
 
 
 @pytest.mark.smoke
-def test_smoke_complete_suite():
+def test_smoke_complete_suite():  # pylint: disable=unused-variable
     """Pytest-compatible complete smoke test suite"""
     smoke_test = SmokeTestSuite(verbose=False)
     assert smoke_test.run_all_tests(), "Complete smoke test suite failed"

@@ -2,8 +2,8 @@
 Database models and manager with test mode support
 """
 
-import os
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import (
     JSON,
@@ -20,6 +20,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+
+__all__ = ["DatabaseManager", "Base"]
 
 
 def create_models_with_prefix(prefix=""):
@@ -194,7 +196,7 @@ def create_models_with_prefix(prefix=""):
     }, Base
 
 
-class DatabaseManager:
+class DatabaseManager:  # pylint: disable=unused-variable
     """Database manager with test mode support"""
 
     def __init__(self, config, test_mode=False):

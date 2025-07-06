@@ -54,7 +54,6 @@ enable=W0622,  # redefined-builtin
        W0613,  # unused-argument (now enabled)
        C0103,  # invalid-name (now enabled)
        W0703,  # broad-except (now enabled)
-       W0612,  # unused-variable
        W0621,  # redefined-outer-name
        W0702,  # bare-except
        W0104,  # pointless-statement

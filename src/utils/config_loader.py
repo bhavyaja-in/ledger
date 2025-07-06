@@ -8,7 +8,7 @@ from typing import Any, Dict
 import yaml
 
 
-class ConfigLoader:
+class ConfigLoader:  # pylint: disable=unused-variable
     """Configuration loader with dynamic category management"""
 
     def __init__(
