@@ -68,20 +68,19 @@ class ConfigLoader:
             with open(self.categories_path, "r") as file:
                 categories_config = yaml.safe_load(file) or {}
                 return categories_config.get("categories", [])
-        else:
-            # Return default template categories
-            return [
-                {"name": "income"},
-                {"name": "food"},
-                {"name": "transport"},
-                {"name": "shopping"},
-                {"name": "entertainment"},
-                {"name": "utilities"},
-                {"name": "healthcare"},
-                {"name": "transfer"},
-                {"name": "investment"},
-                {"name": "other"},
-            ]
+        # Return default template categories
+        return [
+            {"name": "income"},
+            {"name": "food"},
+            {"name": "transport"},
+            {"name": "shopping"},
+            {"name": "entertainment"},
+            {"name": "utilities"},
+            {"name": "healthcare"},
+            {"name": "transfer"},
+            {"name": "investment"},
+            {"name": "other"},
+        ]
 
     def _extract_database_categories(self):
         """Extract unique categories from database (both enum and transaction categories)"""

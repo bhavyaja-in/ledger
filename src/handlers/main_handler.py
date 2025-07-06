@@ -197,8 +197,7 @@ class MainHandler:
                     selected = processors[idx]
                     print(f"✅ Selected: {selected.replace('_', ' ').title()}")
                     return selected
-                else:
-                    print("❌ Invalid choice. Please try again.")
+                print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
             except KeyboardInterrupt:
@@ -272,7 +271,7 @@ class MainHandler:
 
                 if choice == str(len(files) + 2):
                     return self._select_processor()
-                elif choice == str(len(files) + 1):
+                if choice == str(len(files) + 1):
                     return self._browse_for_file()
 
                 idx = int(choice) - 1
@@ -280,8 +279,7 @@ class MainHandler:
                     selected_file = files[idx]["path"]
                     print(f"✅ Selected: {files[idx]['name']}")
                     return selected_file
-                else:
-                    print("❌ Invalid choice. Please try again.")
+                print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
             except KeyboardInterrupt:
@@ -296,12 +294,11 @@ class MainHandler:
                 if os.path.exists(file_path):
                     print(f"✅ File found: {os.path.basename(file_path)}")
                     return file_path
-                else:
-                    print("❌ File not found. Please try again.")
-                    retry = input("🔄 Try again? (y/n): ").strip().lower()
-                    if retry != "y":
-                        print("🔙 Returning to file selection...")
-                        return self._select_processor()
+                print("❌ File not found. Please try again.")
+                retry = input("🔄 Try again? (y/n): ").strip().lower()
+                if retry != "y":
+                    print("🔙 Returning to file selection...")
+                    return self._select_processor()
             except KeyboardInterrupt:
                 # Signal handler will take care of this
                 raise

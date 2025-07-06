@@ -142,8 +142,8 @@ class SmokeTestSuite:
             try:
                 with tempfile.NamedTemporaryFile(dir=project_root, delete=True):
                     pass
-            except Exception as e:
-                issues.append(f"No write permission in project root: {e}")
+            except Exception as exception:
+                issues.append(f"No write permission in project root: {exception}")
 
             # Check required environment variables
             if os.getenv("LEDGER_TEST_MODE") != "true":
@@ -163,14 +163,14 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Environment Setup",
                 False,
                 duration,
-                f"Environment check failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Environment check failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 
@@ -207,14 +207,14 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Configuration Loading",
                 False,
                 duration,
-                f"Configuration loading failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Configuration loading failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 
@@ -260,14 +260,14 @@ class SmokeTestSuite:
 
             return True
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Database Connectivity",
                 False,
                 duration,
-                f"Database connectivity failed: {e}",
-                {"exception_type": type(e).__name__, "error_details": str(e)},
+                f"Database connectivity failed: {exception}",
+                {"exception_type": type(exception).__name__, "error_details": str(exception)},
             )
             return False
 
@@ -282,8 +282,8 @@ class SmokeTestSuite:
             for module_name in self.test_config["critical_modules"]:
                 try:
                     __import__(module_name)
-                except ImportError as e:
-                    issues.append(f"Failed to import {module_name}: {e}")
+                except ImportError as exception:
+                    issues.append(f"Failed to import {module_name}: {exception}")
 
             duration = time.time() - start_time
             self.performance_metrics["module_import_time"] = duration
@@ -304,14 +304,14 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Critical Modules",
                 False,
                 duration,
-                f"Module import test failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Module import test failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 
@@ -343,14 +343,14 @@ class SmokeTestSuite:
 
             return True
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "File Processing Pipeline",
                 False,
                 duration,
-                f"Pipeline component test failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Pipeline component test failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 
@@ -392,14 +392,14 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Security Boundaries",
                 False,
                 duration,
-                f"Security boundary test failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Security boundary test failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 
@@ -432,14 +432,14 @@ class SmokeTestSuite:
 
             return success
 
-        except Exception as e:
+        except Exception as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Performance Baselines",
                 False,
                 duration,
-                f"Performance baseline test failed: {e}",
-                {"exception_type": type(e).__name__},
+                f"Performance baseline test failed: {exception}",
+                {"exception_type": type(exception).__name__},
             )
             return False
 

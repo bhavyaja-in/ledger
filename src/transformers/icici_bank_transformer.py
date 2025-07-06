@@ -385,7 +385,7 @@ class IciciBankTransformer:
                 "action": "skip",
                 "reason": "User chose to skip - existing pattern found but not used",
             }
-        elif transaction_category_result["action"] == "create_new":
+        if transaction_category_result["action"] == "create_new":
             return self._full_interactive_flow(description)
 
         transaction_category = transaction_category_result["category"]
@@ -406,7 +406,7 @@ class IciciBankTransformer:
                 break
 
             # Provide default if user just presses enter
-            elif not user_input:
+            if not user_input:
                 reason = f"Transaction: {existing_enum['enum_name']}"
                 print(f"ℹ️  Using default reason: {reason}")
                 break
@@ -523,19 +523,18 @@ class IciciBankTransformer:
                 return suggested_pattern
 
             # Option 2: User typed "2" - skip transaction
-            elif user_input == "2":
+            if user_input == "2":
                 print("⏭️  Skipping transaction...")
                 return None
 
             # Option 3: User typed custom pattern
-            elif len(user_input) >= 2:
+            if len(user_input) >= 2:
                 print(f"✅ Using custom pattern: {user_input}")
                 return user_input
 
-            else:
-                print(
-                    "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
-                )
+            print(
+                "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
+            )
 
     def _get_pattern_suggestions(self, description: str) -> List[str]:
         """Generate intelligent pattern suggestions from description"""
@@ -653,11 +652,10 @@ class IciciBankTransformer:
                     selected_category = categories[idx]
                     print(f"✅ Selected enum category: {selected_category.title()}")
                     return selected_category
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)} or type a category name."
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)} or type a category name."
+                )
+                continue
 
             # User typed a category name - auto-add it
             elif choice and len(choice) >= 2:
@@ -684,9 +682,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing enum category: {category_name.title()}")
 
                 return category_name
-
-            else:
-                print("❌ Please enter a number or category name (at least 2 characters)")
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_transaction_category(self, enum_category: str) -> str:
         """Ask user to select transaction category with auto-suggestion from enum category"""
@@ -715,17 +711,16 @@ class IciciBankTransformer:
                 return enum_category
 
             # Check if user entered a number
-            elif choice.isdigit():
+            if choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
                     print(f"✅ Selected transaction category: {selected_category.title()}")
                     return selected_category
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name."
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or type a category name."
+                )
+                continue
 
             # User typed a category name - auto-add it
             elif choice and len(choice) >= 2:
@@ -754,11 +749,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing transaction category: {category_name.title()}")
 
                 return category_name
-
-            else:
-                print(
-                    f"❌ Please enter a number, press Enter for '{enum_category.title()}', or type a category name (at least 2 characters)"
-                )
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_transaction_category_with_options(self, enum_category: str) -> Dict[str, Any]:
         """Ask user to select transaction category with skip and create new pattern options"""
@@ -789,26 +780,25 @@ class IciciBankTransformer:
                 return {"action": "skip"}
 
             # Special option 3: Create new pattern
-            elif choice == "3":
+            if choice == "3":
                 return {"action": "create_new"}
 
             # User pressed Enter - use enum category
-            elif not choice:
+            if not choice:
                 print(f"✅ Using enum category: {enum_category.title()}")
                 return {"action": "process", "category": enum_category}
 
             # Check if user entered a number
-            elif choice.isdigit():
+            if choice.isdigit():
                 idx = int(choice) - 1
                 if 0 <= idx < len(categories):
                     selected_category = categories[idx]
                     print(f"✅ Selected transaction category: {selected_category.title()}")
                     return {"action": "process", "category": selected_category}
-                else:
-                    print(
-                        f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)"
-                    )
-                    continue
+                print(
+                    f"❌ Invalid number. Please enter 1-{len(categories)}, press Enter for '{enum_category.title()}', or use special options (2=skip, 3=new pattern)"
+                )
+                continue
 
             # User typed a category name - auto-add it
             elif choice and len(choice) >= 2:
@@ -837,11 +827,7 @@ class IciciBankTransformer:
                         print(f"✅ Selected existing transaction category: {category_name.title()}")
 
                 return {"action": "process", "category": category_name}
-
-            else:
-                print(
-                    f"❌ Please enter a number, press Enter for '{enum_category.title()}', type a category name (at least 2 characters), or use special options (2=skip, 3=new pattern)"
-                )
+            print("❌ Category name must be at least 2 characters long")
 
     def _ask_for_reason(self) -> str:
         """Ask user for transaction reason with suggestions"""

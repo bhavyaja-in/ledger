@@ -131,8 +131,7 @@ class CurrencyDetector:
         if isinstance(currencies, str):
             if self.is_valid_currency_code(currencies):
                 return [currencies.upper()]
-            else:
-                return ["INR"]
+            return ["INR"]
 
         # Handle multiple currencies as list
         if isinstance(currencies, list):
