@@ -34,7 +34,7 @@ jobs:
 
     - name: Run Pylint
       run: |
-        pylint src/ tests/ scripts/ --rcfile=config/.pylintrc
+        pylint src/ tests/ scripts/ --rcfile=config/.pylintrc --score=y --fail-under=9.75
 
     - name: Run MyPy type checking
       run: |
