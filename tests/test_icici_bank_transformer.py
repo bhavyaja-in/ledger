@@ -385,7 +385,9 @@ class TestIciciBankTransformer:
             patch.object(transformer, "_ask_for_pattern_word", return_value="upi"),
             patch.object(transformer, "_ask_for_enum_name", return_value="upi_payments"),
             patch.object(transformer, "_handle_enum_and_category", return_value=mock_enum),
-            patch.object(transformer, "_ask_for_transaction_category_with_ml", return_value="transfer"),
+            patch.object(
+                transformer, "_ask_for_transaction_category_with_ml", return_value="transfer"
+            ),
             patch.object(transformer, "_ask_for_reason_with_ml", return_value="Payment"),
             patch.object(transformer, "_ask_for_splits", return_value=None),
             patch("builtins.print"),
@@ -670,7 +672,9 @@ class TestIciciBankTransformer:
             patch.object(transformer, "_ask_for_category_with_ml", return_value="new_category"),
             patch("builtins.print") as mock_print,
         ):
-            result = transformer._handle_enum_and_category("new_enum", ["pattern"], "test description")
+            result = transformer._handle_enum_and_category(
+                "new_enum", ["pattern"], "test description"
+            )
 
         assert result == mock_enum
         transformer.db_loader.create_or_update_enum.assert_called_once_with(
@@ -1065,3 +1069,106 @@ class TestIciciBankTransformer:
         mock_print.assert_any_call(
             "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
         )
+
+    # ML Configuration-driven Tests
+    # =====================
+
+    def test_get_pattern_suggestions_respects_max_suggestions_config(self, transformer):
+        """Test that pattern suggestions respect max_suggestions config"""
+        # Set up config with max_suggestions = 2
+        transformer.config = {
+            "ml": {"max_suggestions": 2},
+            "categories": [{"name": "food"}]
+        }
+        
+        result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE SWIGGY FOOD")
+        assert len(result) <= 2
+
+    def test_get_pattern_suggestions_with_ml_config_values(self, transformer):
+        """Test that pattern suggestions use config values for filtering"""
+        transformer.config = {
+            "ml": {
+                "max_suggestions": 3,
+                "feature_extraction": {
+                    "min_pattern_length": 4,
+                    "max_pattern_length": 10
+                }
+            },
+            "categories": [{"name": "food"}]
+        }
+        
+        # Mock ML service
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_regex_patterns.return_value = ["ab", "payment", "grocery", "verylongpatternname"]
+        transformer.ml_service = mock_ml_service
+        
+        result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE")
+        # Should filter out "ab" (too short) and "verylongpatternname" (too long)
+        assert "ab" not in result
+        assert "verylongpatternname" not in result
+        assert len(result) <= 3
+
+    def test_ml_confidence_threshold_from_config(self, transformer):
+        """Test that ML suggestions respect confidence_threshold from config"""
+        transformer.config = {
+            "ml": {"confidence_threshold": 0.9},  # Very high threshold
+            "categories": [{"name": "food"}]
+        }
+        
+        # Mock ML service with low confidence suggestion
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_regex_pattern.return_value = {
+            "pattern": "test",
+            "confidence": 0.6,  # Below threshold
+            "reasoning": "test reason"
+        }
+        transformer.ml_service = mock_ml_service
+        
+        with (
+            patch("builtins.input", return_value="2"),
+            patch("builtins.print") as mock_print,
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["test"])
+        ):
+            result = transformer._ask_for_pattern_word("test description")
+        
+        # Should not print ML suggestion since confidence is below threshold
+        ml_suggestion_printed = any(
+            "ML Regex Pattern Suggestion" in str(call) 
+            for call in mock_print.call_args_list
+        )
+        assert not ml_suggestion_printed
+        assert result is None  # Should skip
+
+    def test_ml_max_suggestions_in_category_selection(self, transformer):
+        """Test that ML category suggestions respect max_suggestions config"""
+        transformer.config = {
+            "ml": {"max_suggestions": 2},
+            "categories": [{"name": "food"}, {"name": "transport"}]
+        }
+        
+        # Mock ML service
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_enum_category.return_value = [
+            {"category": "food", "confidence": 0.9, "reasoning": "food related"},
+            {"category": "transport", "confidence": 0.8, "reasoning": "transport related"},
+            {"category": "entertainment", "confidence": 0.7, "reasoning": "entertainment related"}
+        ]
+        transformer.ml_service = mock_ml_service
+        
+        with (
+            patch("builtins.input", return_value="food"),
+            patch("builtins.print") as mock_print
+        ):
+            result = transformer._ask_for_category_with_ml("test description")
+        
+        # Count ML suggestions printed (should be limited by max_suggestions)
+        ml_suggestion_calls = [
+            call for call in mock_print.call_args_list 
+            if "ML Enum Category Suggestions" in str(call) or "🎯" in str(call)
+        ]
+        # Should show only max_suggestions number of options
+        confidence_calls = [call for call in mock_print.call_args_list if "% confidence)" in str(call)]
+        assert len(confidence_calls) <= 2  # max_suggestions = 2

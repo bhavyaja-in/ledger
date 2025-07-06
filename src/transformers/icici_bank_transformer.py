@@ -65,8 +65,8 @@ class IciciBankTransformer:
                 print("🤖 ML-powered suggestions enabled")
         except ImportError:
             print("⚠️  ML dependencies not available - using manual categorization only")
-        except Exception as e:
-            print(f"⚠️  ML service initialization failed: {e}")
+        except Exception as exception:
+            print(f"⚠️  ML service initialization failed: {exception}")
 
         # Set up signal handler for graceful interrupt
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -544,7 +544,8 @@ class IciciBankTransformer:
         if self.ml_service and self.ml_service.ml_enabled:
             try:
                 pattern_suggestion = self.ml_service.suggest_regex_pattern(description)
-                if pattern_suggestion and pattern_suggestion["confidence"] > 0.5:
+                confidence_threshold = self.config.get("ml", {}).get("confidence_threshold", 0.75)
+                if pattern_suggestion and pattern_suggestion["confidence"] > confidence_threshold:
                     confidence_percent = int(pattern_suggestion["confidence"] * 100)
                     print(f"\n🤖 ML Regex Pattern Suggestion ({confidence_percent}%):")
                     print(f"  {pattern_suggestion['pattern']}")
@@ -599,10 +600,17 @@ class IciciBankTransformer:
                     description
                 )
                 # Filter and clean ML suggestions
-                for pattern in ml_patterns[:3]:  # Top 3 ML suggestions
-                    if len(pattern) >= 3 and len(pattern) <= 20:
-                        clean_pattern = "".join(c for c in pattern if c.isalnum())
-                        if len(clean_pattern) >= 3:
+                max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
+                min_pattern_length = self.config.get("ml", {}).get("feature_extraction", {}).get(
+                    "min_pattern_length", 3
+                )
+                max_pattern_length = self.config.get("ml", {}).get("feature_extraction", {}).get(
+                    "max_pattern_length", 50
+                )
+                for pattern in ml_patterns[:max_suggestions]:
+                    if len(pattern) >= min_pattern_length and len(pattern) <= max_pattern_length:
+                        clean_pattern = "".join(char for char in pattern if char.isalnum())
+                        if len(clean_pattern) >= min_pattern_length:
                             suggestions.append(clean_pattern)
             except Exception:
                 # Fall back to manual suggestions if ML fails
@@ -632,12 +640,12 @@ class IciciBankTransformer:
             # Look for potential company names, UPI IDs, etc.
             if len(word) >= 3:
                 # Remove special characters for cleaner patterns
-                clean_word = "".join(c for c in word if c.isalnum())
+                clean_word = "".join(char for char in word if char.isalnum())
                 if len(clean_word) >= 3 and clean_word not in suggestions:
                     suggestions.append(clean_word)
 
-        return suggestions[:5] if suggestions else ["transaction"]  # Return top 5 suggestions
-
+        max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
+        return suggestions[:max_suggestions] if suggestions else ["transaction"]
 
     def _ask_for_enum_name(self, pattern_word: str) -> str:
         """Ask user for enum name with intelligent suggestion"""
@@ -704,16 +712,19 @@ class IciciBankTransformer:
         categories = [cat["name"] for cat in self.config.get("categories", [])]
 
         print("\n📂 Select enum category:")
-        
+
         # Show ML enum category suggestions if available
         if self.ml_service and self.ml_service.ml_enabled and description:
             try:
                 ml_suggestions = self.ml_service.suggest_enum_category(description)
                 if ml_suggestions:
                     print("\n🤖 ML Enum Category Suggestions:")
-                    for suggestion in ml_suggestions[:3]:
+                    max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
+                    for suggestion in ml_suggestions[:max_suggestions]:
                         confidence_percent = int(suggestion["confidence"] * 100)
-                        print(f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)")
+                        print(
+                            f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)"
+                        )
                         print(f"    Reason: {suggestion['reasoning']}")
                     print()
             except Exception:
@@ -781,19 +792,22 @@ class IciciBankTransformer:
         # Show ML transaction category suggestions if available
         if self.ml_service and self.ml_service.ml_enabled:
             try:
-                # Create a mock transaction for ML suggestions
-                mock_transaction = {
+                # Create a transaction context for ML suggestions
+                transaction_context = {
                     "description": description,
-                    "debit_amount": 0,
-                    "transaction_date": "2024-01-01",
+                    "debit_amount": 0,  # Amount not known yet at this stage
+                    "transaction_date": datetime.now().strftime("%Y-%m-%d"),
                 }
-                ml_suggestions = self.ml_service.suggest_transaction_category(mock_transaction)
+                ml_suggestions = self.ml_service.suggest_transaction_category(transaction_context)
 
                 if ml_suggestions:
                     print("\n🤖 ML Transaction Category Suggestions:")
-                    for suggestion in ml_suggestions[:3]:
+                    max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
+                    for suggestion in ml_suggestions[:max_suggestions]:
                         confidence_percent = int(suggestion["confidence"] * 100)
-                        print(f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)")
+                        print(
+                            f"  🎯 {suggestion['category'].title()} ({confidence_percent}% confidence)"
+                        )
                         print(f"    Reason: {suggestion['reasoning']}")
                     print()
             except Exception:
@@ -943,21 +957,24 @@ class IciciBankTransformer:
     def _ask_for_reason_with_ml(self, description: str, category: str) -> str:
         """Ask user for transaction reason with ML suggestions"""
         print("\n📋 What's the reason for this transaction?")
-        
+
         # Show ML reason suggestions if available
         if self.ml_service and self.ml_service.ml_enabled:
             try:
-                # Create a mock transaction for ML suggestions
-                mock_transaction = {
+                # Create a transaction context for ML suggestions
+                transaction_context = {
                     "description": description,
-                    "debit_amount": 0,
-                    "transaction_date": "2024-01-01",
+                    "debit_amount": 0,  # Amount not known yet at this stage
+                    "transaction_date": datetime.now().strftime("%Y-%m-%d"),
                 }
-                ml_suggestions = self.ml_service.suggest_transaction_reason(mock_transaction, category)
+                ml_suggestions = self.ml_service.suggest_transaction_reason(
+                    transaction_context, category
+                )
 
                 if ml_suggestions:
                     print("\n🤖 ML Reason Suggestions:")
-                    for suggestion in ml_suggestions[:3]:
+                    max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
+                    for suggestion in ml_suggestions[:max_suggestions]:
                         confidence_percent = int(suggestion["confidence"] * 100)
                         print(f"  🎯 {suggestion['reason']} ({confidence_percent}% confidence)")
                         print(f"    Reason: {suggestion['reasoning']}")

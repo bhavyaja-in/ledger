@@ -10,8 +10,8 @@ processing:
 # ML-powered contextual transaction categorization
 ml:
   enabled: true
-  confidence_threshold: 0.6
-  max_suggestions: 5
+  confidence_threshold: 0.75
+  max_suggestions: 5  # Maximum number of suggestions to show per category. Set to 0 to disable suggestions, 10+ may overwhelm users
   feature_extraction:
     min_pattern_length: 3
     max_pattern_length: 50

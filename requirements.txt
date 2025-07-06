@@ -46,11 +46,6 @@ bandit>=1.7.5,<2.0.0
 
 # ML dependencies for contextual transaction categorization
 scikit-learn>=1.1.0,<2.0.0
-# spacy>=3.4.0  # Keeping commented for now - too heavy for lightweight approach
-# transformers>=4.21.0  # Keeping commented for now - too heavy for lightweight approach  
-# sentence-transformers>=2.2.0  # Keeping commented for now - too heavy for lightweight approach
-# mlflow>=1.28.0  # Keeping commented for now - not needed for basic ML
-# optuna>=3.0.0  # Keeping commented for now - not needed for basic ML
 
 # Additional lightweight ML dependencies
 fuzzywuzzy>=0.18.0,<1.0.0
