@@ -20,6 +20,7 @@ from src.utils.security import sanitize_text_input, validate_amount
 
 __all__ = ["IciciBankTransformer"]
 
+
 class IciciBankTransformer:
     """ICICI Bank transformer with interactive processing"""
 

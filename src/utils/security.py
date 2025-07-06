@@ -11,14 +11,16 @@ from typing import Optional
 
 __all__ = [
     "sanitize_text_input",
-    "sanitize_filename", 
+    "sanitize_filename",
     "validate_amount",
     "sanitize_sql_like_pattern",
-    "is_safe_for_display"
+    "is_safe_for_display",
 ]
 
 
-def sanitize_text_input(text: Optional[str], max_length: Optional[int] = None) -> str:  # pylint: disable=unused-variable
+def sanitize_text_input(
+    text: Optional[str], max_length: Optional[int] = None
+) -> str:  # pylint: disable=unused-variable
     """
     Sanitize text input to prevent XSS and other injection attacks.
 
