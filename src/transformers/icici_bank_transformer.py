@@ -601,11 +601,15 @@ class IciciBankTransformer:
                 )
                 # Filter and clean ML suggestions
                 max_suggestions = self.config.get("ml", {}).get("max_suggestions", 5)
-                min_pattern_length = self.config.get("ml", {}).get("feature_extraction", {}).get(
-                    "min_pattern_length", 3
+                min_pattern_length = (
+                    self.config.get("ml", {})
+                    .get("feature_extraction", {})
+                    .get("min_pattern_length", 3)
                 )
-                max_pattern_length = self.config.get("ml", {}).get("feature_extraction", {}).get(
-                    "max_pattern_length", 50
+                max_pattern_length = (
+                    self.config.get("ml", {})
+                    .get("feature_extraction", {})
+                    .get("max_pattern_length", 50)
                 )
                 for pattern in ml_patterns[:max_suggestions]:
                     if len(pattern) >= min_pattern_length and len(pattern) <= max_pattern_length:
