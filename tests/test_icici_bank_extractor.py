@@ -92,9 +92,7 @@ class TestIciciBankExtractor:
 
     @pytest.mark.unit
     @pytest.mark.extractor
-    @patch(
-        "src.extractors.channel_based_extractors.icici_bank_extractor.ExcelExtractor"
-    )
+    @patch("src.extractors.channel_based_extractors.icici_bank_extractor.ExcelExtractor")
     def test_init_creates_excel_extractor(self, mock_excel_extractor, mock_config):
         """Test that initialization creates ExcelExtractor with correct config"""
         extractor = IciciBankExtractor(mock_config)
@@ -103,9 +101,7 @@ class TestIciciBankExtractor:
 
     @pytest.mark.unit
     @pytest.mark.extractor
-    def test_extract_success(
-        self, extractor, sample_transaction_data, sample_file_info
-    ):
+    def test_extract_success(self, extractor, sample_transaction_data, sample_file_info):
         """Test successful extraction of ICICI Bank data"""
         file_path = "/test/path/icici_statement.xlsx"
 
@@ -113,9 +109,7 @@ class TestIciciBankExtractor:
         mock_df = pd.DataFrame(sample_transaction_data)
         extractor.excel_extractor.read_excel_file = Mock(return_value=mock_df)
         extractor.excel_extractor.detect_header_row = Mock(return_value=0)
-        extractor.excel_extractor.extract_data_from_row = Mock(
-            return_value=sample_transaction_data
-        )
+        extractor.excel_extractor.extract_data_from_row = Mock(return_value=sample_transaction_data)
         extractor.excel_extractor.get_file_info = Mock(return_value=sample_file_info)
 
         result = extractor.extract(file_path)
@@ -125,9 +119,7 @@ class TestIciciBankExtractor:
         extractor.excel_extractor.detect_header_row.assert_called_once_with(
             mock_df, extractor.required_columns
         )
-        extractor.excel_extractor.extract_data_from_row.assert_called_once_with(
-            mock_df, 0
-        )
+        extractor.excel_extractor.extract_data_from_row.assert_called_once_with(mock_df, 0)
         extractor.excel_extractor.get_file_info.assert_called_once_with(file_path)
 
         # Verify result structure
@@ -157,9 +149,7 @@ class TestIciciBankExtractor:
         extractor.excel_extractor.read_excel_file = Mock(return_value=mock_df)
         extractor.excel_extractor.detect_header_row = Mock(return_value=None)
         extractor.excel_extractor.extract_data_from_row = Mock(return_value=[])
-        extractor.excel_extractor.get_file_info = Mock(
-            return_value={"file_path": file_path}
-        )
+        extractor.excel_extractor.get_file_info = Mock(return_value={"file_path": file_path})
 
         result = extractor.extract(file_path)
 
@@ -172,13 +162,9 @@ class TestIciciBankExtractor:
         """Test extraction when Excel reading fails"""
         file_path = "/test/path/nonexistent.xlsx"
 
-        extractor.excel_extractor.read_excel_file = Mock(
-            side_effect=Exception("File read error")
-        )
+        extractor.excel_extractor.read_excel_file = Mock(side_effect=Exception("File read error"))
 
-        with pytest.raises(
-            Exception, match="Error extracting ICICI Bank data: File read error"
-        ):
+        with pytest.raises(Exception, match="Error extracting ICICI Bank data: File read error"):
             extractor.extract(file_path)
 
     @pytest.mark.unit
@@ -203,9 +189,7 @@ class TestIciciBankExtractor:
 
     @pytest.mark.unit
     @pytest.mark.extractor
-    def test_filter_valid_transactions_all_valid(
-        self, extractor, sample_transaction_data
-    ):
+    def test_filter_valid_transactions_all_valid(self, extractor, sample_transaction_data):
         """Test filtering with all valid transactions"""
         result = extractor._filter_valid_transactions(sample_transaction_data)
 
@@ -616,12 +600,8 @@ class TestIciciBankExtractor:
                 {
                     "Transaction Date": f"{(i % 28) + 1:02d}/01/2023",
                     "Transaction Remarks": f"Transaction {i}",
-                    "Withdrawal Amount (INR )": (
-                        f"{(i * 10) % 5000}.00" if i % 2 == 0 else ""
-                    ),
-                    "Deposit Amount (INR )": (
-                        f"{(i * 15) % 3000}.00" if i % 2 == 1 else ""
-                    ),
+                    "Withdrawal Amount (INR )": (f"{(i * 10) % 5000}.00" if i % 2 == 0 else ""),
+                    "Deposit Amount (INR )": (f"{(i * 15) % 3000}.00" if i % 2 == 1 else ""),
                     "Balance (INR )": f"{10000 + i * 100}.00",
                 }
             )
@@ -675,21 +655,14 @@ class TestIciciBankExtractor:
         mock_df = pd.DataFrame(unicode_data)
         extractor.excel_extractor.read_excel_file = Mock(return_value=mock_df)
         extractor.excel_extractor.detect_header_row = Mock(return_value=0)
-        extractor.excel_extractor.extract_data_from_row = Mock(
-            return_value=unicode_data
-        )
+        extractor.excel_extractor.extract_data_from_row = Mock(return_value=unicode_data)
         extractor.excel_extractor.get_file_info = Mock(return_value=sample_file_info)
 
         result = extractor.extract(file_path)
 
         assert result["valid_transactions"] == 2
-        assert (
-            "café Mumbai ₹500"
-            in result["transactions"][0]["data"]["Transaction Remarks"]
-        )
-        assert (
-            "डॉक्टर को भुगतान" in result["transactions"][1]["data"]["Transaction Remarks"]
-        )
+        assert "café Mumbai ₹500" in result["transactions"][0]["data"]["Transaction Remarks"]
+        assert "डॉक्टर को भुगतान" in result["transactions"][1]["data"]["Transaction Remarks"]
 
     @pytest.mark.unit
     @pytest.mark.edge_case
@@ -749,9 +722,7 @@ class TestIciciBankExtractor:
                     {
                         "Transaction Date": f"{(i % 28) + 1:02d}/01/2023",
                         "Transaction Remarks": f"Valid Transaction {i}",
-                        "Withdrawal Amount (INR )": (
-                            f"{i % 1000}.00" if i % 2 == 0 else ""
-                        ),
+                        "Withdrawal Amount (INR )": (f"{i % 1000}.00" if i % 2 == 0 else ""),
                         "Deposit Amount (INR )": f"{i % 800}.00" if i % 2 == 1 else "",
                         "Balance (INR )": f"{10000 + i}.00",
                     }

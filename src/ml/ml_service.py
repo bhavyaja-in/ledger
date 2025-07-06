@@ -2,9 +2,9 @@
 ML suggestion service for transaction categorization.
 """
 
-from typing import Dict, List, Any, Optional, Tuple
 import json
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
 from .models.transaction_classifier import TransactionClassifier
 from .utils.ml_config import MLConfig
@@ -79,18 +79,15 @@ class MLSuggestionService:
 
         # Use similarity-based suggestions if we have existing patterns
         if existing_patterns:
-            similar_matches = (
-                self.classifier.similarity_engine.find_similar_descriptions(
-                    description, existing_patterns
-                )
+            similar_matches = self.classifier.similarity_engine.find_similar_descriptions(
+                description, existing_patterns
             )
 
             for match, similarity in similar_matches[:2]:  # Top 2 matches
                 suggestions.append(
                     {
                         "category": self._infer_category_from_pattern(match),
-                        "confidence": similarity
-                        * 0.8,  # Reduce confidence for similarity-based
+                        "confidence": similarity * 0.8,  # Reduce confidence for similarity-based
                         "reasoning": f"Similar to existing pattern '{match}' ({similarity:.2f} similarity)",
                         "source": "similarity_analysis",
                     }
@@ -98,9 +95,7 @@ class MLSuggestionService:
 
         return sorted(suggestions, key=lambda x: x["confidence"], reverse=True)[:3]
 
-    def suggest_transaction_category(
-        self, transaction: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def suggest_transaction_category(self, transaction: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Suggest transaction category based on complete transaction context."""
         if not self.ml_enabled or not self.classifier:
             return []
@@ -113,9 +108,7 @@ class MLSuggestionService:
                 {
                     "category": category,
                     "confidence": confidence,
-                    "reasoning": self._generate_category_reasoning(
-                        transaction, category
-                    ),
+                    "reasoning": self._generate_category_reasoning(transaction, category),
                     "source": "ml_classification",
                 }
             )
@@ -197,9 +190,7 @@ class MLSuggestionService:
         # Get reason suggestions for top category if available
         if category_suggestions:
             top_category = category_suggestions[0]["category"]
-            reason_suggestions = self.suggest_transaction_reason(
-                transaction, top_category
-            )
+            reason_suggestions = self.suggest_transaction_reason(transaction, top_category)
             summary["suggestions"]["reason"] = reason_suggestions
 
         # Calculate overall confidence
@@ -216,9 +207,7 @@ class MLSuggestionService:
 
         return summary
 
-    def _calculate_pattern_confidence(
-        self, pattern: str, descriptions: List[str]
-    ) -> float:
+    def _calculate_pattern_confidence(self, pattern: str, descriptions: List[str]) -> float:
         """Calculate confidence for a regex pattern."""
         import re
 
@@ -311,27 +300,19 @@ class MLSuggestionService:
 
         return "miscellaneous"
 
-    def _generate_category_reasoning(
-        self, transaction: Dict[str, Any], category: str
-    ) -> str:
+    def _generate_category_reasoning(self, transaction: Dict[str, Any], category: str) -> str:
         """Generate reasoning for why a category was suggested."""
         description = str(transaction.get("description", "")).lower()
-        amount = float(
-            transaction.get("debit_amount") or transaction.get("credit_amount") or 0
-        )
+        amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
 
         reasons = []
 
         # Description-based reasoning
         if category == "food" and ("swiggy" in description or "zomato" in description):
             reasons.append("food delivery service detected")
-        elif category == "transport" and (
-            "uber" in description or "ola" in description
-        ):
+        elif category == "transport" and ("uber" in description or "ola" in description):
             reasons.append("ride-sharing service detected")
-        elif category == "shopping" and (
-            "amazon" in description or "flipkart" in description
-        ):
+        elif category == "shopping" and ("amazon" in description or "flipkart" in description):
             reasons.append("e-commerce platform detected")
 
         # Amount-based reasoning

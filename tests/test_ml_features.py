@@ -2,10 +2,11 @@
 Unit tests for ML transaction features.
 """
 
-import pytest
 from datetime import datetime
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
 
 from src.ml.features.transaction_features import TransactionFeatures
 
@@ -201,10 +202,8 @@ class TestTransactionFeatures:
         # Should filter by min and max length
         for pattern in patterns:
             assert (
-                len(pattern)
-                >= feature_extractor.config["feature_extraction"]["min_pattern_length"]
+                len(pattern) >= feature_extractor.config["feature_extraction"]["min_pattern_length"]
             )
             assert (
-                len(pattern)
-                <= feature_extractor.config["feature_extraction"]["max_pattern_length"]
+                len(pattern) <= feature_extractor.config["feature_extraction"]["max_pattern_length"]
             )

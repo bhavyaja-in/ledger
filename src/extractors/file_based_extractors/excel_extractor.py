@@ -52,9 +52,7 @@ class ExcelExtractor:
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
         except Exception as exception:
-            raise ExcelExtractionError(
-                f"Error reading Excel file: {exception}"
-            ) from exception
+            raise ExcelExtractionError(f"Error reading Excel file: {exception}") from exception
 
     def detect_header_row(
         self, df: pd.DataFrame, required_columns: List[str], max_search_rows: int = 20
@@ -78,9 +76,7 @@ class ExcelExtractor:
 
         return None
 
-    def extract_data_from_row(
-        self, df: pd.DataFrame, header_row: int
-    ) -> List[Dict[str, Any]]:
+    def extract_data_from_row(self, df: pd.DataFrame, header_row: int) -> List[Dict[str, Any]]:
         """Extract data starting from the row after header"""
         # Use header row as column names
         header_values = df.iloc[header_row].values
@@ -146,9 +142,7 @@ class ExcelExtractor:
 
         # Attempt to open the file for reading to trigger permission errors
         with open(file_path, "rb") as file_handle:
-            file_handle.read(
-                1
-            )  # Read a single byte (or nothing, just to check permissions)
+            file_handle.read(1)  # Read a single byte (or nothing, just to check permissions)
 
         return {
             "file_path": file_path,

@@ -2,7 +2,7 @@
 ML Configuration for transaction categorization system.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class MLConfig:

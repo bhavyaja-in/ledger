@@ -50,9 +50,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
         database_categories = self._extract_database_categories()
 
         # Only add truly new categories from database (preserving YAML order)
-        merged_categories = self._merge_categories(
-            existing_categories, database_categories
-        )
+        merged_categories = self._merge_categories(existing_categories, database_categories)
 
         # Update YAML file only if new categories were discovered
         if len(merged_categories or []) > len(existing_categories or []):
@@ -113,9 +111,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             return [{"name": category} for category in categories]
 
         except Exception as exception:  # pylint: disable=broad-except
-            print(
-                f"⚠️  Warning: Could not extract categories from database: {exception}"
-            )
+            print(f"⚠️  Warning: Could not extract categories from database: {exception}")
             return []
         finally:
             session.close()
@@ -150,9 +146,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
             os.makedirs(os.path.dirname(self.categories_path), exist_ok=True)
 
             with open(self.categories_path, "w", encoding="utf-8") as file:
-                yaml.dump(
-                    categories_config, file, default_flow_style=False, sort_keys=False
-                )
+                yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
 
             print(
                 f"📂 Updated categories file with {len(categories)} categories (including database categories)"
@@ -166,9 +160,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
         category_name = category_name.lower().strip()
 
         # Check if category already exists
-        existing_categories = [
-            cat["name"].lower() for cat in self._config.get("categories", [])
-        ]
+        existing_categories = [cat["name"].lower() for cat in self._config.get("categories", [])]
         if category_name in existing_categories:
             return  # Category already exists
 
@@ -203,9 +195,7 @@ class ConfigLoader:  # pylint: disable=unused-variable
         os.makedirs(os.path.dirname(self.categories_path), exist_ok=True)
 
         with open(self.categories_path, "w", encoding="utf-8") as file:
-            yaml.dump(
-                categories_config, file, default_flow_style=False, sort_keys=False
-            )
+            yaml.dump(categories_config, file, default_flow_style=False, sort_keys=False)
 
         # Update in-memory config directly (YAML file is now the source of truth)
         self._config["categories"] = categories

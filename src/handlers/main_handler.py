@@ -14,20 +14,20 @@ from typing import Any, Dict, List
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Local imports after path setup
-from src.loaders.database_loader import (
+from src.loaders.database_loader import (  # pylint: disable=wrong-import-position
     DatabaseLoader,
-)  # pylint: disable=wrong-import-position
+)
 from src.models.database import DatabaseManager  # pylint: disable=wrong-import-position
-from src.utils.config_loader import (
+from src.utils.config_loader import (  # pylint: disable=wrong-import-position
     ConfigLoader,
-)  # pylint: disable=wrong-import-position
+)
 
 
 def _import_git_backup():
     try:
-        from scripts.git_backup import (
+        from scripts.git_backup import (  # pylint: disable=import-outside-toplevel
             GitDatabaseBackup,
-        )  # pylint: disable=import-outside-toplevel
+        )
 
         return GitDatabaseBackup
     except ImportError:
@@ -132,9 +132,7 @@ class MainHandler:
                 # Validate provided processor
                 if processor_type not in self.config["processors"]:
                     print(f"❌ Unknown processor: {processor_type}")
-                    print(
-                        f"📋 Available processors: {', '.join(self.config['processors'].keys())}"
-                    )
+                    print(f"📋 Available processors: {', '.join(self.config['processors'].keys())}")
                     return {
                         "status": "error",
                         "message": f"Unknown processor: {processor_type}",
@@ -203,9 +201,7 @@ class MainHandler:
         while True:
             try:
                 print("\n💡 Tip: You can also pass --processor <name> as argument")
-                choice = input(
-                    f"🔢 Select processor (1-{len(processors) + 1}): "
-                ).strip()
+                choice = input(f"🔢 Select processor (1-{len(processors) + 1}): ").strip()
 
                 if choice == str(len(processors) + 1):
                     print("👋 Goodbye!")
@@ -229,17 +225,13 @@ class MainHandler:
         extraction_folder = processor_config["extraction_folder"]
 
         if not os.path.exists(extraction_folder):
-            raise FileNotFoundError(
-                f"📁 Extraction folder not found: {extraction_folder}"
-            )
+            raise FileNotFoundError(f"📁 Extraction folder not found: {extraction_folder}")
 
         # Get supported file extensions
         file_extensions = {"excel": [".xls", ".xlsx"], "csv": [".csv"], "pdf": [".pdf"]}
 
         processor_file_type = processor_config.get("file_type", "excel")
-        supported_extensions = file_extensions.get(
-            processor_file_type, [".xls", ".xlsx", ".csv"]
-        )
+        supported_extensions = file_extensions.get(processor_file_type, [".xls", ".xlsx", ".csv"])
 
         # Find all supported files
         files = []
@@ -258,9 +250,7 @@ class MainHandler:
                 )
 
         if not files:
-            raise FileNotFoundError(
-                f"📂 No processable files found in {extraction_folder}"
-            )
+            raise FileNotFoundError(f"📂 No processable files found in {extraction_folder}")
 
         # Sort by modification date (newest first)
         files.sort(key=lambda x: x["modified"], reverse=True)
@@ -273,9 +263,7 @@ class MainHandler:
         # Multiple files: show intelligent selection menu
         return self._select_file_with_details(files, extraction_folder)
 
-    def _select_file_with_details(
-        self, files: List[Dict], extraction_folder: str
-    ) -> str:
+    def _select_file_with_details(self, files: List[Dict], extraction_folder: str) -> str:
         """Show file selection menu with details"""
         print(f"\n📁 Files in {extraction_folder}:")
         print("-" * 80)
@@ -331,9 +319,7 @@ class MainHandler:
 
     def _process_file(self, processor_type: str, file_path: str) -> Dict[str, Any]:
         """Process file using specified processor"""
-        print(
-            f"\n⚡ Processing file with {processor_type.replace('_', ' ').title()}..."
-        )
+        print(f"\n⚡ Processing file with {processor_type.replace('_', ' ').title()}...")
         start_time = time.time()
 
         # Get processor configuration
@@ -372,9 +358,7 @@ class MainHandler:
                 print("\n⚠️  Processing interrupted - marked as partially processed")
             elif result.get("status") == "completed":
                 # Completed successfully
-                self.db_loader.update_processed_file_status(
-                    processed_file.id, "completed"
-                )
+                self.db_loader.update_processed_file_status(processed_file.id, "completed")
                 result["final_status"] = "completed"
             elif result.get("status") == "partially_completed":
                 # Some transactions processed but not all
@@ -384,9 +368,7 @@ class MainHandler:
                 result["final_status"] = "partially_processed"
             else:
                 # Default to completed if status unclear
-                self.db_loader.update_processed_file_status(
-                    processed_file.id, "completed"
-                )
+                self.db_loader.update_processed_file_status(processed_file.id, "completed")
                 result["final_status"] = "completed"
 
             # Step 6: Create processing log (even for partial processing)
@@ -434,12 +416,8 @@ class MainHandler:
         transformer_class = getattr(module, class_name)
 
         # Create and use transformer
-        transformer = transformer_class(
-            self.db_manager, self.config, self.config_loader
-        )
-        return transformer.process_transactions(
-            extracted_data, institution, processed_file
-        )
+        transformer = transformer_class(self.db_manager, self.config, self.config_loader)
+        return transformer.process_transactions(extracted_data, institution, processed_file)
 
     def _get_or_create_institution(self, processor_type: str):
         """Get or create institution record"""
@@ -501,12 +479,8 @@ class MainHandler:
         print(f"📊 Total Transactions Found: {result.get('total_transactions', 0)}")
         print(f"✅ Successfully Processed: {result.get('processed_transactions', 0)}")
         print(f"⏭️  Skipped (New): {result.get('skipped_transactions', 0)}")
-        print(
-            f"🔄 Already Processed (Duplicates): {result.get('duplicate_transactions', 0)}"
-        )
-        print(
-            f"⏸️  Already Skipped (Duplicates): {result.get('auto_skipped_transactions', 0)}"
-        )
+        print(f"🔄 Already Processed (Duplicates): {result.get('duplicate_transactions', 0)}")
+        print(f"⏸️  Already Skipped (Duplicates): {result.get('auto_skipped_transactions', 0)}")
 
         # Show completion percentage for partial processing
         total_found = result.get("total_transactions", 0)

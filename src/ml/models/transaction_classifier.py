@@ -5,17 +5,18 @@ Main ML model for transaction classification and categorization.
 import json
 import pickle
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import LabelEncoder
-from sklearn.pipeline import Pipeline
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder
 
 from ..features.transaction_features import TransactionFeatures
-from .similarity_engine import SimilarityEngine
 from ..utils.ml_config import MLConfig
+from .similarity_engine import SimilarityEngine
 
 
 class TransactionClassifier:
@@ -132,15 +133,11 @@ class TransactionClassifier:
         """Suggest regex pattern based on similar descriptions."""
         return self.similarity_engine.suggest_regex_pattern(descriptions)
 
-    def suggest_reason(
-        self, transaction: Dict[str, Any], category: str
-    ) -> List[Tuple[str, float]]:
+    def suggest_reason(self, transaction: Dict[str, Any], category: str) -> List[Tuple[str, float]]:
         """Suggest transaction reasons based on context."""
         suggestions = []
         description = str(transaction.get("description", "")).lower()
-        amount = float(
-            transaction.get("debit_amount") or transaction.get("credit_amount") or 0
-        )
+        amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
 
         # Template-based reason generation
         reason_templates = {
@@ -202,9 +199,7 @@ class TransactionClassifier:
             "user_action": user_action,
             "final_value": final_value,
             "confidence_score": 0.0,  # Will be calculated
-            "features_used": json.dumps(
-                self.feature_extractor.combine_features(transaction)
-            ),
+            "features_used": json.dumps(self.feature_extractor.combine_features(transaction)),
         }
 
         # Update internal learning data
@@ -235,9 +230,7 @@ class TransactionClassifier:
         factors.append(feature_confidence)
 
         # 3. Similarity to known patterns
-        similarity_confidence = self._calculate_similarity_confidence(
-            transaction, suggestion
-        )
+        similarity_confidence = self._calculate_similarity_confidence(transaction, suggestion)
         factors.append(similarity_confidence)
 
         # Combine factors
@@ -320,25 +313,18 @@ class TransactionClassifier:
 
         return suggestions
 
-    def _rank_suggestions(
-        self, suggestions: List[Tuple[str, float]]
-    ) -> List[Tuple[str, float]]:
+    def _rank_suggestions(self, suggestions: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
         """Rank and deduplicate suggestions."""
         # Group by suggestion text and take max confidence
         suggestion_dict = {}
         for suggestion, confidence in suggestions:
             if suggestion in suggestion_dict:
-                suggestion_dict[suggestion] = max(
-                    suggestion_dict[suggestion], confidence
-                )
+                suggestion_dict[suggestion] = max(suggestion_dict[suggestion], confidence)
             else:
                 suggestion_dict[suggestion] = confidence
 
         # Convert back to list and sort by confidence
-        ranked = [
-            (suggestion, confidence)
-            for suggestion, confidence in suggestion_dict.items()
-        ]
+        ranked = [(suggestion, confidence) for suggestion, confidence in suggestion_dict.items()]
         ranked.sort(key=lambda x: x[1], reverse=True)
 
         return ranked
@@ -356,9 +342,7 @@ class TransactionClassifier:
         """Create hash for transaction (similar to existing implementation)."""
         # Simplified version - should match the existing hash implementation
         description = str(transaction.get("description", ""))
-        amount = str(
-            transaction.get("debit_amount") or transaction.get("credit_amount") or 0
-        )
+        amount = str(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
         date = str(transaction.get("transaction_date", ""))
 
         import hashlib
@@ -380,10 +364,7 @@ class TransactionClassifier:
         categories = []
 
         for data in self._training_data:
-            if (
-                data["user_action"] == "accepted"
-                and data["suggestion_type"] == "category"
-            ):
+            if data["user_action"] == "accepted" and data["suggestion_type"] == "category":
                 # Extract description from features
                 features = json.loads(data["features_used"])
                 # For now, skip complex feature reconstruction

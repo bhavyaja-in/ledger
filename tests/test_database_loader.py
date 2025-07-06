@@ -86,9 +86,7 @@ class TestDatabaseLoader:
 
         # Verify query was made
         mock_session.query.assert_called_once_with(mock_models["Institution"])
-        mock_query.filter_by.assert_called_once_with(
-            name="Test Bank", institution_type="bank"
-        )
+        mock_query.filter_by.assert_called_once_with(name="Test Bank", institution_type="bank")
 
         # Verify no new institution was created
         mock_session.add.assert_not_called()
@@ -120,9 +118,7 @@ class TestDatabaseLoader:
         result = loader_instance.get_or_create_institution("New Bank", "bank")
 
         # Verify new institution was created
-        mock_models["Institution"].assert_called_once_with(
-            name="New Bank", institution_type="bank"
-        )
+        mock_models["Institution"].assert_called_once_with(name="New Bank", institution_type="bank")
         mock_session.add.assert_called_once_with(mock_institution)
         mock_session.commit.assert_called_once()
         mock_session.refresh.assert_called_once_with(mock_institution)
@@ -194,9 +190,7 @@ class TestDatabaseLoader:
         mock_session.add.side_effect = SQLAlchemyError("Database error")
 
         with pytest.raises(SQLAlchemyError):
-            loader_instance.create_processed_file(
-                1, "/path", "file.xlsx", 1024, "excel"
-            )
+            loader_instance.create_processed_file(1, "/path", "file.xlsx", 1024, "excel")
 
         mock_session.close.assert_called_once()
 
@@ -253,9 +247,7 @@ class TestDatabaseLoader:
         mock_models["TransactionEnum"].return_value = mock_enum
 
         patterns = ["pattern1", "pattern2"]
-        result = loader_instance.create_or_update_enum(
-            "test_enum", patterns, "food", "excel"
-        )
+        result = loader_instance.create_or_update_enum("test_enum", patterns, "food", "excel")
 
         # Verify new enum was created
         mock_models["TransactionEnum"].assert_called_once_with(
@@ -387,9 +379,7 @@ class TestDatabaseLoader:
             "splits": splits_data,
         }
 
-        with patch.object(
-            loader_instance, "_create_transaction_splits"
-        ) as mock_create_splits:
+        with patch.object(loader_instance, "_create_transaction_splits") as mock_create_splits:
             result = loader_instance.create_transaction(transaction_data)
 
         # Verify transaction was created with splits
@@ -398,9 +388,7 @@ class TestDatabaseLoader:
         assert expected_call_args["has_splits"] is True
 
         # Verify splits were created
-        mock_create_splits.assert_called_once_with(
-            mock_session, 1, splits_data, 100.0, "INR"
-        )
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 100.0, "INR")
 
         assert result == mock_transaction
 
@@ -426,15 +414,11 @@ class TestDatabaseLoader:
             "splits": splits_data,
         }
 
-        with patch.object(
-            loader_instance, "_create_transaction_splits"
-        ) as mock_create_splits:
+        with patch.object(loader_instance, "_create_transaction_splits") as mock_create_splits:
             loader_instance.create_transaction(transaction_data)
 
         # Verify credit amount was used for splits calculation
-        mock_create_splits.assert_called_once_with(
-            mock_session, 1, splits_data, 200.0, "INR"
-        )
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 200.0, "INR")
 
     @pytest.mark.unit
     @pytest.mark.database
@@ -458,15 +442,11 @@ class TestDatabaseLoader:
             # No debit_amount or credit_amount
         }
 
-        with patch.object(
-            loader_instance, "_create_transaction_splits"
-        ) as mock_create_splits:
+        with patch.object(loader_instance, "_create_transaction_splits") as mock_create_splits:
             loader_instance.create_transaction(transaction_data)
 
         # Verify 0 was used for splits calculation
-        mock_create_splits.assert_called_once_with(
-            mock_session, 1, splits_data, 0, "INR"
-        )
+        mock_create_splits.assert_called_once_with(mock_session, 1, splits_data, 0, "INR")
 
     @pytest.mark.unit
     @pytest.mark.database
@@ -485,9 +465,7 @@ class TestDatabaseLoader:
         ]
 
         # Call with currency parameter (default INR)
-        loader_instance._create_transaction_splits(
-            mock_session, 1, splits_data, 100.0, "INR"
-        )
+        loader_instance._create_transaction_splits(mock_session, 1, splits_data, 100.0, "INR")
 
         # Verify splits were created with correct calculations
         expected_calls = [
@@ -568,9 +546,7 @@ class TestDatabaseLoader:
         mock_results = [("john", 150.5, 3), ("jane", 75.25, 2)]
 
         mock_query = mock_session.query.return_value
-        mock_query.filter.return_value.group_by.return_value.all.return_value = (
-            mock_results
-        )
+        mock_query.filter.return_value.group_by.return_value.all.return_value = mock_results
 
         result = loader_instance.get_unsettled_amounts_by_person()
 
@@ -682,9 +658,7 @@ class TestDatabaseLoader:
         # Skip the date comparison by directly testing the method structure
         # The method should work with date filters - we'll verify the call structure
         try:
-            result = loader_instance.get_person_transactions(
-                "John", start_date, end_date
-            )
+            result = loader_instance.get_person_transactions("John", start_date, end_date)
         except TypeError:
             # Expected due to mock comparison, but we can verify the filter calls were made
             pass
@@ -747,9 +721,7 @@ class TestDatabaseLoader:
 
         # Skip the date comparison by directly testing the method structure
         try:
-            result = loader_instance.get_person_total_amount(
-                "John", start_date, end_date
-            )
+            result = loader_instance.get_person_total_amount("John", start_date, end_date)
         except TypeError:
             # Expected due to mock comparison, but we can verify the query was built
             pass
@@ -1040,17 +1012,13 @@ class TestDatabaseLoader:
         loader_instance, mock_manager, mock_session, mock_models = loader
 
         # Create large splits data (100 people)
-        large_splits_data = [
-            {"person": f"person{i}", "percentage": 1.0} for i in range(100)
-        ]
+        large_splits_data = [{"person": f"person{i}", "percentage": 1.0} for i in range(100)]
 
         # Mock TransactionSplit creation
         mock_splits = [Mock() for _ in range(100)]
         mock_models["TransactionSplit"].side_effect = mock_splits
 
-        loader_instance._create_transaction_splits(
-            mock_session, 1, large_splits_data, 100.0
-        )
+        loader_instance._create_transaction_splits(mock_session, 1, large_splits_data, 100.0)
 
         # Verify all splits were created
         assert mock_models["TransactionSplit"].call_count == 100

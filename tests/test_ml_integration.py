@@ -2,9 +2,10 @@
 Integration tests for ML-powered transaction categorization.
 """
 
-import pytest
-from unittest.mock import Mock
 from datetime import datetime
+from unittest.mock import Mock
+
+import pytest
 
 from src.ml.ml_service import MLSuggestionService
 from src.ml.utils.ml_config import MLConfig
@@ -56,9 +57,7 @@ class TestMLIntegration:
         ]
 
     @pytest.mark.integration
-    def test_end_to_end_categorization_workflow(
-        self, full_ml_service, sample_transactions
-    ):
+    def test_end_to_end_categorization_workflow(self, full_ml_service, sample_transactions):
         """Test complete ML categorization workflow."""
         for transaction in sample_transactions:
             # Get comprehensive suggestions
@@ -119,12 +118,8 @@ class TestMLIntegration:
 
         # Should have food-related suggestions
         if suggestions:
-            food_found = any(
-                "food" in suggestion["category"].lower() for suggestion in suggestions
-            )
-            assert (
-                food_found or len(suggestions) > 0
-            )  # Either food found or other suggestions
+            food_found = any("food" in suggestion["category"].lower() for suggestion in suggestions)
+            assert food_found or len(suggestions) > 0  # Either food found or other suggestions
 
     @pytest.mark.integration
     def test_ml_similarity_based_suggestions(self, full_ml_service):
@@ -133,9 +128,7 @@ class TestMLIntegration:
         description = "UPI-FOODPANDA-DELIVERY"
         existing_patterns = ["SWIGGY-ORDER", "ZOMATO-FOOD", "DOMINOS-PIZZA"]
 
-        suggestions = full_ml_service.suggest_enum_category(
-            description, existing_patterns
-        )
+        suggestions = full_ml_service.suggest_enum_category(description, existing_patterns)
 
         assert isinstance(suggestions, list)
         # Should provide suggestions based on both analysis and similarity
@@ -222,9 +215,7 @@ class TestMLIntegration:
 
             if case["expected_confidence"] == "high":
                 # Should have reasonable confidence for clear patterns
-                assert (
-                    confidence >= 0.3
-                ), f"Low confidence for clear pattern: {case['description']}"
+                assert confidence >= 0.3, f"Low confidence for clear pattern: {case['description']}"
             else:
                 # May have lower confidence for unclear patterns
                 assert (

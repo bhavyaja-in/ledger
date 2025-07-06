@@ -2,8 +2,8 @@
 Unit tests for ML similarity engine.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 from src.ml.models.similarity_engine import SimilarityEngine
 
@@ -88,14 +88,10 @@ class TestSimilarityEngine:
 
         # Diagonal should be 1.0 (self-similarity) for valid matrices
         if similarity_matrix.size > 0:
-            np.testing.assert_array_almost_equal(
-                np.diag(similarity_matrix), 1.0, decimal=5
-            )
+            np.testing.assert_array_almost_equal(np.diag(similarity_matrix), 1.0, decimal=5)
 
         # Matrix should be symmetric
-        np.testing.assert_array_almost_equal(
-            similarity_matrix, similarity_matrix.T, decimal=5
-        )
+        np.testing.assert_array_almost_equal(similarity_matrix, similarity_matrix.T, decimal=5)
 
     @pytest.mark.unit
     def test_find_semantic_matches(self, similarity_engine):
@@ -194,9 +190,7 @@ class TestSimilarityEngine:
         assert similarity_matrix.shape == (0, 0)
 
         # Single description
-        similarity_matrix_single = similarity_engine.compute_semantic_similarity(
-            ["test"]
-        )
+        similarity_matrix_single = similarity_engine.compute_semantic_similarity(["test"])
         assert similarity_matrix_single.shape == (1, 1)
         assert similarity_matrix_single[0, 0] == 1.0
 
@@ -269,7 +263,5 @@ class TestSimilarityEngine:
 
         # Very low similarities
         low_matches = [{"similarity": 0.1, "recency_weight": 1.0, "success_rate": 0.1}]
-        confidence3 = similarity_engine.calculate_merchant_confidence(
-            description, low_matches
-        )
+        confidence3 = similarity_engine.calculate_merchant_confidence(description, low_matches)
         assert 0.1 <= confidence3 <= 1.0

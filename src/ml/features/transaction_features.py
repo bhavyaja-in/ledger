@@ -5,9 +5,11 @@ Transaction feature extraction for ML models.
 import re
 import string
 from datetime import datetime
-from typing import Dict, List, Any, Optional
-import pandas as pd
+from typing import Any, Dict, List, Optional
+
 import numpy as np
+import pandas as pd
+
 from ..utils.ml_config import MLConfig
 
 
@@ -21,9 +23,7 @@ class TransactionFeatures:
     def extract_basic_features(self, transaction: Dict[str, Any]) -> Dict[str, Any]:
         """Extract basic features from transaction data."""
         description = str(transaction.get("description", "")).lower().strip()
-        amount = float(
-            transaction.get("debit_amount") or transaction.get("credit_amount") or 0
-        )
+        amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
 
         features = {
             # Text features
@@ -51,8 +51,7 @@ class TransactionFeatures:
         """Extract meaningful patterns from transaction description."""
         if (
             not description
-            or len(description)
-            < self.config["feature_extraction"]["min_description_length"]
+            or len(description) < self.config["feature_extraction"]["min_description_length"]
         ):
             return []
 
@@ -124,9 +123,7 @@ class TransactionFeatures:
 
         features = {}
         for category, keywords in merchant_indicators.items():
-            features[f"is_{category}"] = any(
-                keyword in description for keyword in keywords
-            )
+            features[f"is_{category}"] = any(keyword in description for keyword in keywords)
 
         return features
 

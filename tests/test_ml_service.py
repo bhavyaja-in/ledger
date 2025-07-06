@@ -2,9 +2,10 @@
 Unit tests for ML suggestion service.
 """
 
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
+from unittest.mock import Mock, patch
+
+import pytest
 
 from src.ml.ml_service import MLSuggestionService
 
@@ -131,9 +132,7 @@ class TestMLSuggestionService:
     def test_suggest_transaction_reason(self, ml_service, sample_transaction):
         """Test transaction reason suggestion."""
         category = "food"
-        suggestions = ml_service.suggest_transaction_reason(
-            sample_transaction, category
-        )
+        suggestions = ml_service.suggest_transaction_reason(sample_transaction, category)
 
         assert isinstance(suggestions, list)
 
@@ -207,9 +206,7 @@ class TestMLSuggestionService:
         enum_suggestions = disabled_ml_service.suggest_enum_category("test")
         assert enum_suggestions == []
 
-        category_suggestions = disabled_ml_service.suggest_transaction_category(
-            sample_transaction
-        )
+        category_suggestions = disabled_ml_service.suggest_transaction_category(sample_transaction)
         assert category_suggestions == []
 
         reason_suggestions = disabled_ml_service.suggest_transaction_reason(
@@ -231,9 +228,7 @@ class TestMLSuggestionService:
         assert 0.1 <= confidence1 <= 1.0
 
         # Invalid regex pattern
-        confidence2 = ml_service._calculate_pattern_confidence(
-            "[invalid regex", ["test"]
-        )
+        confidence2 = ml_service._calculate_pattern_confidence("[invalid regex", ["test"])
         assert confidence2 == 0.3  # Default for invalid patterns
 
     @pytest.mark.unit
@@ -264,9 +259,7 @@ class TestMLSuggestionService:
         assert reasoning1[0].isupper()  # Should be capitalized
 
         # Unknown category
-        reasoning2 = ml_service._generate_category_reasoning(
-            sample_transaction, "unknown"
-        )
+        reasoning2 = ml_service._generate_category_reasoning(sample_transaction, "unknown")
         assert isinstance(reasoning2, str)
         assert len(reasoning2) > 0
 

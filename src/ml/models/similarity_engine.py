@@ -3,11 +3,13 @@ Similarity engine for fuzzy matching and semantic similarity.
 """
 
 import re
-from typing import List, Tuple, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 from fuzzywuzzy import fuzz
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+
 from ..utils.ml_config import MLConfig
 
 
@@ -48,9 +50,7 @@ class SimilarityEngine:
             # Calculate different similarity scores
             ratio_score = fuzz.ratio(target_clean, candidate_clean) / 100.0
             partial_score = fuzz.partial_ratio(target_clean, candidate_clean) / 100.0
-            token_sort_score = (
-                fuzz.token_sort_ratio(target_clean, candidate_clean) / 100.0
-            )
+            token_sort_score = fuzz.token_sort_ratio(target_clean, candidate_clean) / 100.0
 
             # Use the maximum score
             max_score = max(ratio_score, partial_score, token_sort_score)
@@ -198,9 +198,7 @@ class SimilarityEngine:
         # Return patterns that appear in multiple descriptions
         min_occurrences = max(2, len(descriptions) // 2)
         frequent_patterns = [
-            pattern
-            for pattern, count in pattern_counts.items()
-            if count >= min_occurrences
+            pattern for pattern, count in pattern_counts.items() if count >= min_occurrences
         ]
 
         return list(set(list(common_words) + frequent_patterns))
@@ -224,9 +222,7 @@ class SimilarityEngine:
             return f".*{escaped_pattern}.*"
         else:
             # Create an OR pattern for multiple common elements
-            escaped_patterns = [
-                re.escape(p.lower()) for p in common_patterns[:3]
-            ]  # Limit to 3
+            escaped_patterns = [re.escape(p.lower()) for p in common_patterns[:3]]  # Limit to 3
             return f".*({'|'.join(escaped_patterns)}).*"
 
     def _clean_description(self, description: str) -> str:
@@ -267,9 +263,7 @@ class SimilarityEngine:
 
         for match in historical_matches:
             similarity = match.get("similarity", 0.5)
-            recency_weight = match.get(
-                "recency_weight", 1.0
-            )  # Higher for recent matches
+            recency_weight = match.get("recency_weight", 1.0)  # Higher for recent matches
             success_rate = match.get("success_rate", 0.5)
 
             confidence = similarity * success_rate
