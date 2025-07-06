@@ -91,24 +91,60 @@ class SimilarityEngine:
     def compute_semantic_similarity(self, 
                                      descriptions: List[str]) -> np.ndarray:
         """Compute semantic similarity matrix using TF-IDF and cosine similarity."""
-        if len(descriptions) < 2:
+        if len(descriptions) == 0:
+            return np.array([]).reshape(0, 0)
+        
+        if len(descriptions) == 1:
             return np.array([[1.0]])
             
         # Clean descriptions
         clean_descriptions = [self._clean_description(desc) for desc in descriptions]
         
-        # Fit TF-IDF if not already fitted
-        if not self._tfidf_fitted:
-            self.tfidf_vectorizer.fit(clean_descriptions)
-            self._tfidf_fitted = True
+        # Filter out empty descriptions
+        non_empty_descriptions = [desc for desc in clean_descriptions if desc.strip()]
+        
+        if len(non_empty_descriptions) < len(clean_descriptions):
+            # If we have empty descriptions, pad with simple text to maintain matrix size
+            padded_descriptions = []
+            for desc in clean_descriptions:
+                if desc.strip():
+                    padded_descriptions.append(desc)
+                else:
+                    padded_descriptions.append("empty")
+            clean_descriptions = padded_descriptions
+        
+        if len(set(clean_descriptions)) == 1:
+            # All descriptions are identical
+            size = len(clean_descriptions)
+            return np.ones((size, size))
+        
+        # Fit TF-IDF if not already fitted or if we need to refit
+        if not self._tfidf_fitted or len(clean_descriptions) > 1:
+            try:
+                self.tfidf_vectorizer.fit(clean_descriptions)
+                self._tfidf_fitted = True
+            except ValueError:
+                # Handle case where vocabulary is empty
+                size = len(clean_descriptions)
+                return np.ones((size, size))
+        
+        try:
+            # Transform descriptions to TF-IDF vectors
+            tfidf_matrix = self.tfidf_vectorizer.transform(clean_descriptions)
             
-        # Transform descriptions to TF-IDF vectors
-        tfidf_matrix = self.tfidf_vectorizer.transform(clean_descriptions)
-        
-        # Compute cosine similarity matrix
-        similarity_matrix = cosine_similarity(tfidf_matrix)
-        
-        return similarity_matrix
+            # Compute cosine similarity matrix
+            similarity_matrix = cosine_similarity(tfidf_matrix)
+            
+            # Fix any zero diagonals (can happen when document has no features)
+            for i in range(similarity_matrix.shape[0]):
+                if similarity_matrix[i, i] == 0:
+                    similarity_matrix[i, i] = 1.0
+            
+            return similarity_matrix
+        except ValueError:
+            # Fallback to identity matrix if TF-IDF fails
+            size = len(clean_descriptions)
+            return np.eye(size)
 
     def find_semantic_matches(self, 
                               target_description: str, 

@@ -157,7 +157,13 @@ class TransactionFeatures:
         
         transaction_date = transaction.get("transaction_date")
         if isinstance(transaction_date, str):
-            transaction_date = pd.to_datetime(transaction_date)
+            try:
+                transaction_date = pd.to_datetime(transaction_date)
+            except (ValueError, TypeError):
+                transaction_date = datetime.now()  # Default to current time
+        elif transaction_date is None:
+            transaction_date = datetime.now()  # Default to current time
+            
         temporal_features = self.extract_temporal_features(transaction_date)
         
         description = str(transaction.get("description", ""))
