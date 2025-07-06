@@ -184,8 +184,8 @@ class IciciBankTransformer:
                     )
                     print("✅ Transaction saved successfully")
 
-                except Exception as e:
-                    print(f"❌ Error processing transaction: {e}")
+                except Exception as exception:
+                    print(f"❌ Error processing transaction: {exception}")
                     results["skipped_transactions"] = cast(int, results["skipped_transactions"]) + 1
 
             # Determine final status
@@ -198,8 +198,8 @@ class IciciBankTransformer:
             else:
                 results["status"] = "partially_completed"
 
-        except Exception as e:
-            print(f"\n❌ Error during processing: {e}")
+        except Exception as exception:
+            print(f"\n❌ Error during processing: {exception}")
             results["status"] = "error"
 
         return results
@@ -256,8 +256,8 @@ class IciciBankTransformer:
 
             return transaction
 
-        except Exception as e:
-            print(f"Error transforming transaction: {e}")
+        except Exception as exception:
+            print(f"Error transforming transaction: {exception}")
             return None
 
     def _parse_amount(self, amount_str) -> Optional[float]:
@@ -668,8 +668,8 @@ class IciciBankTransformer:
                     try:
                         self.config_loader.add_category(category_name)
                         print(f"✅ Created and saved new enum category: {category_name.title()}")
-                    except Exception as e:
-                        print(f"⚠️  Enum category created but couldn't save: {e}")
+                    except Exception as exception:
+                        print(f"⚠️  Enum category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -738,8 +738,8 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as e:
-                        print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    except Exception as exception:
+                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -821,8 +821,8 @@ class IciciBankTransformer:
                         print(
                             f"✅ Created and saved new transaction category: {category_name.title()}"
                         )
-                    except Exception as e:
-                        print(f"⚠️  Transaction category created but couldn't save: {e}")
+                    except Exception as exception:
+                        print(f"⚠️  Transaction category created but couldn't save: {exception}")
                 else:
                     # Fallback if no config_loader available
                     existing_categories = [
@@ -939,8 +939,8 @@ class IciciBankTransformer:
 
             self.db_loader.create_skipped_transaction(skipped_record)
 
-        except Exception as e:
-            print(f"❌ Error saving skipped transaction: {e}")
+        except Exception as exception:
+            print(f"❌ Error saving skipped transaction: {exception}")
 
     def _create_transaction_hash(self, transaction_data: Dict[str, Any]) -> str:
         """Create unique hash for transaction deduplication"""

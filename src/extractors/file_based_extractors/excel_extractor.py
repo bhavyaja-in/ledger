@@ -46,8 +46,8 @@ class ExcelExtractor:
 
         try:
             return pd.read_excel(file_path, sheet_name=sheet_name)
-        except Exception as e:
-            raise Exception(f"Error reading Excel file: {e}")
+        except Exception as exception:
+            raise Exception(f"Error reading Excel file: {exception}")
 
     def detect_header_row(
         self, df: pd.DataFrame, required_columns: List[str], max_search_rows: int = 20
@@ -138,8 +138,8 @@ class ExcelExtractor:
             raise PermissionError(f"File is not readable: {file_path}")
 
         # Attempt to open the file for reading to trigger permission errors
-        with open(file_path, "rb") as f:
-            f.read(1)  # Read a single byte (or nothing, just to check permissions)
+        with open(file_path, "rb") as file_handle:
+            file_handle.read(1)  # Read a single byte (or nothing, just to check permissions)
 
         return {
             "file_path": file_path,

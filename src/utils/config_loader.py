@@ -111,8 +111,8 @@ class ConfigLoader:
             # Convert to list of dictionaries (preserve discovery order, no sorting)
             return [{"name": category} for category in categories]
 
-        except Exception as e:
-            print(f"⚠️  Warning: Could not extract categories from database: {e}")
+        except Exception as exception:
+            print(f"⚠️  Warning: Could not extract categories from database: {exception}")
             return []
         finally:
             session.close()
@@ -153,8 +153,8 @@ class ConfigLoader:
                 f"📂 Updated categories file with {len(categories)} categories (including database categories)"
             )
 
-        except Exception as e:
-            print(f"⚠️  Warning: Could not update categories file: {e}")
+        except Exception as exception:
+            print(f"⚠️  Warning: Could not update categories file: {exception}")
 
     def add_category(self, category_name: str):
         """Add a new category while maintaining proper order (template first, custom last)"""

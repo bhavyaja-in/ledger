@@ -68,8 +68,8 @@ class IciciBankExtractor:
                 "transactions": [{"data": trans} for trans in transactions],
             }
 
-        except Exception as e:
-            raise Exception(f"Error extracting ICICI Bank data: {e}")
+        except Exception as exception:
+            raise Exception(f"Error extracting ICICI Bank data: {exception}")
 
     def _filter_valid_transactions(self, raw_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Filter valid transactions specific to ICICI Bank format"""
@@ -97,9 +97,9 @@ class IciciBankExtractor:
         """Check if row has essential fields for a transaction"""
         # Must have transaction date
         date_field = None
-        for k, v in row_data.items():
-            if k.strip().lower() == "transaction date":
-                date_field = v
+        for key, value in row_data.items():
+            if key.strip().lower() == "transaction date":
+                date_field = value
                 break
         if not date_field or str(date_field).strip() in ["", "nan", "None"]:
             return False
@@ -107,12 +107,12 @@ class IciciBankExtractor:
         # Must have either debit or credit amount
         debit = None
         credit = None
-        for k, v in row_data.items():
-            key_norm = k.strip().lower()
+        for key, value in row_data.items():
+            key_norm = key.strip().lower()
             if "withdrawal amount" in key_norm:
-                debit = v
+                debit = value
             if "deposit amount" in key_norm:
-                credit = v
+                credit = value
 
         has_amount = False
         if debit is not None and str(debit).strip() not in ["", "nan", "None"]:

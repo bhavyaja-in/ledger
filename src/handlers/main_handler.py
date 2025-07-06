@@ -75,8 +75,8 @@ class BackupManager:
 
             return success
 
-        except Exception as e:
-            print(f"⚠️  Backup error: {e}")
+        except Exception as exception:
+            print(f"⚠️  Backup error: {exception}")
             return False
 
 
@@ -160,12 +160,12 @@ class MainHandler:
             self.backup_manager.create_backup("interruption")
             print("👋 Goodbye!")
             sys.exit(0)
-        except Exception as e:
-            print(f"💥 Error in main processing: {e}")
+        except Exception as exception:
+            print(f"💥 Error in main processing: {exception}")
             # Create backup even on error
             print("\n🔄 Creating backup before exit...")
             self.backup_manager.create_backup("interruption")
-            return {"status": "error", "message": str(e)}
+            return {"status": "error", "message": str(exception)}
 
     def _select_processor(self) -> str:
         """Interactive processor selection with intelligent menu"""
@@ -367,10 +367,10 @@ class MainHandler:
             result["processed_file_id"] = processed_file.id
             result["processing_time"] = processing_time
 
-        except Exception as e:
+        except Exception as exception:
             # Update status to failed
             self.db_loader.update_processed_file_status(processed_file.id, "failed")
-            raise e
+            raise exception
 
         return result
 
@@ -530,8 +530,8 @@ Examples:
         # Exit with appropriate code
         sys.exit(0 if result.get("status") == "success" else 1)
 
-    except Exception as e:
-        print(f"\n💥 Fatal error: {e}")
+    except Exception as exception:
+        print(f"\n💥 Fatal error: {exception}")
         # Try to create emergency backup
         try:
             if "handler" in locals():
