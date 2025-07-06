@@ -2,10 +2,10 @@
 Generic Excel Extractor - Handles basic Excel file operations
 """
 
+import os
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-import os
 
 from src.utils.security import sanitize_filename  # pylint: disable=unused-variable
 
