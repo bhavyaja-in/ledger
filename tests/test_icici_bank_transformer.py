@@ -1076,11 +1076,8 @@ class TestIciciBankTransformer:
     def test_get_pattern_suggestions_respects_max_suggestions_config(self, transformer):
         """Test that pattern suggestions respect max_suggestions config"""
         # Set up config with max_suggestions = 2
-        transformer.config = {
-            "ml": {"max_suggestions": 2},
-            "categories": [{"name": "food"}]
-        }
-        
+        transformer.config = {"ml": {"max_suggestions": 2}, "categories": [{"name": "food"}]}
+
         result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE SWIGGY FOOD")
         assert len(result) <= 2
 
@@ -1089,20 +1086,22 @@ class TestIciciBankTransformer:
         transformer.config = {
             "ml": {
                 "max_suggestions": 3,
-                "feature_extraction": {
-                    "min_pattern_length": 4,
-                    "max_pattern_length": 10
-                }
+                "feature_extraction": {"min_pattern_length": 4, "max_pattern_length": 10},
             },
-            "categories": [{"name": "food"}]
+            "categories": [{"name": "food"}],
         }
-        
+
         # Mock ML service
         mock_ml_service = Mock()
         mock_ml_service.ml_enabled = True
-        mock_ml_service.suggest_regex_patterns.return_value = ["ab", "payment", "grocery", "verylongpatternname"]
+        mock_ml_service.suggest_regex_patterns.return_value = [
+            "ab",
+            "payment",
+            "grocery",
+            "verylongpatternname",
+        ]
         transformer.ml_service = mock_ml_service
-        
+
         result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE")
         # Should filter out "ab" (too short) and "verylongpatternname" (too long)
         assert "ab" not in result
@@ -1113,30 +1112,29 @@ class TestIciciBankTransformer:
         """Test that ML suggestions respect confidence_threshold from config"""
         transformer.config = {
             "ml": {"confidence_threshold": 0.9},  # Very high threshold
-            "categories": [{"name": "food"}]
+            "categories": [{"name": "food"}],
         }
-        
+
         # Mock ML service with low confidence suggestion
         mock_ml_service = Mock()
         mock_ml_service.ml_enabled = True
         mock_ml_service.suggest_regex_pattern.return_value = {
             "pattern": "test",
             "confidence": 0.6,  # Below threshold
-            "reasoning": "test reason"
+            "reasoning": "test reason",
         }
         transformer.ml_service = mock_ml_service
-        
+
         with (
             patch("builtins.input", return_value="2"),
             patch("builtins.print") as mock_print,
-            patch.object(transformer, "_get_pattern_suggestions", return_value=["test"])
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["test"]),
         ):
             result = transformer._ask_for_pattern_word("test description")
-        
+
         # Should not print ML suggestion since confidence is below threshold
         ml_suggestion_printed = any(
-            "ML Regex Pattern Suggestion" in str(call) 
-            for call in mock_print.call_args_list
+            "ML Regex Pattern Suggestion" in str(call) for call in mock_print.call_args_list
         )
         assert not ml_suggestion_printed
         assert result is None  # Should skip
@@ -1145,30 +1143,30 @@ class TestIciciBankTransformer:
         """Test that ML category suggestions respect max_suggestions config"""
         transformer.config = {
             "ml": {"max_suggestions": 2},
-            "categories": [{"name": "food"}, {"name": "transport"}]
+            "categories": [{"name": "food"}, {"name": "transport"}],
         }
-        
+
         # Mock ML service
         mock_ml_service = Mock()
         mock_ml_service.ml_enabled = True
         mock_ml_service.suggest_enum_category.return_value = [
             {"category": "food", "confidence": 0.9, "reasoning": "food related"},
             {"category": "transport", "confidence": 0.8, "reasoning": "transport related"},
-            {"category": "entertainment", "confidence": 0.7, "reasoning": "entertainment related"}
+            {"category": "entertainment", "confidence": 0.7, "reasoning": "entertainment related"},
         ]
         transformer.ml_service = mock_ml_service
-        
-        with (
-            patch("builtins.input", return_value="food"),
-            patch("builtins.print") as mock_print
-        ):
+
+        with patch("builtins.input", return_value="food"), patch("builtins.print") as mock_print:
             result = transformer._ask_for_category_with_ml("test description")
-        
+
         # Count ML suggestions printed (should be limited by max_suggestions)
         ml_suggestion_calls = [
-            call for call in mock_print.call_args_list 
+            call
+            for call in mock_print.call_args_list
             if "ML Enum Category Suggestions" in str(call) or "🎯" in str(call)
         ]
         # Should show only max_suggestions number of options
-        confidence_calls = [call for call in mock_print.call_args_list if "% confidence)" in str(call)]
+        confidence_calls = [
+            call for call in mock_print.call_args_list if "% confidence)" in str(call)
+        ]
         assert len(confidence_calls) <= 2  # max_suggestions = 2

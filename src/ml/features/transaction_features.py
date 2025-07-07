@@ -12,7 +12,7 @@ import pandas as pd
 from ..utils.ml_config import MLConfig
 
 # Punctuation characters to remove
-PUNCTUATION = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+PUNCTUATION = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 
 class TransactionFeatures:

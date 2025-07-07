@@ -594,7 +594,12 @@ class IciciBankTransformer:
         suggestions = []
 
         # First, try ML-powered suggestions if available
-        if self.ml_service and self.ml_service.ml_enabled:
+        if (
+            self.ml_service
+            and self.ml_service.ml_enabled
+            and self.ml_service.classifier
+            and hasattr(self.ml_service.classifier, "feature_extractor")
+        ):
             try:
                 ml_patterns = self.ml_service.classifier.feature_extractor.extract_text_patterns(
                     description

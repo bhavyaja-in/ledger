@@ -424,7 +424,9 @@ class TestSystemPerformance:
         with (
             patch("builtins.input", return_value="1"),
             patch("builtins.print"),
-            patch.object(transformer, "_ask_for_transaction_category", return_value="other"),
+            patch.object(
+                transformer, "_ask_for_transaction_category_with_ml", return_value="other"
+            ),
             patch.object(
                 transformer,
                 "_ask_for_transaction_category_with_options",

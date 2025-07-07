@@ -38,9 +38,12 @@ class TestCreateModelsWithPrefix:
             "TransactionSplit",
             "SkippedTransaction",
             "ProcessingLog",
+            "MLFeedback",
+            "MLPattern",
+            "MLModelStats",
         ]
 
-        assert len(models) == 7
+        assert len(models) == 10
         for model_name in expected_models:
             assert model_name in models
             assert models[model_name] is not None
@@ -60,7 +63,7 @@ class TestCreateModelsWithPrefix:
         models, base = create_models_with_prefix(test_prefix)
 
         # Verify all models are created
-        assert len(models) == 7
+        assert len(models) == 10
 
         # Verify class names with test prefix
         assert models["Institution"].__name__ == "InstitutionTest"
@@ -369,7 +372,7 @@ class TestDatabaseManager:
             assert db_manager.Session == mock_session_factory
 
             # Verify models were created without prefix
-            assert len(db_manager.models) == 7
+            assert len(db_manager.models) == 10
             assert "Institution" in db_manager.models
 
     @pytest.mark.unit
@@ -391,7 +394,7 @@ class TestDatabaseManager:
             assert db_manager.test_mode is True
 
             # Verify models were created with test prefix
-            assert len(db_manager.models) == 7
+            assert len(db_manager.models) == 10
             # Verify test table names
             assert db_manager.models["Institution"].__tablename__ == "test_institutions"
 

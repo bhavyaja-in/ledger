@@ -98,28 +98,34 @@ class SimilarityEngine:
         if len(descriptions) == 1:
             return np.array([[1.0]])
 
-        # Clean descriptions
-        clean_descriptions = [self._clean_description(desc) for desc in descriptions]
+        # Clean and prepare descriptions
+        clean_descriptions = self._prepare_descriptions_for_similarity(descriptions)
 
-        # Filter out empty descriptions
-        non_empty_descriptions = [desc for desc in clean_descriptions if desc.strip()]
-
-        if len(non_empty_descriptions) < len(clean_descriptions):
-            # If we have empty descriptions, pad with simple text to maintain matrix size
-            padded_descriptions = []
-            for desc in clean_descriptions:
-                if desc.strip():
-                    padded_descriptions.append(desc)
-                else:
-                    padded_descriptions.append("empty")
-            clean_descriptions = padded_descriptions
-
+        # Handle identical descriptions
         if len(set(clean_descriptions)) == 1:
-            # All descriptions are identical
             size = len(clean_descriptions)
             return np.ones((size, size))
 
-        # Fit TF-IDF if not already fitted or if we need to refit
+        # Compute TF-IDF similarity matrix
+        return self._compute_tfidf_similarity(clean_descriptions)
+
+    def _prepare_descriptions_for_similarity(self, descriptions: List[str]) -> List[str]:
+        """Prepare descriptions for similarity computation."""
+        clean_descriptions = [self._clean_description(desc) for desc in descriptions]
+
+        # Handle empty descriptions by padding with placeholder
+        padded_descriptions = []
+        for desc in clean_descriptions:
+            if desc.strip():
+                padded_descriptions.append(desc)
+            else:
+                padded_descriptions.append("empty")
+
+        return padded_descriptions
+
+    def _compute_tfidf_similarity(self, clean_descriptions: List[str]) -> np.ndarray:
+        """Compute TF-IDF based similarity matrix."""
+        # Fit TF-IDF if needed
         if not self._tfidf_fitted or len(clean_descriptions) > 1:
             try:
                 self.tfidf_vectorizer.fit(clean_descriptions)
@@ -136,7 +142,7 @@ class SimilarityEngine:
             # Compute cosine similarity matrix
             similarity_matrix = cosine_similarity(tfidf_matrix)
 
-            # Fix any zero diagonals (can happen when document has no features)
+            # Fix any zero diagonals
             for i in range(similarity_matrix.shape[0]):
                 if similarity_matrix[i, i] == 0:
                     similarity_matrix[i, i] = 1.0
