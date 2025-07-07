@@ -60,32 +60,95 @@ class TransactionFeatures:
         description = description.lower().strip()
         patterns = []
 
-        # Extract merchant names (words before common payment terms)
-        payment_terms = ["upi", "neft", "imps", "rtgs", "payment", "transfer"]
-        for term in payment_terms:
-            if term in description:
-                before_term = description.split(term)[0].strip()
-                if before_term:
-                    patterns.extend(self._extract_meaningful_words(before_term))
+        # Extract meaningful merchant/service names from UPI descriptions
+        # Example: "UPI-SWIGGY-DELIVERY-12345@paytm" -> ["swiggy"]
+        upi_pattern = re.match(r"upi[.-]?([a-zA-Z]+)", description)
+        if upi_pattern:
+            merchant = upi_pattern.group(1)
+            if len(merchant) >= 3:
+                patterns.append(merchant)
 
-        # Extract UPI IDs
-        upi_matches = re.findall(r"[\w\.-]+@[\w\.-]+", description)
-        patterns.extend(upi_matches)
+        # Extract merchant names from descriptions like "PAY TO SWIGGY"
+        pay_pattern = re.search(r"pay\s+to\s+([a-zA-Z]+)", description)
+        if pay_pattern:
+            merchant = pay_pattern.group(1)
+            if len(merchant) >= 3:
+                patterns.append(merchant)
 
-        # Extract phone numbers
-        phone_matches = re.findall(r"\b\d{10}\b", description)
-        patterns.extend(phone_matches)
-
-        # Extract meaningful words (not common stop words)
+        # Extract meaningful words (company names, brands)
         meaningful_words = self._extract_meaningful_words(description)
-        patterns.extend(meaningful_words)
 
-        # Filter patterns by length
+        # Filter for actual merchant/brand names (not common words)
+        brand_words = []
+        common_words = {
+            "payment",
+            "transfer",
+            "upi",
+            "neft",
+            "imps",
+            "rtgs",
+            "bank",
+            "paytm",
+            "phonepe",
+            "gpay",
+            "googlepay",
+            "delivery",
+            "order",
+            "bill",
+            "fund",
+            "amount",
+            "transaction",
+            "debit",
+            "credit",
+            "wallet",
+            "recharge",
+        }
+
+        for word in meaningful_words:
+            if (
+                len(word) >= 3
+                and word not in common_words
+                and not word.isdigit()
+                and not re.match(r"^[0-9@.-]+$", word)
+            ):
+                brand_words.append(word)
+
+        patterns.extend(brand_words)
+
+        # Extract specific known merchants/brands
+        known_brands = [
+            "swiggy",
+            "zomato",
+            "uber",
+            "ola",
+            "amazon",
+            "flipkart",
+            "myntra",
+            "dominos",
+            "mcdonalds",
+            "kfc",
+            "subway",
+            "netflix",
+            "spotify",
+            "airtel",
+            "jio",
+            "vodafone",
+            "apollo",
+            "fortis",
+            "zerodha",
+        ]
+
+        for brand in known_brands:
+            if brand in description and brand not in patterns:
+                patterns.append(brand)
+
+        # Filter patterns by length and remove duplicates
         min_len = self.config["feature_extraction"]["min_pattern_length"]
         max_len = self.config["feature_extraction"]["max_pattern_length"]
         filtered_patterns = [p for p in patterns if min_len <= len(p) <= max_len]
 
-        return list(set(filtered_patterns))  # Remove duplicates
+        # Return only top 5 most relevant patterns
+        return list(set(filtered_patterns))[:5]
 
     def extract_temporal_features(self, transaction_date: datetime) -> Dict[str, Any]:
         """Extract temporal features from transaction date."""

@@ -3,7 +3,7 @@ ML suggestion service for transaction categorization.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from .models.transaction_classifier import TransactionClassifier
 from .utils.ml_config import MLConfig
@@ -157,6 +157,11 @@ class MLSuggestionService:
             final_value=final_value,
         )
 
+    def suggest_category(self, transaction: Dict[str, Any]) -> List[Tuple[str, float]]:
+        """Suggest categories for transaction (simplified interface)."""
+        suggestions = self.suggest_transaction_category(transaction)
+        return [(s["category"], s["confidence"]) for s in suggestions]
+
     def get_suggestion_summary(self, transaction: Dict[str, Any]) -> Dict[str, Any]:
         """Get comprehensive ML suggestions for a transaction."""
         summary = {
@@ -229,98 +234,185 @@ class MLSuggestionService:
             return 0.3  # Default low confidence for invalid patterns
 
     def _infer_category_from_pattern(self, pattern: str) -> str:
-        """Infer category from a pattern string."""
-        pattern_lower = pattern.lower()
+        """Infer category from pattern using enhanced contextual analysis."""
+        pattern_lower = pattern.lower().strip()
 
-        # Category keywords mapping
+        # Enhanced category keywords mapping with priority scoring
         category_keywords = {
-            "food": [
-                "swiggy",
-                "zomato",
-                "food",
-                "restaurant",
-                "cafe",
-                "dominos",
-                "pizza",
-                "meal",
-            ],
-            "transport": [
-                "uber",
-                "ola",
-                "metro",
-                "bus",
-                "taxi",
-                "auto",
-                "travel",
-                "fuel",
-            ],
-            "shopping": [
-                "amazon",
-                "flipkart",
-                "myntra",
-                "mall",
-                "store",
-                "shopping",
-                "purchase",
-            ],
-            "utility": [
-                "electricity",
-                "water",
-                "gas",
-                "phone",
-                "internet",
-                "wifi",
-                "bill",
-            ],
-            "medical": [
-                "hospital",
-                "pharmacy",
-                "medical",
-                "doctor",
-                "clinic",
-                "health",
-            ],
-            "entertainment": [
-                "movie",
-                "netflix",
-                "spotify",
-                "game",
-                "youtube",
-                "music",
-            ],
-            "transfer": ["transfer", "friend", "family", "person", "upi"],
-            "finance": ["bank", "loan", "emi", "investment", "mutual", "insurance"],
+            "food": {
+                "high": ["swiggy", "zomato", "dominos", "mcdonalds", "kfc", "subway", "pizzahut"],
+                "medium": ["food", "restaurant", "cafe", "kitchen", "meal", "dining", "bakery"],
+                "low": ["pizza", "burger", "coffee"],
+            },
+            "transport": {
+                "high": ["uber", "ola", "rapido", "metro", "petrol", "diesel"],
+                "medium": ["taxi", "auto", "bus", "train", "fuel", "parking"],
+                "low": ["travel", "trip"],
+            },
+            "shopping": {
+                "high": ["amazon", "flipkart", "myntra", "nykaa", "bigbasket"],
+                "medium": ["mall", "store", "shopping", "market", "supermarket"],
+                "low": ["purchase", "buy", "shop"],
+            },
+            "utility": {
+                "high": ["electricity", "bses", "adani", "tata", "airtel", "jio", "vodafone"],
+                "medium": ["water", "gas", "phone", "internet", "wifi", "broadband"],
+                "low": ["bill", "payment"],
+            },
+            "medical": {
+                "high": ["apollo", "fortis", "max", "pharmacy", "medplus"],
+                "medium": ["hospital", "clinic", "doctor", "medical", "health"],
+                "low": ["medicine", "checkup"],
+            },
+            "entertainment": {
+                "high": ["netflix", "spotify", "hotstar", "prime", "youtube"],
+                "medium": ["movie", "cinema", "pvr", "inox", "music"],
+                "low": ["game", "fun", "entertainment"],
+            },
+            "finance": {
+                "high": ["loan", "emi", "sip", "mutual", "insurance", "policy"],
+                "medium": ["bank", "investment", "trading", "zerodha", "groww"],
+                "low": ["finance", "money"],
+            },
+            "education": {
+                "high": ["byju", "unacademy", "vedantu", "coursera"],
+                "medium": ["school", "college", "university", "course", "fees"],
+                "low": ["education", "learning", "study"],
+            },
+            "salary": {
+                "high": ["salary", "payroll", "wages"],
+                "medium": ["income", "company", "employer"],
+                "low": ["work"],
+            },
         }
 
-        for category, keywords in category_keywords.items():
-            if any(keyword in pattern_lower for keyword in keywords):
-                return category
+        # Calculate category scores based on pattern matching
+        category_scores = {}
+        for category, priority_keywords in category_keywords.items():
+            score = 0
+            for priority, keywords in priority_keywords.items():
+                for keyword in keywords:
+                    if keyword in pattern_lower:
+                        # Higher scores for exact matches and higher priority keywords
+                        base_score = 3 if priority == "high" else 2 if priority == "medium" else 1
+                        if pattern_lower == keyword:  # Exact match
+                            score += base_score * 2
+                        elif keyword in pattern_lower:  # Partial match
+                            score += base_score
+            if score > 0:
+                category_scores[category] = score
+
+        # Return category with highest score, or fallback analysis
+        if category_scores:
+            best_category = max(category_scores.items(), key=lambda x: x[1])[0]
+            return best_category
+
+        # Fallback analysis for common patterns
+        if any(keyword in pattern_lower for keyword in ["transfer", "friend", "family"]):
+            return "transfer"
+        if any(keyword in pattern_lower for keyword in ["atm", "withdrawal", "cash"]):
+            return "cash"
 
         return "miscellaneous"
 
     def _generate_category_reasoning(self, transaction: Dict[str, Any], category: str) -> str:
-        """Generate reasoning for why a category was suggested."""
+        """Generate enhanced reasoning for why a category was suggested."""
         description = str(transaction.get("description", "")).lower()
         amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
 
         reasons = []
 
-        # Description-based reasoning
-        if category == "food" and ("swiggy" in description or "zomato" in description):
-            reasons.append("food delivery service detected")
-        elif category == "transport" and ("uber" in description or "ola" in description):
-            reasons.append("ride-sharing service detected")
-        elif category == "shopping" and ("amazon" in description or "flipkart" in description):
-            reasons.append("e-commerce platform detected")
+        # Enhanced description-based reasoning with specific brand/service detection
+        category_detectors = {
+            "food": {
+                "swiggy": "Swiggy food delivery service",
+                "zomato": "Zomato food delivery service",
+                "dominos": "Domino's pizza order",
+                "mcdonalds": "McDonald's restaurant",
+                "kfc": "KFC restaurant",
+                "restaurant": "restaurant transaction",
+                "food": "food-related transaction",
+            },
+            "transport": {
+                "uber": "Uber ride booking",
+                "ola": "Ola cab service",
+                "metro": "metro/subway transportation",
+                "petrol": "fuel purchase",
+                "diesel": "fuel purchase",
+                "parking": "parking payment",
+            },
+            "shopping": {
+                "amazon": "Amazon online purchase",
+                "flipkart": "Flipkart online shopping",
+                "myntra": "Myntra fashion purchase",
+                "bigbasket": "BigBasket grocery order",
+                "mall": "shopping mall purchase",
+            },
+            "utility": {
+                "electricity": "electricity bill payment",
+                "airtel": "Airtel telecom service",
+                "jio": "Jio telecom service",
+                "vodafone": "Vodafone telecom service",
+                "bses": "BSES electricity bill",
+                "adani": "Adani utilities payment",
+            },
+            "entertainment": {
+                "netflix": "Netflix subscription",
+                "spotify": "Spotify music streaming",
+                "hotstar": "Disney+ Hotstar subscription",
+                "prime": "Amazon Prime subscription",
+                "movie": "movie/cinema ticket",
+            },
+            "medical": {
+                "apollo": "Apollo Hospitals",
+                "fortis": "Fortis Healthcare",
+                "pharmacy": "pharmacy purchase",
+                "medplus": "MedPlus medical store",
+            },
+            "finance": {
+                "loan": "loan payment",
+                "emi": "EMI payment",
+                "sip": "mutual fund SIP",
+                "insurance": "insurance premium",
+                "zerodha": "Zerodha trading platform",
+            },
+        }
 
-        # Amount-based reasoning
-        if amount > 10000:
-            reasons.append("high amount suggests significant purchase")
-        elif amount < 100:
-            reasons.append("small amount suggests routine expense")
+        # Check for specific brand/service mentions
+        if category in category_detectors:
+            for keyword, reason in category_detectors[category].items():
+                if keyword in description:
+                    reasons.append(reason + " identified")
+                    break
 
-        # Default reasoning
+        # Amount-based contextual reasoning
+        if amount > 50000:
+            reasons.append("high-value transaction suggests major expense")
+        elif amount > 10000:
+            reasons.append("significant amount indicates important purchase")
+        elif amount > 1000:
+            reasons.append("moderate amount suggests regular expense")
+        elif amount > 100:
+            reasons.append("small to medium transaction")
+        elif amount > 0:
+            reasons.append("micro-transaction or minimal expense")
+
+        # Transaction type reasoning
+        if transaction.get("debit_amount"):
+            reasons.append("outgoing payment")
+        elif transaction.get("credit_amount"):
+            reasons.append("incoming payment")
+
+        # Time-based reasoning could be added here (weekday vs weekend, time of day)
+
+        # Pattern-based reasoning
+        if "upi" in description:
+            reasons.append("UPI digital payment")
+        if any(term in description for term in ["transfer", "friend", "family"]):
+            reasons.append("personal transfer detected")
+
+        # Default reasoning with confidence indication
         if not reasons:
-            reasons.append("ML analysis of transaction patterns")
+            reasons.append(f"ML pattern analysis suggests {category} category")
 
         return "; ".join(reasons).capitalize()
