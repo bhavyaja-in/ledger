@@ -2,9 +2,8 @@
 ML suggestion service for transaction categorization.
 """
 
-import json
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+import re
+from typing import Any, Dict, List, Optional
 
 from .models.transaction_classifier import TransactionClassifier
 from .utils.ml_config import MLConfig
@@ -143,6 +142,7 @@ class MLSuggestionService:
         suggestion_type: str,
         suggested_value: str,
         user_action: str,
+        *,
         final_value: Optional[str] = None,
     ):
         """Provide feedback to ML system for continuous learning."""
@@ -209,8 +209,6 @@ class MLSuggestionService:
 
     def _calculate_pattern_confidence(self, pattern: str, descriptions: List[str]) -> float:
         """Calculate confidence for a regex pattern."""
-        import re
-
         try:
             # Test pattern against descriptions
             matches = 0
@@ -227,7 +225,7 @@ class MLSuggestionService:
             confidence = match_ratio * 0.8 + complexity_bonus
             return min(1.0, max(0.1, confidence))
 
-        except Exception:
+        except (ValueError, TypeError, re.error):
             return 0.3  # Default low confidence for invalid patterns
 
     def _infer_category_from_pattern(self, pattern: str) -> str:
@@ -323,6 +321,6 @@ class MLSuggestionService:
 
         # Default reasoning
         if not reasons:
-            reasons.append(f"ML analysis of transaction patterns")
+            reasons.append("ML analysis of transaction patterns")
 
         return "; ".join(reasons).capitalize()

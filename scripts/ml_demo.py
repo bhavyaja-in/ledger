@@ -6,7 +6,6 @@ This script demonstrates the ML capabilities implemented for
 contextual transaction categorization with continuous learning.
 """
 
-import json
 import os
 import sys
 from datetime import datetime
@@ -97,7 +96,7 @@ def demo_similarity_engine():
     pattern = engine.suggest_regex_pattern(similar_descriptions)
 
     if pattern:
-        print(f"\n🎨 Suggested Regex Pattern:")
+        print("\n🎨 Suggested Regex Pattern:")
         print(f"   {pattern}")
 
 
@@ -158,7 +157,7 @@ def demo_ml_suggestions():
         # Regex pattern suggestion
         if summary["suggestions"]["regex_pattern"]:
             pattern_info = summary["suggestions"]["regex_pattern"]
-            print(f"   🎨 Regex Pattern Suggestion:")
+            print("   🎨 Regex Pattern Suggestion:")
             print(f"      Pattern: {pattern_info['pattern']}")
             print(f"      Confidence: {pattern_info['confidence']:.2f}")
 
@@ -310,7 +309,7 @@ def demo_configuration():
     )
     custom_suggestions = len(custom_service.suggest_transaction_category(test_transaction))
 
-    print(f"\n📊 Suggestion Comparison:")
+    print("\n📊 Suggestion Comparison:")
     print(f"   Default Config: {default_suggestions} suggestions")
     print(f"   Custom Config: {custom_suggestions} suggestions")
 
@@ -339,8 +338,8 @@ def main():
 
         print("\n🚀 Ready for production use with the ICICI Bank transformer!")
 
-    except Exception as e:
-        print(f"\n❌ Demo failed with error: {e}")
+    except Exception as error:
+        print(f"\n❌ Demo failed with error: {error}")
         import traceback
 
         traceback.print_exc()

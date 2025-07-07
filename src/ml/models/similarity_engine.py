@@ -220,10 +220,10 @@ class SimilarityEngine:
             # Escape special regex characters
             escaped_pattern = re.escape(pattern.lower())
             return f".*{escaped_pattern}.*"
-        else:
-            # Create an OR pattern for multiple common elements
-            escaped_patterns = [re.escape(p.lower()) for p in common_patterns[:3]]  # Limit to 3
-            return f".*({'|'.join(escaped_patterns)}).*"
+
+        # Create an OR pattern for multiple common elements
+        escaped_patterns = [re.escape(p.lower()) for p in common_patterns[:3]]  # Limit to 3
+        return f".*({'|'.join(escaped_patterns)}).*"
 
     def _clean_description(self, description: str) -> str:
         """Clean and normalize description text."""
@@ -247,7 +247,7 @@ class SimilarityEngine:
         return clean
 
     def calculate_merchant_confidence(
-        self, description: str, historical_matches: List[Dict[str, Any]]
+        self, _description: str, historical_matches: List[Dict[str, Any]]
     ) -> float:
         """Calculate confidence score for merchant identification based on historical data."""
         if not historical_matches:

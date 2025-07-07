@@ -2,17 +2,14 @@
 Main ML model for transaction classification and categorization.
 """
 
+import hashlib
 import json
-import pickle
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelEncoder
 
 from ..features.transaction_features import TransactionFeatures
 from ..utils.ml_config import MLConfig
@@ -137,7 +134,7 @@ class TransactionClassifier:
         """Suggest transaction reasons based on context."""
         suggestions = []
         description = str(transaction.get("description", "")).lower()
-        amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
+        _amount = float(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
 
         # Template-based reason generation
         reason_templates = {
@@ -149,17 +146,17 @@ class TransactionClassifier:
             "transport": [
                 f"Transportation via {self._extract_merchant_name(description)}",
                 f"Travel expense - {category}",
-                f"Commute cost",
+                "Commute cost",
             ],
             "shopping": [
                 f"Online purchase from {self._extract_merchant_name(description)}",
                 f"Shopping expense - {category}",
-                f"Retail purchase",
+                "Retail purchase",
             ],
             "utility": [
-                f"Utility bill payment",
+                "Utility bill payment",
                 f"Service payment - {category}",
-                f"Monthly utility expense",
+                "Monthly utility expense",
             ],
         }
 
@@ -185,6 +182,7 @@ class TransactionClassifier:
         suggestion_type: str,
         suggested_value: str,
         user_action: str,
+        *,
         final_value: Optional[str] = None,
     ):
         """Learn from user feedback to improve future suggestions."""
@@ -250,7 +248,7 @@ class TransactionClassifier:
         if not self.db_manager:
             return suggestions
 
-        description = str(transaction.get("description", ""))
+        _description = str(transaction.get("description", ""))
 
         # Find similar transactions from database
         # This would require database query implementation
@@ -278,7 +276,7 @@ class TransactionClassifier:
                 if confidence >= self.config["confidence_threshold"]:
                     suggestions.append((classes[idx], confidence))
 
-        except Exception:
+        except (ValueError, AttributeError):
             # Model not ready or other error
             pass
 
@@ -324,7 +322,7 @@ class TransactionClassifier:
                 suggestion_dict[suggestion] = confidence
 
         # Convert back to list and sort by confidence
-        ranked = [(suggestion, confidence) for suggestion, confidence in suggestion_dict.items()]
+        ranked = list(suggestion_dict.items())
         ranked.sort(key=lambda x: x[1], reverse=True)
 
         return ranked
@@ -345,8 +343,6 @@ class TransactionClassifier:
         amount = str(transaction.get("debit_amount") or transaction.get("credit_amount") or 0)
         date = str(transaction.get("transaction_date", ""))
 
-        import hashlib
-
         hash_string = f"{description}_{amount}_{date}"
         return hashlib.sha256(hash_string.encode()).hexdigest()
 
@@ -366,7 +362,7 @@ class TransactionClassifier:
         for data in self._training_data:
             if data["user_action"] == "accepted" and data["suggestion_type"] == "category":
                 # Extract description from features
-                features = json.loads(data["features_used"])
+                _features = json.loads(data["features_used"])
                 # For now, skip complex feature reconstruction
                 continue
 
@@ -375,12 +371,12 @@ class TransactionClassifier:
             try:
                 self.category_classifier.fit(descriptions, categories)
                 self._models_trained = True
-            except Exception:
+            except (ValueError, AttributeError):
                 # Training failed
                 pass
 
     def _get_historical_confidence(
-        self, transaction: Dict[str, Any], suggestion: str, suggestion_type: str
+        self, _transaction: Dict[str, Any], _suggestion: str, _suggestion_type: str
     ) -> float:
         """Get confidence based on historical success."""
         # Default implementation - would query database in real implementation
@@ -391,7 +387,7 @@ class TransactionClassifier:
         # Simple heuristic based on feature completeness
         total_features = len(features)
         non_zero_features = sum(
-            1 for value in features.values() if value and value != 0 and value != False
+            1 for value in features.values() if value and value != 0 and value is not False
         )
 
         if total_features == 0:
@@ -401,7 +397,7 @@ class TransactionClassifier:
         return min(1.0, 0.3 + completeness_ratio * 0.7)
 
     def _calculate_similarity_confidence(
-        self, transaction: Dict[str, Any], suggestion: str
+        self, _transaction: Dict[str, Any], _suggestion: str
     ) -> float:
         """Calculate confidence based on similarity to known patterns."""
         # Default implementation

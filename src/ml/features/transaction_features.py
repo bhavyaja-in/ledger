@@ -3,7 +3,6 @@ Transaction feature extraction for ML models.
 """
 
 import re
-import string
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -11,6 +10,9 @@ import numpy as np
 import pandas as pd
 
 from ..utils.ml_config import MLConfig
+
+# Punctuation characters to remove
+PUNCTUATION = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 
 
 class TransactionFeatures:
@@ -160,7 +162,7 @@ class TransactionFeatures:
         }
 
         # Remove punctuation and split
-        translator = str.maketrans("", "", string.punctuation)
+        translator = str.maketrans("", "", PUNCTUATION)
         clean_text = text.translate(translator)
         words = clean_text.split()
 
