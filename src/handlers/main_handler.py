@@ -14,14 +14,20 @@ from typing import Any, Dict, List
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Local imports after path setup
-from src.loaders.database_loader import DatabaseLoader  # pylint: disable=wrong-import-position
+from src.loaders.database_loader import (  # pylint: disable=wrong-import-position
+    DatabaseLoader,
+)
 from src.models.database import DatabaseManager  # pylint: disable=wrong-import-position
-from src.utils.config_loader import ConfigLoader  # pylint: disable=wrong-import-position
+from src.utils.config_loader import (  # pylint: disable=wrong-import-position
+    ConfigLoader,
+)
 
 
 def _import_git_backup():
     try:
-        from scripts.git_backup import GitDatabaseBackup  # pylint: disable=import-outside-toplevel
+        from scripts.git_backup import (  # pylint: disable=import-outside-toplevel
+            GitDatabaseBackup,
+        )
 
         return GitDatabaseBackup
     except ImportError:

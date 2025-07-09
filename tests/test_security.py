@@ -206,7 +206,11 @@ class TestInputValidationSecurity:
                     # If successful, ensure reasonable limits are enforced
                     if result and "description" in result:
                         assert len(result["description"]) < 50000  # Reasonable limit
-                except (MemoryError, ValueError, OverflowError):  # pylint: disable=unused-variable
+                except (
+                    MemoryError,
+                    ValueError,
+                    OverflowError,
+                ):  # pylint: disable=unused-variable
                     # Acceptable - system properly rejected oversized input
                     pass
 
@@ -803,7 +807,10 @@ class TestSystemBoundarySecurity:
                 patch(
                     "yaml.safe_load",
                     return_value={
-                        "database": {"url": "sqlite:///:memory:", "test_prefix": "test_"},
+                        "database": {
+                            "url": "sqlite:///:memory:",
+                            "test_prefix": "test_",
+                        },
                         "processors": {"icici_bank": {"enabled": True, "currency": "INR"}},
                         "logging": {"level": "INFO"},
                     },

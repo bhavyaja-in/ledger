@@ -130,7 +130,8 @@ class TestBackupManager:
         mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
         with patch(
-            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+            "src.handlers.main_handler._import_git_backup",
+            return_value=mock_git_backup_cls,
         ):
             result = backup_manager.create_backup("automatic")
 
@@ -148,7 +149,8 @@ class TestBackupManager:
         mock_git_backup_cls = Mock(return_value=mock_git_backup)
 
         with patch(
-            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+            "src.handlers.main_handler._import_git_backup",
+            return_value=mock_git_backup_cls,
         ):
             result = backup_manager.create_backup("completion")
 
@@ -163,7 +165,8 @@ class TestBackupManager:
         mock_git_backup_cls = Mock(side_effect=Exception("Backup error"))
 
         with patch(
-            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+            "src.handlers.main_handler._import_git_backup",
+            return_value=mock_git_backup_cls,
         ):
             result = backup_manager.create_backup("interruption")
 
@@ -182,7 +185,8 @@ class TestBackupManager:
         backup_types = ["startup", "completion", "interruption", "automatic", "unknown"]
 
         with patch(
-            "src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls
+            "src.handlers.main_handler._import_git_backup",
+            return_value=mock_git_backup_cls,
         ):
             for backup_type in backup_types:
                 result = backup_manager.create_backup(backup_type)
@@ -331,7 +335,10 @@ class TestMainHandler:
         """Test run method with non-existent file"""
         file_path = "/nonexistent/file.xlsx"
 
-        with patch("os.path.exists", return_value=False), patch("builtins.print") as mock_print:
+        with (
+            patch("os.path.exists", return_value=False),
+            patch("builtins.print") as mock_print,
+        ):
             result = main_handler.run(processor_type="icici_bank", file_path=file_path)
 
         assert result["status"] == "error"
@@ -440,7 +447,10 @@ class TestMainHandler:
             },
         ]
 
-        with patch("builtins.input", return_value="1"), patch("builtins.print") as mock_print:
+        with (
+            patch("builtins.input", return_value="1"),
+            patch("builtins.print") as mock_print,
+        ):
             result = main_handler._select_file_with_details(files, "/test")
 
         assert result == "/test/file1.xlsx"
@@ -549,7 +559,11 @@ class TestMainHandler:
         }
 
         with (
-            patch.object(main_handler, "_get_or_create_institution", return_value=mock_institution),
+            patch.object(
+                main_handler,
+                "_get_or_create_institution",
+                return_value=mock_institution,
+            ),
             patch.object(
                 main_handler,
                 "_create_processed_file_record",
@@ -577,7 +591,11 @@ class TestMainHandler:
         mock_transform_result = {"status": "interrupted"}
 
         with (
-            patch.object(main_handler, "_get_or_create_institution", return_value=mock_institution),
+            patch.object(
+                main_handler,
+                "_get_or_create_institution",
+                return_value=mock_institution,
+            ),
             patch.object(
                 main_handler,
                 "_create_processed_file_record",
@@ -603,7 +621,11 @@ class TestMainHandler:
         mock_processed_file = Mock(id=1)
 
         with (
-            patch.object(main_handler, "_get_or_create_institution", return_value=mock_institution),
+            patch.object(
+                main_handler,
+                "_get_or_create_institution",
+                return_value=mock_institution,
+            ),
             patch.object(
                 main_handler,
                 "_create_processed_file_record",

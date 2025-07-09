@@ -306,7 +306,9 @@ class TestSystemPerformance:
     @pytest.mark.extractor
     def test_excel_extraction_performance(self, performance_monitor, large_transaction_dataset):
         """Test Excel file extraction performance"""
-        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import (
+            IciciBankExtractor,
+        )
 
         # Create large Excel file with ICICI format and correct column names
         transactions = large_transaction_dataset(1000)
@@ -422,7 +424,9 @@ class TestSystemPerformance:
         with (
             patch("builtins.input", return_value="1"),
             patch("builtins.print"),
-            patch.object(transformer, "_ask_for_transaction_category", return_value="other"),
+            patch.object(
+                transformer, "_ask_for_transaction_category_with_ml", return_value="other"
+            ),
             patch.object(
                 transformer,
                 "_ask_for_transaction_category_with_options",
@@ -502,7 +506,9 @@ class TestSystemPerformance:
                 patch("builtins.input", side_effect=["1", "1", "y"]),
                 patch("builtins.print"),
                 patch.object(
-                    main_handler, "_select_file_with_details", return_value=temp_file_path
+                    main_handler,
+                    "_select_file_with_details",
+                    return_value=temp_file_path,
                 ),
                 patch.object(
                     main_handler,
@@ -539,7 +545,9 @@ class TestSystemPerformance:
         dataset_sizes = [100, 500, 1000, 2000]
         memory_usage = []
 
-        from src.extractors.channel_based_extractors.icici_bank_extractor import IciciBankExtractor
+        from src.extractors.channel_based_extractors.icici_bank_extractor import (
+            IciciBankExtractor,
+        )
 
         config = {"processors": {"icici_bank": {"enabled": True}}}
         extractor = IciciBankExtractor(config)

@@ -38,9 +38,12 @@ class TestCreateModelsWithPrefix:
             "TransactionSplit",
             "SkippedTransaction",
             "ProcessingLog",
+            "MLFeedback",
+            "MLPattern",
+            "MLModelStats",
         ]
 
-        assert len(models) == 7
+        assert len(models) == 10
         for model_name in expected_models:
             assert model_name in models
             assert models[model_name] is not None
@@ -60,7 +63,7 @@ class TestCreateModelsWithPrefix:
         models, base = create_models_with_prefix(test_prefix)
 
         # Verify all models are created
-        assert len(models) == 7
+        assert len(models) == 10
 
         # Verify class names with test prefix
         assert models["Institution"].__name__ == "InstitutionTest"
@@ -369,7 +372,7 @@ class TestDatabaseManager:
             assert db_manager.Session == mock_session_factory
 
             # Verify models were created without prefix
-            assert len(db_manager.models) == 7
+            assert len(db_manager.models) == 10
             assert "Institution" in db_manager.models
 
     @pytest.mark.unit
@@ -391,7 +394,7 @@ class TestDatabaseManager:
             assert db_manager.test_mode is True
 
             # Verify models were created with test prefix
-            assert len(db_manager.models) == 7
+            assert len(db_manager.models) == 10
             # Verify test table names
             assert db_manager.models["Institution"].__tablename__ == "test_institutions"
 
@@ -406,7 +409,10 @@ class TestDatabaseManager:
             }
         }
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config, test_mode=True)
 
             # Verify default test prefix is used
@@ -418,7 +424,10 @@ class TestDatabaseManager:
         """Test DatabaseManager with custom test prefix"""
         config = {"database": {"url": "sqlite:///:memory:", "test_prefix": "custom_test_"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config, test_mode=True)
 
             # Verify custom test prefix is used
@@ -454,7 +463,10 @@ class TestDatabaseManager:
         """Test get_model returns correct model for existing model name"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config)
 
             # Test getting existing model
@@ -472,7 +484,10 @@ class TestDatabaseManager:
         """Test get_model returns None for non-existent model name"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config)
 
             # Test getting non-existent model
@@ -485,7 +500,10 @@ class TestDatabaseManager:
         """Test get_model handles empty string gracefully"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config)
 
             # Test getting model with empty string
@@ -498,7 +516,10 @@ class TestDatabaseManager:
         """Test get_model handles None gracefully"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config)
 
             # Test getting model with None
@@ -536,7 +557,10 @@ class TestDatabaseManager:
         """Test accessing nested configuration values"""
         config = {"database": {"url": "sqlite:///:memory:", "test_prefix": "nested_test_"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config, test_mode=True)
 
             # Verify nested config access
@@ -549,7 +573,10 @@ class TestDatabaseManager:
         """Test handling missing database configuration"""
         config = {}  # No database config
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             with pytest.raises(KeyError):
                 DatabaseManager(config)
 
@@ -559,7 +586,10 @@ class TestDatabaseManager:
         """Test handling missing database URL"""
         config = {"database": {}}  # No URL
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             with pytest.raises(KeyError):
                 DatabaseManager(config)
 
@@ -571,7 +601,10 @@ class TestDatabaseManager:
 
         config = {"database": {"url": "sqlite:///:memory:", "test_prefix": "test_"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             # Production mode
             prod_manager = DatabaseManager(config, test_mode=False)
 
@@ -617,7 +650,10 @@ class TestDatabaseManager:
         """Test that all model types are accessible through get_model"""
         config = {"database": {"url": "sqlite:///:memory:"}}
 
-        with patch("src.models.database.create_engine"), patch("src.models.database.sessionmaker"):
+        with (
+            patch("src.models.database.create_engine"),
+            patch("src.models.database.sessionmaker"),
+        ):
             db_manager = DatabaseManager(config)
 
             # Test all expected model types
