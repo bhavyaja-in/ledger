@@ -4,6 +4,8 @@ ML Configuration for transaction categorization system.
 
 from typing import Any, Dict
 
+__all__ = ["MLConfig"]
+
 
 class MLConfig:
     """Configuration class for ML features and hyperparameters."""

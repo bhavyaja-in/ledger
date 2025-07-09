@@ -14,6 +14,8 @@ from ..utils.ml_config import MLConfig
 # Punctuation characters to remove
 PUNCTUATION = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
+__all__ = ["TransactionFeatures"]
+
 
 class TransactionFeatures:
     """Extract features from transaction data for ML models."""

@@ -15,6 +15,8 @@ from ..features.transaction_features import TransactionFeatures
 from ..utils.ml_config import MLConfig
 from .similarity_engine import SimilarityEngine
 
+__all__ = ["TransactionClassifier"]
+
 
 class TransactionClassifier:
     """ML-powered transaction classifier with continuous learning."""
@@ -34,7 +36,7 @@ class TransactionClassifier:
         self.reason_generator = None
 
         # Data storage
-        self._training_data = []
+        self._training_data: list[dict] = []
         self._models_trained = False
 
         # Initialize models
@@ -233,9 +235,9 @@ class TransactionClassifier:
 
         # Combine factors
         if factors:
-            final_confidence = np.mean(factors)
+            final_confidence = float(np.mean(factors))
         else:
-            final_confidence = base_confidence
+            final_confidence = float(base_confidence)
 
         return min(1.0, max(0.1, final_confidence))
 
@@ -243,7 +245,7 @@ class TransactionClassifier:
         self, transaction: Dict[str, Any]
     ) -> List[Tuple[str, float]]:
         """Get category suggestions based on similarity to historical data."""
-        suggestions = []
+        suggestions: list[tuple[str, float]] = []
 
         if not self.db_manager:
             return suggestions
@@ -258,7 +260,7 @@ class TransactionClassifier:
 
     def _get_ml_category_suggestions(self, description: str) -> List[Tuple[str, float]]:
         """Get category suggestions from trained ML model."""
-        suggestions = []
+        suggestions: list[tuple[str, float]] = []
 
         if not self.category_classifier or not self._models_trained:
             return suggestions
@@ -314,7 +316,7 @@ class TransactionClassifier:
     def _rank_suggestions(self, suggestions: List[Tuple[str, float]]) -> List[Tuple[str, float]]:
         """Rank and deduplicate suggestions."""
         # Group by suggestion text and take max confidence
-        suggestion_dict = {}
+        suggestion_dict: dict[str, float] = {}
         for suggestion, confidence in suggestions:
             if suggestion in suggestion_dict:
                 suggestion_dict[suggestion] = max(suggestion_dict[suggestion], confidence)

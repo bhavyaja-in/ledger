@@ -9,6 +9,9 @@ from .models.transaction_classifier import TransactionClassifier
 from .utils.ml_config import MLConfig
 
 
+__all__ = ["MLSuggestionService"]
+
+
 class MLSuggestionService:
     """Service that provides ML-powered suggestions for transaction categorization."""
 
@@ -28,7 +31,7 @@ class MLSuggestionService:
             self.classifier = None
 
     def suggest_regex_pattern(
-        self, description: str, similar_descriptions: List[str] = None
+        self, description: str, similar_descriptions: Optional[List[str]] = None
     ) -> Optional[Dict[str, Any]]:
         """Suggest regex pattern for transaction description."""
         if not self.ml_enabled or not self.classifier:
@@ -52,7 +55,7 @@ class MLSuggestionService:
         return None
 
     def suggest_enum_category(
-        self, description: str, existing_patterns: List[str] = None
+        self, description: str, existing_patterns: Optional[List[str]] = None
     ) -> List[Dict[str, Any]]:
         """Suggest enum category based on transaction description."""
         if not self.ml_enabled or not self.classifier:
@@ -92,7 +95,10 @@ class MLSuggestionService:
                     }
                 )
 
-        return sorted(suggestions, key=lambda x: x["confidence"], reverse=True)[:3]
+        def _sort_key(suggestion: Dict[str, Any]) -> float:
+            return float(suggestion["confidence"])
+
+        return sorted(suggestions, key=_sort_key, reverse=True)[:3]
 
     def suggest_transaction_category(self, transaction: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Suggest transaction category based on complete transaction context."""

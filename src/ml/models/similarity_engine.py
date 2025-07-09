@@ -12,6 +12,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from ..utils.ml_config import MLConfig
 
+__all__ = ["SimilarityEngine"]
+
 
 class SimilarityEngine:
     """Fuzzy matching and semantic similarity for transaction categorization."""
@@ -197,7 +199,7 @@ class SimilarityEngine:
             common_patterns.extend(patterns)
 
         # Count pattern occurrences
-        pattern_counts = {}
+        pattern_counts: dict[str, int] = {}
         for pattern in common_patterns:
             pattern_counts[pattern] = pattern_counts.get(pattern, 0) + 1
 
