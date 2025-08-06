@@ -182,6 +182,66 @@ def create_models_with_prefix(prefix=""):
         },
     )
 
+    # ML Learning Tables
+    MLFeedback = type(
+        f"MLFeedback{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}ml_feedback",
+            "id": Column(Integer, primary_key=True),
+            "transaction_hash": Column(String(64), nullable=False),
+            "suggestion_type": Column(
+                String(50), nullable=False
+            ),  # 'regex', 'enum', 'category', 'reason'
+            "suggested_value": Column(Text, nullable=False),
+            "user_action": Column(String(20), nullable=False),  # 'accepted', 'rejected', 'modified'
+            "final_value": Column(Text),
+            "confidence_score": Column(Float),
+            "features_used": Column(JSON),
+            "created_at": Column(DateTime, default=datetime.utcnow),
+        },
+    )
+
+    MLPattern = type(
+        f"MLPattern{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}ml_patterns",
+            "id": Column(Integer, primary_key=True),
+            "pattern_text": Column(String(200), nullable=False, unique=True),
+            "pattern_type": Column(
+                String(50), nullable=False
+            ),  # 'merchant', 'description', 'amount_range'
+            "category": Column(String(100), nullable=False),
+            "confidence": Column(Float, default=0.5),
+            "usage_count": Column(Integer, default=1),
+            "success_rate": Column(Float, default=0.5),
+            "last_used": Column(DateTime, default=datetime.utcnow),
+            "created_at": Column(DateTime, default=datetime.utcnow),
+            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+        },
+    )
+
+    MLModelStats = type(
+        f"MLModelStats{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}ml_model_stats",
+            "id": Column(Integer, primary_key=True),
+            "model_type": Column(
+                String(50), nullable=False
+            ),  # 'regex_suggester', 'category_classifier'
+            "accuracy": Column(Float),
+            "precision": Column(Float),
+            "recall": Column(Float),
+            "total_predictions": Column(Integer, default=0),
+            "correct_predictions": Column(Integer, default=0),
+            "last_trained": Column(DateTime),
+            "created_at": Column(DateTime, default=datetime.utcnow),
+            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+        },
+    )
+
     return {
         "Institution": Institution,
         "ProcessedFile": ProcessedFile,
@@ -190,6 +250,9 @@ def create_models_with_prefix(prefix=""):
         "TransactionSplit": TransactionSplit,
         "SkippedTransaction": SkippedTransaction,
         "ProcessingLog": ProcessingLog,
+        "MLFeedback": MLFeedback,
+        "MLPattern": MLPattern,
+        "MLModelStats": MLModelStats,
     }, Base
 
 

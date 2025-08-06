@@ -214,14 +214,14 @@ class TestIciciBankTransformer:
     def test_ask_for_category_selection(self, mock_input, transformer):
         """Test category selection by number"""
         with patch("builtins.print"):
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
             assert result == "food"
 
     @patch("builtins.input", return_value="custom_cat")
     def test_ask_for_category_custom(self, mock_input, transformer):
         """Test category creation"""
         with patch("builtins.print"):
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
             assert result == "custom_cat"
             transformer.config_loader.add_category.assert_called_once_with("custom_cat")
 
@@ -229,14 +229,14 @@ class TestIciciBankTransformer:
     def test_ask_for_transaction_category_default(self, mock_input, transformer):
         """Test transaction category with default"""
         with patch("builtins.print"):
-            result = transformer._ask_for_transaction_category("food")
+            result = transformer._ask_for_transaction_category_with_ml("food", "test transaction")
             assert result == "food"
 
     @patch("builtins.input", return_value="2")
     def test_ask_for_transaction_category_selection(self, mock_input, transformer):
         """Test transaction category selection"""
         with patch("builtins.print"):
-            result = transformer._ask_for_transaction_category("food")
+            result = transformer._ask_for_transaction_category_with_ml("food", "test transaction")
             assert result == "transport"
 
     @patch("builtins.input", return_value="")
@@ -264,14 +264,14 @@ class TestIciciBankTransformer:
     def test_ask_for_reason_custom(self, mock_input, transformer):
         """Test asking for reason with custom input"""
         with patch("builtins.print"):
-            result = transformer._ask_for_reason()
+            result = transformer._ask_for_reason_with_ml("test transaction", "food")
             assert result == "test reason"
 
     @patch("builtins.input", return_value="")
     def test_ask_for_reason_default(self, mock_input, transformer):
         """Test asking for reason with default"""
         with patch("builtins.print"):
-            result = transformer._ask_for_reason()
+            result = transformer._ask_for_reason_with_ml("test transaction", "food")
             assert result == "General transaction"
 
     @patch("builtins.input", return_value="")
@@ -309,14 +309,14 @@ class TestIciciBankTransformer:
         """Test category selection when interrupted"""
         transformer._interrupted = True
         with patch("builtins.print"):
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
             assert result == "other"
 
     def test_ask_for_reason_interrupted(self, transformer):
         """Test reason when interrupted"""
         transformer._interrupted = True
         with patch("builtins.print"):
-            result = transformer._ask_for_reason()
+            result = transformer._ask_for_reason_with_ml("test transaction", "food")
             assert result == "General transaction"
 
     # =====================
@@ -385,8 +385,10 @@ class TestIciciBankTransformer:
             patch.object(transformer, "_ask_for_pattern_word", return_value="upi"),
             patch.object(transformer, "_ask_for_enum_name", return_value="upi_payments"),
             patch.object(transformer, "_handle_enum_and_category", return_value=mock_enum),
-            patch.object(transformer, "_ask_for_transaction_category", return_value="transfer"),
-            patch.object(transformer, "_ask_for_reason", return_value="Payment"),
+            patch.object(
+                transformer, "_ask_for_transaction_category_with_ml", return_value="transfer"
+            ),
+            patch.object(transformer, "_ask_for_reason_with_ml", return_value="Payment"),
             patch.object(transformer, "_ask_for_splits", return_value=None),
             patch("builtins.print"),
         ):
@@ -398,7 +400,7 @@ class TestIciciBankTransformer:
         """Test interactive flow when no pattern selected"""
         with (
             patch.object(transformer, "_ask_for_pattern_word", return_value=None),
-            patch.object(transformer, "_ask_for_reason", return_value="User skipped"),
+            patch.object(transformer, "_ask_for_reason_with_ml", return_value="User skipped"),
             patch("builtins.print"),
         ):
             result = transformer._full_interactive_flow("Complex transaction")
@@ -653,9 +655,9 @@ class TestIciciBankTransformer:
         mock_session.query().filter_by().first.return_value = None
         transformer.db_manager.get_session.return_value = mock_session
 
-        with patch.object(transformer, "_ask_for_category", side_effect=KeyboardInterrupt):
+        with patch.object(transformer, "_ask_for_category_with_ml", side_effect=KeyboardInterrupt):
             with pytest.raises(KeyboardInterrupt):
-                transformer._handle_enum_and_category("new_enum", ["pattern"])
+                transformer._handle_enum_and_category("new_enum", ["pattern"], "test description")
 
     def test_handle_enum_and_category_create_new(self, transformer):
         """Test creating new enum and category"""
@@ -667,10 +669,12 @@ class TestIciciBankTransformer:
         transformer.db_loader.create_or_update_enum.return_value = mock_enum
 
         with (
-            patch.object(transformer, "_ask_for_category", return_value="new_category"),
+            patch.object(transformer, "_ask_for_category_with_ml", return_value="new_category"),
             patch("builtins.print") as mock_print,
         ):
-            result = transformer._handle_enum_and_category("new_enum", ["pattern"])
+            result = transformer._handle_enum_and_category(
+                "new_enum", ["pattern"], "test description"
+            )
 
         assert result == mock_enum
         transformer.db_loader.create_or_update_enum.assert_called_once_with(
@@ -689,7 +693,7 @@ class TestIciciBankTransformer:
     def test_ask_for_category_invalid_numbers(self, mock_input, transformer):
         """Test category selection with invalid numbers"""
         with patch("builtins.print") as mock_print:
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
 
         assert result == "food"
         mock_print.assert_any_call("❌ Invalid number. Please enter 1-2 or type a category name.")
@@ -700,7 +704,7 @@ class TestIciciBankTransformer:
         transformer._interrupted = True  # Force exit after one iteration
 
         with patch("builtins.print") as mock_print:
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
 
         assert result == "other"  # Interrupted return value
 
@@ -709,8 +713,11 @@ class TestIciciBankTransformer:
         transformer.config_loader = None
         transformer.config = {"categories": [{"name": "food"}, {"name": "transport"}]}
 
-        with patch("builtins.input", return_value="food"), patch("builtins.print") as mock_print:
-            result = transformer._ask_for_category()
+        with (
+            patch("builtins.input", return_value="food"),
+            patch("builtins.print") as mock_print,
+        ):
+            result = transformer._ask_for_category_with_ml("test transaction")
 
         assert result == "food"
         mock_print.assert_any_call("✅ Selected existing enum category: Food")
@@ -720,8 +727,11 @@ class TestIciciBankTransformer:
         transformer.config_loader = None
         transformer.config = {"categories": [{"name": "food"}]}
 
-        with patch("builtins.input", return_value="new_cat"), patch("builtins.print") as mock_print:
-            result = transformer._ask_for_category()
+        with (
+            patch("builtins.input", return_value="new_cat"),
+            patch("builtins.print") as mock_print,
+        ):
+            result = transformer._ask_for_category_with_ml("test transaction")
 
         assert result == "new_cat"
         assert {"name": "new_cat"} in transformer.config["categories"]
@@ -735,7 +745,7 @@ class TestIciciBankTransformer:
             patch("builtins.input", return_value="problem_cat"),
             patch("builtins.print") as mock_print,
         ):
-            result = transformer._ask_for_category()
+            result = transformer._ask_for_category_with_ml("test transaction")
 
         assert result == "problem_cat"
         msg = "⚠️  Enum category created but couldn't save: Save failed"
@@ -749,7 +759,7 @@ class TestIciciBankTransformer:
     def test_ask_for_transaction_category_invalid_number(self, mock_input, transformer):
         """Test transaction category selection with invalid number"""
         with patch("builtins.print") as mock_print:
-            result = transformer._ask_for_transaction_category("test")
+            result = transformer._ask_for_transaction_category_with_ml("test", "test transaction")
 
         assert result == "food"
         mock_print.assert_any_call(
@@ -764,7 +774,7 @@ class TestIciciBankTransformer:
             patch("builtins.input", return_value="problem_trans_cat"),
             patch("builtins.print") as mock_print,
         ):
-            result = transformer._ask_for_transaction_category("test")
+            result = transformer._ask_for_transaction_category_with_ml("test", "test transaction")
 
         assert result == "problem_trans_cat"
         msg = "⚠️  Transaction category created but couldn't save: Save failed"
@@ -779,7 +789,7 @@ class TestIciciBankTransformer:
             patch("builtins.input", return_value="existing_cat"),
             patch("builtins.print") as mock_print,
         ):
-            result = transformer._ask_for_transaction_category("test")
+            result = transformer._ask_for_transaction_category_with_ml("test", "test transaction")
 
         assert result == "existing_cat"
         mock_print.assert_any_call("✅ Selected existing transaction category: Existing_Cat")
@@ -1027,7 +1037,7 @@ class TestIciciBankTransformer:
     def test_ask_for_reason_empty_input(self, mock_input, transformer):
         """Test reason input with too short then valid input"""
         with patch("builtins.print") as mock_print:
-            result = transformer._ask_for_reason()
+            result = transformer._ask_for_reason_with_ml("test transaction", "food")
 
         assert result == "valid_reason"
         mock_print.assert_any_call(
@@ -1059,3 +1069,104 @@ class TestIciciBankTransformer:
         mock_print.assert_any_call(
             "❌ Please enter a valid pattern (at least 2 characters), press Enter for suggestion, or type '2' to skip"
         )
+
+    # ML Configuration-driven Tests
+    # =====================
+
+    def test_get_pattern_suggestions_respects_max_suggestions_config(self, transformer):
+        """Test that pattern suggestions respect max_suggestions config"""
+        # Set up config with max_suggestions = 2
+        transformer.config = {"ml": {"max_suggestions": 2}, "categories": [{"name": "food"}]}
+
+        result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE SWIGGY FOOD")
+        assert len(result) <= 2
+
+    def test_get_pattern_suggestions_with_ml_config_values(self, transformer):
+        """Test that pattern suggestions use config values for filtering"""
+        transformer.config = {
+            "ml": {
+                "max_suggestions": 3,
+                "feature_extraction": {"min_pattern_length": 4, "max_pattern_length": 10},
+            },
+            "categories": [{"name": "food"}],
+        }
+
+        # Mock ML service
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_regex_patterns.return_value = [
+            "ab",
+            "payment",
+            "grocery",
+            "verylongpatternname",
+        ]
+        transformer.ml_service = mock_ml_service
+
+        result = transformer._get_pattern_suggestions("UPI PAYMENT TO GROCERY STORE")
+        # Should filter out "ab" (too short) and "verylongpatternname" (too long)
+        assert "ab" not in result
+        assert "verylongpatternname" not in result
+        assert len(result) <= 3
+
+    def test_ml_confidence_threshold_from_config(self, transformer):
+        """Test that ML suggestions respect confidence_threshold from config"""
+        transformer.config = {
+            "ml": {"confidence_threshold": 0.9},  # Very high threshold
+            "categories": [{"name": "food"}],
+        }
+
+        # Mock ML service with low confidence suggestion
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_regex_pattern.return_value = {
+            "pattern": "test",
+            "confidence": 0.6,  # Below threshold
+            "reasoning": "test reason",
+        }
+        transformer.ml_service = mock_ml_service
+
+        with (
+            patch("builtins.input", return_value="2"),
+            patch("builtins.print") as mock_print,
+            patch.object(transformer, "_get_pattern_suggestions", return_value=["test"]),
+        ):
+            result = transformer._ask_for_pattern_word("test description")
+
+        # Should not print ML suggestion since confidence is below threshold
+        ml_suggestion_printed = any(
+            "ML Regex Pattern Suggestion" in str(call) for call in mock_print.call_args_list
+        )
+        assert not ml_suggestion_printed
+        assert result is None  # Should skip
+
+    def test_ml_max_suggestions_in_category_selection(self, transformer):
+        """Test that ML category suggestions respect max_suggestions config"""
+        transformer.config = {
+            "ml": {"max_suggestions": 2},
+            "categories": [{"name": "food"}, {"name": "transport"}],
+        }
+
+        # Mock ML service
+        mock_ml_service = Mock()
+        mock_ml_service.ml_enabled = True
+        mock_ml_service.suggest_enum_category.return_value = [
+            {"category": "food", "confidence": 0.9, "reasoning": "food related"},
+            {"category": "transport", "confidence": 0.8, "reasoning": "transport related"},
+            {"category": "entertainment", "confidence": 0.7, "reasoning": "entertainment related"},
+        ]
+        transformer.ml_service = mock_ml_service
+
+        with patch("builtins.input", return_value="food"), patch("builtins.print") as mock_print:
+            result = transformer._ask_for_category_with_ml("test description")
+
+        # Count ML suggestions printed (should be limited by max_suggestions)
+        ml_suggestion_calls = [
+            call
+            for call in mock_print.call_args_list
+            if "ML Enum Category Suggestions" in str(call) or "🎯" in str(call)
+        ]
+        # Should show only max_suggestions number of options
+        confidence_calls = [
+            call for call in mock_print.call_args_list if "% confidence)" in str(call)
+        ]
+        assert len(confidence_calls) <= 2  # max_suggestions = 2

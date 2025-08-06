@@ -209,12 +209,22 @@ class SmokeTestSuite:
                 success,
                 duration,
                 f"Config loaded with {len(missing_sections)} missing sections, {len(categories)} categories",
-                {"missing_sections": missing_sections, "category_count": len(categories)},
+                {
+                    "missing_sections": missing_sections,
+                    "category_count": len(categories),
+                },
             )
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Configuration Loading",
@@ -262,14 +272,24 @@ class SmokeTestSuite:
 
             return True
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Database Connectivity",
                 False,
                 duration,
                 f"Database connectivity failed: {exception}",
-                {"exception_type": type(exception).__name__, "error_details": str(exception)},
+                {
+                    "exception_type": type(exception).__name__,
+                    "error_details": str(exception),
+                },
             )
             return False
 
@@ -306,7 +326,14 @@ class SmokeTestSuite:
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Critical Modules",
@@ -334,7 +361,14 @@ class SmokeTestSuite:
 
             return True
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "File Processing Pipeline",
@@ -385,7 +419,14 @@ class SmokeTestSuite:
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Security Boundaries",
@@ -420,12 +461,22 @@ class SmokeTestSuite:
                 success,
                 duration,
                 f"Performance {'within' if success else 'exceeds'} thresholds",
-                {"performance_issues": performance_issues, "metrics": self.performance_metrics},
+                {
+                    "performance_issues": performance_issues,
+                    "metrics": self.performance_metrics,
+                },
             )
 
             return success
 
-        except (OSError, IOError, ValueError, KeyError, ImportError, TypeError) as exception:
+        except (
+            OSError,
+            IOError,
+            ValueError,
+            KeyError,
+            ImportError,
+            TypeError,
+        ) as exception:
             duration = time.time() - start_time
             self.record_result(
                 "Performance Baselines",
@@ -479,7 +530,7 @@ class SmokeTestSuite:
                 "total_tests": total_tests,
                 "passed_tests": passed_tests,
                 "failed_tests": total_tests - passed_tests,
-                "success_rate": (passed_tests / total_tests * 100) if total_tests > 0 else 0,
+                "success_rate": ((passed_tests / total_tests * 100) if total_tests > 0 else 0),
                 "total_duration": total_duration,
                 "timestamp": datetime.utcnow().isoformat(),
             },

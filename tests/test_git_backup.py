@@ -653,7 +653,9 @@ class TestGitDatabaseBackup:
         with (
             patch.object(GitDatabaseBackup, "_load_config", return_value={}),
             patch.object(
-                GitDatabaseBackup, "_simple_decrypt", side_effect=Exception("Decrypt error")
+                GitDatabaseBackup,
+                "_simple_decrypt",
+                side_effect=Exception("Decrypt error"),
             ),
         ):
             backup = GitDatabaseBackup(backup_repo_path=str(repo_path), db_path=str(db_path))
@@ -892,7 +894,10 @@ class TestBackupManager:
 
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
+            patch(
+                "src.handlers.main_handler._import_git_backup",
+                return_value=mock_git_backup_cls,
+            ),
         ):
             manager = BackupManager()
             result = manager.create_backup("completion")
@@ -915,7 +920,10 @@ class TestBackupManager:
 
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
+            patch(
+                "src.handlers.main_handler._import_git_backup",
+                return_value=mock_git_backup_cls,
+            ),
         ):
             manager = BackupManager()
             result = manager.create_backup("automatic")
@@ -935,7 +943,10 @@ class TestBackupManager:
 
         with (
             patch.object(BackupManager, "_check_backup_availability", return_value=True),
-            patch("src.handlers.main_handler._import_git_backup", return_value=mock_git_backup_cls),
+            patch(
+                "src.handlers.main_handler._import_git_backup",
+                return_value=mock_git_backup_cls,
+            ),
         ):
             manager = BackupManager()
             result = manager.create_backup("interruption")

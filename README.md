@@ -6,9 +6,11 @@ A comprehensive Python-based financial data processing system that extracts, tra
 
 - **Multi-Bank Support**: Currently supports ICICI Bank with extensible architecture for other banks
 - **Multi-Currency Support**: Intelligent currency detection and processing for international transactions
+- **🤖 ML-Powered Categorization**: Machine learning suggestions for transactions, patterns, and categories with continuous learning
 - **Dual-Category System**: Transaction enums and expense categories for flexible organization
-- **Interactive Processing**: User-guided transaction categorization with learning capabilities
-- **Smart Pattern Recognition**: Auto-categorization based on learned patterns
+- **Interactive Processing**: User-guided transaction categorization with intelligent ML suggestions
+- **Smart Pattern Recognition**: Auto-categorization based on learned patterns and ML algorithms
+- **Contextual AI Suggestions**: Field-level ML suggestions that appear contextually during data entry
 - **Split Tracking**: Multi-person expense sharing with percentage-based splits
 - **Deduplication**: Hash-based duplicate transaction detection
 - **Automated Backups**: Git-based encrypted backup system for data protection
@@ -22,6 +24,7 @@ A comprehensive Python-based financial data processing system that extracts, tra
 - Python 3.8+
 - SQLite (included with Python)
 - Git (for backup functionality)
+- **ML Dependencies**: scikit-learn, fuzzywuzzy, python-levenshtein (for AI features)
 - See `requirements.txt` for detailed dependencies
 
 ## 🛠️ Installation
@@ -69,6 +72,54 @@ A comprehensive Python-based financial data processing system that extracts, tra
    ```bash
    python src/handlers/main_handler.py
    ```
+
+2. **Experience ML-powered suggestions** for faster categorization:
+   - **Regex Pattern Suggestions**: AI suggests patterns from transaction descriptions
+   - **Category Recommendations**: ML predicts transaction categories with confidence scores
+   - **Enum Category Mapping**: Smart suggestions for creating reusable transaction enums
+   - **Contextual Reasoning**: AI provides reasoning for its suggestions
+   - **Continuous Learning**: System improves with your feedback over time
+
+## 🤖 ML-Powered Features
+
+The system includes a comprehensive machine learning engine that provides intelligent suggestions throughout the transaction processing workflow:
+
+### 🧠 Intelligent Suggestions
+- **Pattern Extraction**: Automatically suggests regex patterns from transaction descriptions
+- **Category Prediction**: ML-powered transaction categorization with 75%+ confidence threshold  
+- **Enum Recommendations**: Smart suggestions for creating reusable transaction categories
+- **Contextual Reasoning**: AI-generated explanations for each suggestion
+- **Field-Level Context**: Suggestions appear when needed, not overwhelmingly all at once
+
+### 📊 Learning Capabilities
+- **Feedback Integration**: System learns from your accept/reject decisions
+- **Temporal Awareness**: Considers day/week/month patterns in predictions
+- **Amount-Based Learning**: Recognizes transaction amount patterns for better suggestions
+- **Similarity Matching**: Uses fuzzy matching (90%+ accuracy) and semantic similarity
+- **Continuous Improvement**: Model performance improves with each interaction
+
+### ⚙️ Configurable Behavior
+- **Confidence Thresholds**: Set minimum confidence levels for suggestions
+- **Suggestion Limits**: Control how many suggestions to show per category  
+- **Feature Extraction**: Fine-tune pattern recognition sensitivity
+- **Learning Parameters**: Adjust how quickly the system adapts to your preferences
+- **Graceful Degradation**: System works normally even if ML features are disabled
+
+### 💡 Usage Example
+```
+📝 Transaction: UPI-SWIGGY-DELIVERY-12345@paytm
+
+🤖 ML Regex Pattern Suggestion (85%):
+  .*swiggy.*
+  Reason: Food delivery service pattern detected
+
+🎯 Category Suggestion (80% confidence): Food
+  Reason: Food delivery service detected from merchant name
+
+✅ Accept suggestion or type your own...
+```
+
+### Advanced Usage
 
 2. **Specific Bank Processor**:
    ```bash
@@ -200,6 +251,36 @@ Archive previous backup as financial_data_backup_2025-06-30_01-05-41.db
 
 ### Main Configuration (`config/config.yaml`)
 Main system configuration - **committed to git**.
+
+### ML Configuration
+
+The ML system can be configured through the `config/config.yaml` file:
+
+```yaml
+ml:
+  enabled: true                    # Enable/disable ML features
+  confidence_threshold: 0.75       # Minimum confidence for suggestions (0.0-1.0)
+  max_suggestions: 5               # Maximum suggestions per category (0 to disable)
+  feature_extraction:
+    min_pattern_length: 3          # Minimum pattern length for extraction
+    max_pattern_length: 50         # Maximum pattern length for extraction
+    min_description_length: 5      # Minimum description length for processing
+  similarity:
+    fuzzy_threshold: 0.8           # Fuzzy matching threshold (0.0-1.0)
+    cosine_threshold: 0.7          # Semantic similarity threshold (0.0-1.0)
+  learning:
+    feedback_weight: 1.5           # Weight for user feedback in learning
+    decay_factor: 0.95             # Time decay factor for old patterns
+    short_term_days: 30            # Days for short-term pattern memory
+```
+
+**ML Configuration Options:**
+- **enabled**: Set to `false` to completely disable ML features
+- **confidence_threshold**: Only show suggestions above this confidence level
+- **max_suggestions**: Limit suggestions to avoid overwhelming users (0 disables suggestions)
+- **Feature extraction parameters**: Control pattern recognition sensitivity
+- **Similarity thresholds**: Fine-tune fuzzy matching and semantic analysis
+- **Learning parameters**: Control how the system learns from user feedback
 
 ### Personal Categories (`config/categories.yaml`)
 Your personal spending categories - **gitignored for privacy**.
