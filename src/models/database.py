@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Enum,
     Float,
     ForeignKey,
     Integer,
@@ -127,6 +128,7 @@ def create_models_with_prefix(prefix=""):
             "splits": Column(JSON),
             "has_splits": Column(Boolean, default=False),
             "is_settled": Column(Boolean, default=False),
+            "status": Column(Enum('pending', 'processed', 'skipped', name='transaction_status'), default='pending', nullable=False),
             "created_at": Column(DateTime, default=datetime.utcnow),
             "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
             "institution": relationship(Institution),
@@ -182,6 +184,54 @@ def create_models_with_prefix(prefix=""):
         },
     )
 
+    User = type(
+        f"User{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}users",
+            "id": Column(Integer, primary_key=True),
+            "username": Column(String(100), nullable=False, unique=True),
+            "password_hash": Column(String(255), nullable=False),
+            "roles": Column(String(255), nullable=False, default="reviewer"),  # comma-separated roles
+            "is_active": Column(Boolean, default=True),
+            "created_at": Column(DateTime, default=datetime.utcnow),
+            "updated_at": Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+        },
+    )
+
+    RefreshToken = type(
+        f"RefreshToken{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}refresh_tokens",
+            "id": Column(Integer, primary_key=True),
+            "user_id": Column(Integer, ForeignKey(f"{prefix}users.id"), nullable=False),
+            "token_hash": Column(String(255), nullable=False, unique=True),
+            "expires_at": Column(DateTime, nullable=False),
+            "is_revoked": Column(Boolean, default=False),
+            "created_at": Column(DateTime, default=datetime.utcnow),
+            "user": relationship(User),
+        },
+    )
+
+    AuditLog = type(
+        f"AuditLog{class_suffix}",
+        (Base,),
+        {
+            "__tablename__": f"{prefix}audit_logs",
+            "id": Column(Integer, primary_key=True),
+            "transaction_id": Column(Integer, ForeignKey(f"{prefix}transactions.id"), nullable=False),
+            "user_id": Column(Integer, ForeignKey(f"{prefix}users.id")),
+            "action": Column(String(50), nullable=False),  # classify, skip, reprocess, revert
+            "from_status": Column(String(20)),
+            "to_status": Column(String(20)),
+            "data": Column(JSON),  # Store the changes made
+            "created_at": Column(DateTime, default=datetime.utcnow),
+            "transaction": relationship(Transaction),
+            "user": relationship(User),
+        },
+    )
+
     return {
         "Institution": Institution,
         "ProcessedFile": ProcessedFile,
@@ -190,6 +240,9 @@ def create_models_with_prefix(prefix=""):
         "TransactionSplit": TransactionSplit,
         "SkippedTransaction": SkippedTransaction,
         "ProcessingLog": ProcessingLog,
+        "User": User,
+        "RefreshToken": RefreshToken,
+        "AuditLog": AuditLog,
     }, Base
 
 
@@ -216,8 +269,8 @@ class DatabaseManager:  # pylint: disable=unused-variable
         if test_mode:
             self._ensure_test_schema_updated()
         else:
-            # Create tables
-            self.base.metadata.create_all(self.engine)
+            # For production, ensure schema is updated without dropping tables
+            self._ensure_production_schema_updated()
 
     def __str__(self):
         """String representation that sanitizes sensitive information"""
@@ -307,14 +360,79 @@ class DatabaseManager:  # pylint: disable=unused-variable
     def _update_existing_schema(self, conn, test_table_name):
         """Update existing schema if needed"""
         try:
-            # Use raw SQL with table name substitution for schema queries
+            # Check for both currency and status columns
             # nosec B608 - This is a schema query with controlled table name
             conn.execute(text(f"SELECT currency FROM {test_table_name} LIMIT 1"))  # nosec B608
-            # If we get here, currency column exists, just create any missing tables
-            self.base.metadata.create_all(self.engine)
+            # Check for status column
+            try:
+                conn.execute(text(f"SELECT status FROM {test_table_name} LIMIT 1"))  # nosec B608
+                # Both columns exist, just create any missing tables
+                self.base.metadata.create_all(self.engine)
+            except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+                # Status column doesn't exist, add it
+                print("🔄 Adding status column to transactions...")
+                conn.execute(text(f"ALTER TABLE {test_table_name} ADD COLUMN status VARCHAR(20) DEFAULT 'processed'"))  # nosec B608
+                conn.commit()
+                # Create any missing tables (User, RefreshToken, AuditLog)
+                self.base.metadata.create_all(self.engine)
+                print("✅ Database schema updated with status column")
         except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
             # Currency column doesn't exist, drop and recreate test tables
             print("🔄 Updating test database schema...")
             self.base.metadata.drop_all(self.engine)
             self.base.metadata.create_all(self.engine)
-            print("✅ Test database schema updated")
+    def _ensure_production_schema_updated(self):
+        """Ensure production database schema is up to date without dropping tables"""
+        try:
+            # Check if status column exists in transactions table
+            with self.engine.connect() as conn:
+                self._check_and_update_production_schema(conn)
+        except (OSError, IOError, ImportError, Exception):  # pylint: disable=W0718
+            # If we can't check, just create tables (first time setup)
+            self.base.metadata.create_all(self.engine)
+
+    def _check_and_update_production_schema(self, conn):
+        """Check production schema and update if needed"""
+        table_name = "transactions"
+
+        try:
+            # First check if the table exists
+            result = conn.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"),
+                {"table_name": table_name},
+            )
+            table_exists = result.fetchone() is not None
+
+            if table_exists:
+                self._update_production_schema(conn, table_name)
+            else:
+                # Table doesn't exist, create all tables
+                print("🔄 Creating production database schema...")
+                self.base.metadata.create_all(self.engine)
+                print("✅ Production database schema created")
+        except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+            # Error checking table existence, just create tables
+            print("🔄 Creating production database schema...")
+            self.base.metadata.create_all(self.engine)
+            print("✅ Production database schema created")
+
+    def _update_production_schema(self, conn, table_name):
+        """Update production schema if needed"""
+        try:
+            # Check for status column
+            try:
+                conn.execute(text(f"SELECT status FROM {table_name} LIMIT 1"))  # nosec B608
+                # Status column exists, just create any missing tables
+                self.base.metadata.create_all(self.engine)
+            except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+                # Status column doesn't exist, add it with appropriate default
+                print("🔄 Adding status column to production transactions...")
+                # For existing transactions, set status to 'processed' since they went through CLI
+                conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN status VARCHAR(20) DEFAULT 'processed'"))  # nosec B608
+                conn.commit()
+                # Create any missing tables (User, RefreshToken, AuditLog)
+                self.base.metadata.create_all(self.engine)
+                print("✅ Production database schema updated with status column")
+        except (AttributeError, TypeError, OSError, Exception):  # pylint: disable=W0718
+            # Error checking column, just create missing tables
+            self.base.metadata.create_all(self.engine)
